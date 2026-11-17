@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PulpitOS 1.12 — Web Desktop</title>
+<title>PulpitOS 1.13 — Web Desktop</title>
 <style>
 /* ============================================================
    PulpitOS — design tokens
@@ -87,6 +87,7 @@ svg.ico{display:block;flex:none}
   background:#f4f8ff;color:#1b5eb8;display:flex;align-items:center;justify-content:center;
   box-shadow:0 1px 4px #0009;
 }
+.sc-badge.url{background:#e9f7ff;color:#0b6fa8}
 .rename-input{
   width:100%;font-size:12px;text-align:center;background:#0d1526;color:#fff;
   border:1px solid var(--accent);border-radius:5px;padding:2px 3px;
@@ -103,6 +104,13 @@ svg.ico{display:block;flex:none}
   border:2px solid rgba(var(--accent-rgb),.8);border-radius:12px;backdrop-filter:blur(4px);
   pointer-events:none;transition:.12s;
 }
+#dropHint{
+  position:fixed;z-index:96;display:none;left:50%;bottom:calc(var(--tb) + 14px);
+  transform:translateX(-50%);padding:6px 14px;border-radius:20px;font-size:11.5px;font-weight:700;
+  background:rgba(var(--accent-rgb),.16);border:1px solid rgba(var(--accent-rgb),.45);
+  color:var(--accent);backdrop-filter:blur(10px);pointer-events:none;
+}
+#dropHint.on{display:block}
 
 /* drag ghost */
 .drag-ghost{
@@ -124,6 +132,7 @@ svg.ico{display:block;flex:none}
 .dg-tag.trash{color:var(--danger);border-color:rgba(255,93,108,.6)}
 .dg-tag.link{color:var(--ok);border-color:rgba(87,217,119,.55)}
 .dg-tag.block{color:var(--warn);border-color:rgba(255,200,61,.6)}
+.dg-tag.place{color:var(--text);border-color:var(--stroke2)}
 
 /* ============================================================
    Windows
@@ -319,10 +328,15 @@ html[data-theme=light] #taskbar{background:rgba(243,247,252,.90)}
 }
 html[data-theme=light] .inp,html[data-theme=light] select.inp,html[data-theme=light] textarea.inp{background:rgba(255,255,255,.9)}
 .inp:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(var(--accent-rgb),.22)}
+.inp.bad{border-color:var(--danger);box-shadow:0 0 0 2px rgba(255,93,108,.2)}
 textarea.inp{font-family:var(--mono);font-size:12px;resize:vertical;min-height:120px}
 select.inp option{background:var(--solid)}
 .radio-row{display:flex;align-items:center;gap:9px;padding:7px 4px;color:var(--text);font-size:12.5px;cursor:pointer}
 .radio-row input{accent-color:var(--accent)}
+.radio-row.off{opacity:.45;pointer-events:none}
+.tabs{display:flex;gap:4px;margin-bottom:12px;border-bottom:1px solid var(--stroke);flex-wrap:wrap}
+.tab{padding:8px 14px;font-size:12.5px;font-weight:700;color:var(--dim);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.active{color:var(--accent);border-color:var(--accent)}
 .prop-table{width:100%;font-size:12.5px;border-collapse:collapse}
 .prop-table td{padding:5px 4px;border-bottom:1px solid var(--stroke)}
 .prop-table td:first-child{color:var(--dim2);width:112px}
@@ -514,6 +528,7 @@ input[type=range]{accent-color:var(--accent);width:200px}
 .toggle .tr::after{content:"";position:absolute;left:3px;top:3px;width:15px;height:15px;border-radius:50%;background:#cfd8e6;transition:.15s}
 .toggle input:checked+.tr{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent}
 .toggle input:checked+.tr::after{left:22px;background:#06111e}
+.toggle.off{opacity:.4;pointer-events:none}
 .app-row{display:flex;align-items:center;gap:10px;padding:10px;border-radius:11px;border:1px solid var(--stroke);margin-bottom:8px;background:rgba(255,255,255,.035);flex-wrap:wrap}
 .app-row .t{flex:1;min-width:150px}
 .app-row .t b{font-size:13px;display:block}
@@ -530,6 +545,7 @@ input[type=range]{accent-color:var(--accent);width:200px}
 .def-add .inp{max-width:180px}
 .def-sec{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--dim2);margin:14px 2px 6px}
 .hint{font-size:11.5px;color:var(--dim2);line-height:1.5}
+.hint.warn{color:var(--warn)}
 .status-line{display:flex;align-items:center;gap:9px;font-size:12.5px;margin:4px 0}
 .quota-mini{height:6px;border-radius:3px;background:rgba(8,13,25,.7);overflow:hidden;margin-top:8px;max-width:340px}
 details.help{margin-top:12px;font-size:12px;color:var(--dim)}
@@ -559,9 +575,12 @@ details.help code{background:rgba(8,13,25,.8);padding:2px 7px;border-radius:5px;
 .pick-list{max-height:300px;overflow-y:auto;border:1px solid var(--stroke);border-radius:9px;margin-top:10px}
 .pick-row{display:flex;align-items:center;gap:10px;width:100%;padding:8px 12px;text-align:left;font-size:12.5px;border-bottom:1px solid var(--stroke)}
 .pick-row:hover{background:rgba(255,255,255,.08)}
+.pick-row.selected{background:rgba(var(--accent-rgb),.22)}
 .pick-row .t{flex:1;min-width:0}
 .pick-row .t b{display:block;font-weight:700}
 .pick-row .t i{font-style:normal;font-size:10.5px;color:var(--dim2)}
+.url-prev{display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:10px;background:rgba(8,13,25,.4);border:1px solid var(--stroke);margin-top:10px}
+.url-prev .u{flex:1;min-width:0;font-family:var(--mono);font-size:11.5px;color:var(--accent);word-break:break-all}
 
 /* ============================================================
    Cloud-only mode — delikatna obwódka
@@ -635,6 +654,7 @@ details.help code{background:rgba(8,13,25,.8);padding:2px 7px;border-radius:5px;
 </div>
 
 <div id="snapPreview"></div>
+<div id="dropHint"></div>
 <div id="winLayer"></div>
 
 <div id="cloudFrame"></div>
@@ -722,7 +742,7 @@ setTimeout(function () {
 /* ============================================================
    1. Stałe i narzędzia
    ============================================================ */
-const VER = '1.12';
+const VER = '1.13';
 const LSK = 'pulpitos.v1';
 const LAYOUT_KEY = 'pulpitos.layout.v1';
 const CLOUD_KEY = 'pulpitos.cloudmode';
@@ -788,6 +808,19 @@ function extOf(n) {
 }
 const isBatName = n => ['bat', 'cmd'].indexOf(extOf(n)) >= 0;
 
+function normalizeUrl(u) {
+  let s = String(u || '').trim();
+  if (!s) return '';
+  if (/^(https?:|mailto:|tel:|ftp:)/i.test(s)) return s;
+  if (/^[\w.-]+\.[a-z]{2,}(\/|$|\?|#)/i.test(s) || /^[\w.-]+\.[a-z]{2,}$/i.test(s)) return 'https://' + s;
+  if (/^localhost(:\d+)?/i.test(s)) return 'http://' + s;
+  return 'https://' + s;
+}
+function urlHost(u) {
+  try { return new URL(u).hostname.replace(/^www\./, ''); }
+  catch (e) { return String(u || '').replace(/^https?:\/\//, '').split('/')[0]; }
+}
+
 const MIME = {
   txt: 'text/plain', md: 'text/markdown', log: 'text/plain', csv: 'text/csv',
   json: 'application/json', js: 'text/javascript', css: 'text/css',
@@ -796,7 +829,8 @@ const MIME = {
   svg: 'image/svg+xml', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg',
   gif: 'image/gif', ico: 'image/x-icon', webp: 'image/webp',
   pdf: 'application/pdf', mp3: 'audio/mpeg', wav: 'audio/wav', ogg: 'audio/ogg',
-  mp4: 'video/mp4', webm: 'video/webm', zip: 'application/zip'
+  mp4: 'video/mp4', webm: 'video/webm', zip: 'application/zip',
+  url: 'text/uri-list'
 };
 const mimeOf = n => MIME[extOf(n)] || 'application/octet-stream';
 
@@ -994,6 +1028,7 @@ const Snd = (function () {
         trash: () => tone(260, .16, 'triangle', .12),
         beep:  () => tone(1000, .12, 'square', .07),
         pop:   () => tone(760, .09, 'sine', .11),
+        drop:  () => { tone(620, .07, 'sine', .1); tone(880, .1, 'sine', .08, .05); },
         start: () => { tone(523, .35, 'sine', .13); tone(659, .35, 'sine', .11, .12); tone(784, .4, 'sine', .11, .24); }
       };
       (map[n] || function () {})();
@@ -1052,6 +1087,8 @@ const ICO = {
   zip: '<path d="' + PP + '" fill="url(#gF2)"/><path d="' + FP + '" fill="#d98c14"/><path d="M21 8h6v4h-6zM21 14h6v4h-6z" fill="#8a5c08"/><rect x="20" y="24" width="8" height="9" rx="2" fill="#8a5c08"/>',
   hdd: '<rect x="5" y="13" width="38" height="22" rx="4" fill="url(#gM)"/><rect x="5" y="26" width="38" height="9" rx="4" fill="#2c3a55"/><circle cx="37" cy="30.5" r="2.2" fill="#57d977"/>',
   upload: '<rect x="6" y="6" width="36" height="36" rx="9" fill="url(#gA)"/><path d="M24 30V15M17 21l7-7 7 7M15 34h18" stroke="#071018" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+  link: '<rect x="4" y="4" width="40" height="40" rx="11" fill="url(#gB)"/><circle cx="24" cy="24" r="13" fill="none" stroke="#fff" stroke-width="2.4" opacity=".92"/><ellipse cx="24" cy="24" rx="6" ry="13" fill="none" stroke="#fff" stroke-width="2.2" opacity=".92"/><path d="M11.5 20h25M11.5 28h25" stroke="#fff" stroke-width="2.2" opacity=".92"/>',
+  globe: '<rect x="4" y="4" width="40" height="40" rx="11" fill="url(#gN)"/><circle cx="24" cy="24" r="12.5" fill="none" stroke="#fff" stroke-width="2.4"/><path d="M24 11.5c4 4 4 21 0 25M24 11.5c-4 4-4 21 0 25M12 20h24M12 28h24" stroke="#fff" stroke-width="2" fill="none" opacity=".9"/>',
   cloudpc: '<rect x="5" y="9" width="38" height="24" rx="4" fill="url(#gM)"/><rect x="8" y="12" width="32" height="18" rx="2" fill="url(#gS)"/><path d="M29 27a3.4 3.4 0 0 0-1-6.7A5.4 5.4 0 0 0 17.6 22 3.4 3.4 0 0 0 18 28.6h10a3 3 0 0 0 1-1.6z" fill="#4cc2ff"/><rect x="13" y="36" width="22" height="4" rx="2" fill="url(#gM)"/>',
   logo: '<g fill="url(#gA)"><rect x="6" y="6" width="17" height="17" rx="3.5"/><rect x="25" y="6" width="17" height="17" rx="3.5"/><rect x="6" y="25" width="17" height="17" rx="3.5"/><rect x="25" y="25" width="17" height="17" rx="3.5"/></g>'
 };
@@ -1071,6 +1108,7 @@ const FG = {
   home: '<path d="M24 20l8 7v8h-5v-5h-6v5h-5v-8z" fill="#fff" opacity=".95"/>',
   code: '<path d="M21 23l-4 5 4 5M27 23l4 5-4 5" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/>',
   terminal: '<path d="M17.5 23l4.5 4.5-4.5 4.5" stroke="#fff" stroke-width="2.3" fill="none" stroke-linecap="round"/><path d="M25 32h7" stroke="#fff" stroke-width="2.3" stroke-linecap="round"/>',
+  globe: '<circle cx="24" cy="28" r="7" fill="none" stroke="#fff" stroke-width="1.9" opacity=".95"/><path d="M24 21c2.4 2.4 2.4 11.6 0 14M24 21c-2.4 2.4-2.4 11.6 0 14M17.4 26h13.2M17.4 30h13.2" stroke="#fff" stroke-width="1.6" fill="none" opacity=".95"/>',
   user: '<circle cx="24" cy="25" r="3.4" fill="#fff" opacity=".95"/><path d="M17.5 35c1-4 3.6-5.6 6.5-5.6s5.5 1.6 6.5 5.6z" fill="#fff" opacity=".95"/>'
 };
 
@@ -1094,6 +1132,7 @@ mkFolder('folderCloud', '#1a6fa8', '#4cc2ff', 'cloud');
 mkFolder('folderHome', '#2a7a3a', '#5fd977', 'home');
 mkFolder('folderCode', '#1a2438', '#3a4a68', 'code');
 mkFolder('folderScripts', '#0f6a5a', '#2fd9a8', 'terminal');
+mkFolder('folderWeb', '#1f5fa8', '#59b6ff', 'globe');
 mkFolder('folderUser', '#2f6fd0', '#7cb0ff', 'user');
 
 const FOLDER_PRESETS = Object.keys(ICO).filter(k => k === 'folder' || k.indexOf('folder') === 0);
@@ -1126,6 +1165,7 @@ const GL = {
   download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>',
   external: '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/>',
   link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  globe: '<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
   sliders: '<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>',
   power: '<path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10"/>',
   cloud: '<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>',
@@ -1147,6 +1187,7 @@ const GL = {
   sort: '<path d="M11 5h10M11 9h7M11 13h4M3 17l3 3 3-3M6 5v15"/>',
   hdd: '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h6M17 14h.01"/>',
   moveArrow: '<path d="M13 5l7 7-7 7"/><path d="M20 12H8a4 4 0 0 0-4 4v3"/>',
+  move: '<path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/>',
   pin: '<path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16h14v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1z"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2"/>',
   moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/>',
@@ -1154,7 +1195,8 @@ const GL = {
   terminal: '<path d="M4 17l6-5-6-5"/><path d="M12 19h8"/>',
   wrench: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
   skip: '<path d="M5 4l10 8-10 8z" fill="currentColor" stroke="none"/><path d="M19 5v14"/>',
-  shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'
+  shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'
 };
 const gl = (n, s) =>
   '<span class="gl"><svg width="' + (s || 16) + '" height="' + (s || 16) + '" viewBox="0 0 24 24" fill="none" ' +
@@ -1166,7 +1208,7 @@ const gl = (n, s) =>
 const DIRS = {
   apps: 'c-apps', appdata: 'c-appdata', user: 'c-user', desktop: 'c-desktop',
   downloads: 'c-downloads', documents: 'c-documents', system: 'c-system',
-  logs: 'c-logs', config: 'c-config', scripts: 'c-scripts'
+  logs: 'c-logs', config: 'c-config', scripts: 'c-scripts', web: 'c-web'
 };
 const DESK = DIRS.desktop;
 const DIR_ICON = {};
@@ -1180,6 +1222,7 @@ DIR_ICON[DIRS.logs] = 'folderArchive';
 DIR_ICON[DIRS.config] = 'folderSystem';
 DIR_ICON[DIRS.user] = 'folderUser';
 DIR_ICON[DIRS.scripts] = 'folderScripts';
+DIR_ICON[DIRS.web] = 'folderWeb';
 
 const SYSICONS = [
   { id: 'sys-pc', target: 'pc', name: 'Ten komputer' },
@@ -1192,17 +1235,27 @@ let saveWarn = false;
 
 const isDesktop = id => id === DESK;
 const isBat = n => !!n && n.type !== 'folder' && isBatName(n.name);
+const isUrlShortcut = n => !!n && n.type === 'shortcut' && n.target && !!n.target.url;
 const N = id => state.nodes[id];
 
 function cloudOnly() {
   return LS.get(CLOUD_KEY) === '1' && state.settings.drive.mode === 'google';
 }
+/* Wejście w tryb chmurowy ZAWSZE wyłącza automatyczne ponowne logowanie. */
 function setCloudOnly(v) {
-  LS.set(CLOUD_KEY, v ? '1' : '0');
-  state.settings.drive.cloudOnly = !!v;
-  if (v) state.cloudPending = true;
+  const on = !!v;
+  LS.set(CLOUD_KEY, on ? '1' : '0');
+  state.settings.drive.cloudOnly = on;
+  if (on) {
+    state.cloudPending = true;
+    state.settings.drive.autoLogin = false;
+    state.settings.drive.autoLoginLock = true;
+  } else {
+    state.settings.drive.autoLoginLock = false;
+  }
   saveNow();
   updateCloudFrame();
+  bus.emit('settings', { drive: true });
 }
 const cloudOk = () => Drive.mode === 'google' && Drive.state === 'ok';
 
@@ -1304,6 +1357,7 @@ function sizeOf(n) {
     const a = state.apps[n.app];
     return a && a.html ? a.html.length : 0;
   }
+  if (n.type === 'shortcut' && n.target && n.target.url) return n.target.url.length;
   if (n.size != null) return n.size;
   if (n.content != null) return new Blob([n.content]).size;
   if (n.inline) return n.inline.length;
@@ -1320,6 +1374,7 @@ function uniqueName(p, name, self) {
   return b + ' (' + i + ')' + e;
 }
 function typeLabel(n) {
+  if (isUrlShortcut(n)) return 'Skrót do strony WWW';
   const map = {
     folder: 'Folder',
     text: isBat(n) ? 'Skrypt wsadowy (.bat)' : 'Dokument tekstowy',
@@ -1372,7 +1427,8 @@ function resolveDir(p) {
     documents: DIRS.documents, dokumenty: DIRS.documents,
     downloads: DIRS.downloads, pobrane: DIRS.downloads,
     system: DIRS.system, logs: DIRS.logs, config: DIRS.config,
-    scripts: DIRS.scripts, skrypty: DIRS.scripts, Z: 'Z'
+    scripts: DIRS.scripts, skrypty: DIRS.scripts,
+    web: DIRS.web, strony: DIRS.web, www: DIRS.web, Z: 'Z'
   };
   if (alias[s]) return alias[s];
   if (state.nodes[s]) return s;
@@ -1388,6 +1444,7 @@ function folderIconFor(n) {
   if (/skrypt|script|bat/.test(s)) return 'folderScripts';
   if (/aplikacj|apps/.test(s)) return 'folderApps';
   if (/system/.test(s)) return 'folderSystem';
+  if (/stron|www|web|internet|linki|zakładk/.test(s)) return 'folderWeb';
   if (/obraz|zdjęci|zdjeci|picture|fot/.test(s)) return 'folderPictures';
   if (/muzyk|music|audio/.test(s)) return 'folderMusic';
   if (/film|wideo|video/.test(s)) return 'folderVideos';
@@ -1409,13 +1466,13 @@ function nodeIco(n) {
   if (n.iconPreset && ICO[n.iconPreset]) return n.iconPreset;
   if (n.type === 'folder') return folderIconFor(n);
   if (isBat(n)) return 'bat';
+  if (isUrlShortcut(n)) return 'globe';
   if (['text', 'gdoc', 'gsheet', 'gslides'].indexOf(n.type) >= 0) return n.type;
   if (n.type === 'app' || n.type === 'appshortcut') {
     const d = appDesc(n.type === 'app' ? 'custom:' + n.app : n.app);
     return (d && d.icon) || 'apphtml';
   }
   if (n.type === 'shortcut') {
-    if (n.target && n.target.url) return 'link';
     if (n.target && n.target.app) { const d = appDesc(n.target.app); return (d && d.icon) || 'apphtml'; }
     const t = resolveTarget(n);
     return t ? nodeIco(t) : 'link';
@@ -1626,7 +1683,7 @@ function updateCloudFrame() {
   b.classList.toggle('on', on);
   if (on) b.innerHTML = gl('cloud', 11) + ' chmura';
   b.onclick = () => openSettings('drive');
-  b.title = 'Tryb chmurowy — dane zapisywane wyłącznie na Dysku Google';
+  b.title = 'Tryb chmurowy — dane tylko na Dysku Google, automatyczne logowanie wyłączone';
 }
 
 /* ============================================================
@@ -2257,7 +2314,14 @@ const Drag = {
   active: null,
   ghost: null,
   tag: null,
+  tagInner: null,
   lastTargetEl: null,
+  currentTarget: null,
+
+  movable() {
+    if (!this.active) return [];
+    return this.active.ids.filter(id => N(id) && !N(id).system);
+  },
 
   begin(ids, from, x, y, withGhost) {
     this.cancel();
@@ -2276,9 +2340,8 @@ const Drag = {
       this.ghost = el;
     } else {
       this.tag = h('div', 'drag-ghost');
-      const t = h('div', 'dg-tag move', gl('moveArrow', 13) + '<span>Przenieś</span>');
-      this.tag.append(t);
-      this.tagInner = t;
+      this.tagInner = h('div', 'dg-tag place', gl('move', 13) + '<span>Przenieś ikonę</span>');
+      this.tag.append(this.tagInner);
       document.body.append(this.tag);
     }
     this.update(x, y);
@@ -2287,44 +2350,64 @@ const Drag = {
   resolve(el) {
     if (!el || !this.active) return null;
     const ids = this.active.ids;
+    const movable = this.movable();
 
     const di = el.closest('.dicon');
     if (di) {
       const n = N(di.dataset.id);
       if (!n) return null;
-      if (n.type === 'system' && n.target === 'trash') return { kind: 'trash', el: di, label: 'Przenieś do kosza' };
-      if (n.type === 'folder' && ids.indexOf(n.id) < 0) return { kind: 'move', dest: n.id, el: di, label: 'Przenieś do „' + n.name + '”' };
+      if (n.type === 'system' && n.target === 'trash') {
+        if (!movable.length) return null;
+        return { kind: 'trash', el: di, label: 'Przenieś do kosza' };
+      }
+      if (n.type === 'folder' && ids.indexOf(n.id) < 0) {
+        if (!movable.length) return null;
+        return { kind: 'move', dest: n.id, el: di, label: 'Przenieś do „' + n.name + '”' };
+      }
       return null;
     }
     const gi = el.closest('.gitem[data-id],.lrow[data-id]');
     if (gi) {
       const n = N(gi.dataset.id);
-      if (n && n.type === 'folder' && ids.indexOf(n.id) < 0) return { kind: 'move', dest: n.id, el: gi, label: 'Przenieś do „' + n.name + '”' };
+      if (n && n.type === 'folder' && ids.indexOf(n.id) < 0 && movable.length) {
+        return { kind: 'move', dest: n.id, el: gi, label: 'Przenieś do „' + n.name + '”' };
+      }
       return null;
     }
     const side = el.closest('.side-item');
     if (side) {
       const nav = side.dataset.nav;
+      if (!movable.length) return null;
       if (nav === 'trash') return { kind: 'trash', el: side, label: 'Przenieś do kosza' };
       if (nav && nav !== 'pc') {
         const dest = nav === 'C' ? DESK : nav;
-        return { kind: 'move', dest: dest, el: side, label: 'Przenieś do „' + ((N(dest) || {}).name || (nav === 'Z' ? 'Dysk Google' : 'Pulpit')) + '”' };
+        return {
+          kind: 'move', dest: dest, el: side,
+          label: 'Przenieś do „' + ((N(dest) || {}).name || (nav === 'Z' ? 'Dysk Google' : 'Pulpit')) + '”'
+        };
       }
       return null;
     }
     const cr = el.closest('.crumb');
-    if (cr && cr.dataset.nav && cr.dataset.nav !== 'pc') {
+    if (cr && cr.dataset.nav && cr.dataset.nav !== 'pc' && movable.length) {
       const nav = cr.dataset.nav;
       const dest = nav === 'C' ? DESK : nav;
       return { kind: 'move', dest: dest, el: cr, label: 'Przenieś do „' + ((N(dest) || {}).name || cr.textContent) + '”' };
     }
     const main = el.closest('.exp-main');
-    if (main && main.dataset.folder && ['pc', 'trash'].indexOf(main.dataset.folder) < 0) {
+    if (main && main.dataset.folder && ['pc', 'trash'].indexOf(main.dataset.folder) < 0 && movable.length) {
       const dest = main.dataset.folder;
-      return { kind: 'move', dest: dest, el: main, label: 'Przenieś do „' + ((N(dest) || {}).name || (dest === 'Z' ? 'Dysk Google' : 'folderu')) + '”' };
+      return {
+        kind: 'move', dest: dest, el: main,
+        label: 'Przenieś do „' + ((N(dest) || {}).name || (dest === 'Z' ? 'Dysk Google' : 'folderu')) + '”'
+      };
     }
     if (el.closest('#desktop')) {
-      const fromZ = ids.every(id => N(id) && rootOf(id) === 'Z');
+      /* Wszystkie przeciągane elementy już leżą na pulpicie → swobodne przestawienie. */
+      const allHere = ids.every(id => N(id) && N(id).parent === DESK);
+      if (allHere) return { kind: 'reposition', el: null, label: 'Upuść, aby ustawić ikonę' };
+      if (!movable.length) return null;
+      const fromZ = movable.every(id => rootOf(id) === 'Z');
       return fromZ
         ? { kind: 'shortcut', el: null, label: 'Utwórz skrót na pulpicie' }
         : { kind: 'desktop', el: null, label: 'Przenieś na pulpit' };
@@ -2336,7 +2419,7 @@ const Drag = {
     if (!this.active) return;
     const holder = this.ghost || this.tag;
     if (holder) {
-      holder.style.left = clamp(x + 16, 4, innerWidth - 240) + 'px';
+      holder.style.left = clamp(x + 16, 4, innerWidth - 250) + 'px';
       holder.style.top = clamp(y + 18, 4, innerHeight - 90) + 'px';
     }
     const el = document.elementFromPoint(x, y);
@@ -2350,45 +2433,53 @@ const Drag = {
       label = t.label;
       if (t.kind === 'trash') mode = 'trash';
       else if (t.kind === 'shortcut') mode = 'link';
+      else if (t.kind === 'reposition') mode = 'place';
       if (t.el) {
         t.el.classList.add(t.kind === 'trash' ? 'drop-trash' : (t.el.classList.contains('exp-main') ? 'drop-import' : 'drop-target'));
         this.lastTargetEl = t.el;
       }
     } else {
       mode = 'block';
-      label = 'Brak celu';
+      label = 'Brak celu — upuść na pulpicie lub folderze';
     }
     const tagEl = this.ghost ? this.tag : this.tagInner;
     if (tagEl) {
       tagEl.className = 'dg-tag ' + mode;
       tagEl.innerHTML =
         (mode === 'trash' ? gl('trash', 13) : mode === 'link' ? gl('link', 13) :
-          mode === 'block' ? gl('alert', 13) : gl('moveArrow', 13)) +
+          mode === 'block' ? gl('alert', 13) : mode === 'place' ? gl('move', 13) : gl('moveArrow', 13)) +
         '<span>' + esc(label) + '</span>';
     }
+    const hint = $('#dropHint');
+    if (t && t.kind === 'reposition') {
+      hint.textContent = 'Shift — placement swobodny • bez Shift — wyrównanie do siatki';
+      hint.classList.add('on');
+    } else hint.classList.remove('on');
     this.currentTarget = t;
   },
 
   finish(x, y) {
     if (!this.active) return null;
     const ids = this.active.ids.slice();
+    const movable = this.movable();
     const el = document.elementFromPoint(x, y);
     const t = this.resolve(el);
     this.cancel();
     if (!t) return null;
-    if (t.kind === 'trash') { deleteFlow(ids); return 'trash'; }
+    if (t.kind === 'reposition') return 'reposition';
+    if (t.kind === 'trash') { deleteFlow(movable); return 'trash'; }
     if (t.kind === 'shortcut') {
-      ids.forEach(id => { const n = N(id); if (n) makeShortcut({ nodeId: id, driveId: n.driveId }, n.name); });
+      movable.forEach(id => { const n = N(id); if (n) makeShortcut({ nodeId: id, driveId: n.driveId }, n.name); });
       return 'shortcut';
     }
-    if (t.kind === 'desktop') { moveNodes(ids, DESK, { x: x, y: y }); return 'desktop'; }
+    if (t.kind === 'desktop') { moveNodes(movable, DESK, { x: x, y: y }); return 'desktop'; }
     if (t.kind === 'move') {
-      if (t.dest === 'Z' && ids.every(id => N(id) && rootOf(id) === 'C')) {
-        ids.forEach(id => { const n = N(id); if (n) makeShortcut({ nodeId: id, driveId: n.driveId }, n.name); });
+      if (t.dest === 'Z' && movable.every(id => N(id) && rootOf(id) === 'C')) {
+        movable.forEach(id => { const n = N(id); if (n) makeShortcut({ nodeId: id, driveId: n.driveId }, n.name); });
         toast('Utworzono skróty do plików z C: na Dysku Google.', { type: 'success' });
         return 'shortcut';
       }
-      moveNodes(ids, t.dest);
+      moveNodes(movable, t.dest);
       return 'move';
     }
     return null;
@@ -2404,6 +2495,8 @@ const Drag = {
     this.ghost = this.tag = this.tagInner = null;
     this.active = null;
     this.currentTarget = null;
+    const hint = $('#dropHint');
+    if (hint) hint.classList.remove('on');
   }
 };
 
@@ -2448,6 +2541,13 @@ function findFreeCell(pref, ex) {
   }
   return best || { c: 0, r: 0 };
 }
+function cellFromPoint(x, y) {
+  const m = gridMetrics();
+  return {
+    c: clamp(Math.round((x - 44) / m.g.w), 0, m.cols - 1),
+    r: clamp(Math.round((y - 40) / m.g.h), 0, m.rows - 1)
+  };
+}
 function iconPx(n) {
   const g = gridDims(), p = n.pos || { c: 0, r: 0 };
   if (p.x != null) return { x: p.x, y: p.y };
@@ -2472,9 +2572,12 @@ function renderDesktop() {
     d.dataset.id = n.id;
     d.style.cssText = 'left:' + p.x + 'px;top:' + p.y + 'px;width:' + (g.w - 6) + 'px';
     if (deskEnter) d.style.animationDelay = (idx++ * 30) + 'ms';
-    d.dataset.tip = typeLabel(n);
-    d.innerHTML = '<span class="dicon-img">' + iconHTML(n, g.i) +
-      ((n.type === 'shortcut' || n.type === 'appshortcut') ? '<span class="sc-badge">' + gl('external', 9) + '</span>' : '') +
+    d.dataset.tip = typeLabel(n) + (isUrlShortcut(n) ? ' • ' + n.target.url : '');
+    const badge = isUrlShortcut(n)
+      ? '<span class="sc-badge url">' + gl('globe', 9) + '</span>'
+      : (n.type === 'shortcut' || n.type === 'appshortcut')
+        ? '<span class="sc-badge">' + gl('external', 9) + '</span>' : '';
+    d.innerHTML = '<span class="dicon-img">' + iconHTML(n, g.i) + badge +
       '</span><span class="dicon-label"></span>';
     $('.dicon-label', d).textContent = n.name;
     bindIcon(d, n);
@@ -2488,8 +2591,6 @@ function renderDesktop() {
 }
 
 function bindIcon(d, n) {
-  const isTrashIcon = n.type === 'system' && n.target === 'trash';
-
   d.ondblclick = e => { e.stopPropagation(); openNode(n); };
   d.oncontextmenu = e => {
     e.preventDefault(); e.stopPropagation();
@@ -2500,7 +2601,6 @@ function bindIcon(d, n) {
   d.onpointerdown = e => {
     if (e.button === 2 || e.target.tagName === 'INPUT') return;
     e.stopPropagation();
-    e.preventDefault();
 
     if (e.ctrlKey || e.metaKey) {
       if (deskSel.has(n.id)) deskSel.delete(n.id); else deskSel.add(n.id);
@@ -2510,8 +2610,7 @@ function bindIcon(d, n) {
     const already = deskSel.has(n.id);
     if (!already) { deskSel.clear(); deskSel.add(n.id); paintSel(); }
 
-    const ids = Array.from(deskSel).filter(id => N(id) && !N(id).system);
-    const allIds = Array.from(deskSel);
+    const allIds = Array.from(deskSel).filter(id => N(id));
     const els = allIds.map(id => $('[data-id="' + id + '"]', iconsEl)).filter(Boolean);
     const starts = els.map(el => ({ el: el, x: parseFloat(el.style.left), y: parseFloat(el.style.top) }));
     const sx = e.clientX, sy = e.clientY;
@@ -2526,7 +2625,7 @@ function bindIcon(d, n) {
         moved = true;
         Idle.busy++;
         els.forEach(el => el.classList.add('dragging'));
-        if (ids.length) Drag.begin(ids, DESK, ev.clientX, ev.clientY, false);
+        Drag.begin(allIds, DESK, ev.clientX, ev.clientY, false);
       }
       starts.forEach(s => {
         s.el.style.left = (s.x + dx) + 'px';
@@ -2555,11 +2654,22 @@ function bindIcon(d, n) {
       const result = Drag.finish(ev.clientX, ev.clientY);
       els.forEach(el => el.style.visibility = '');
 
-      if (result) { renderDesktop(); return; }
+      /* Operacja na plikach albo brak celu → przerysuj i wyjdź. */
+      if (result !== 'reposition') { renderDesktop(); return; }
 
-      // upuszczenie na pulpicie → nowa pozycja
+      /* Swobodne przestawienie ikon na pulpicie. */
       const g = gridDims(), mm = gridMetrics();
-      if (state.settings.snap) {
+      const free = ev.shiftKey || !state.settings.snap;
+      if (free) {
+        starts.forEach(s => {
+          const nn = N(s.el.dataset.id);
+          if (!nn) return;
+          nn.pos = {
+            x: clamp(parseFloat(s.el.style.left), 0, Math.max(0, innerWidth - g.w)),
+            y: clamp(parseFloat(s.el.style.top), 0, Math.max(0, innerHeight - 50 - g.h))
+          };
+        });
+      } else {
         const occ = occCells(new Set(allIds));
         starts.forEach(s => {
           const nn = N(s.el.dataset.id);
@@ -2567,20 +2677,16 @@ function bindIcon(d, n) {
           let c = clamp(Math.round((parseFloat(s.el.style.left) - 6) / g.w), 0, mm.cols - 1);
           let r = clamp(Math.round((parseFloat(s.el.style.top) - 6) / g.h), 0, mm.rows - 1);
           let tries = 0;
-          while (occ.has(c + ',' + r) && tries++ < 400) { r++; if (r >= mm.rows) { r = 0; c++; } }
+          while (occ.has(c + ',' + r) && tries++ < 500) {
+            r++;
+            if (r >= mm.rows) { r = 0; c++; }
+            if (c >= mm.cols) { c = 0; }
+          }
           nn.pos = { c: c, r: r };
           occ.add(c + ',' + r);
         });
-      } else {
-        starts.forEach(s => {
-          const nn = N(s.el.dataset.id);
-          if (!nn) return;
-          nn.pos = {
-            x: clamp(parseFloat(s.el.style.left), 0, innerWidth - g.w),
-            y: clamp(parseFloat(s.el.style.top), 0, innerHeight - 50 - g.h)
-          };
-        });
       }
+      Snd.play('drop');
       commit('move');
       renderDesktop();
     };
@@ -2654,7 +2760,8 @@ function desktopMenu(x, y) {
       { label: 'Średnia siatka', check: !state.settings.gridSize || state.settings.gridSize === 'm', action: () => { state.settings.gridSize = 'm'; save(); renderDesktop(); } },
       { label: 'Mała siatka', check: state.settings.gridSize === 's', action: () => { state.settings.gridSize = 's'; save(); renderDesktop(); } },
       '-',
-      { label: 'Wyrównaj do siatki', check: state.settings.snap, action: () => { state.settings.snap = !state.settings.snap; save(); renderDesktop(); } }
+      { label: 'Wyrównaj do siatki', check: state.settings.snap, action: () => { state.settings.snap = !state.settings.snap; save(); renderDesktop(); } },
+      { label: 'Shift = placement swobodny', disabled: true }
     ] },
     { label: 'Motyw', icon: currentTheme() === 'light' ? 'sun' : 'moon', sub: [
       { label: 'Ciemny', check: state.settings.theme === 'dark', action: () => { state.settings.theme = 'dark'; save(); applyTheme(); } },
@@ -2670,6 +2777,7 @@ function desktopMenu(x, y) {
     '-',
     { label: 'Wklej', icon: 'paste', accel: 'Ctrl+V', disabled: !clipboard.ids.length, action: () => pasteClipboard(DESK) },
     { label: 'Nowy', icon: 'plus', sub: newMenuItems(DESK) },
+    { label: 'Nowy skrót…', icon: 'link', action: () => openShortcutPicker() },
     { label: 'Skrót aplikacji…', icon: 'apphtml', sub: appShortcutMenuItems },
     '-',
     { label: 'Przywróć ikony systemowe', icon: 'wrench', action: () => {
@@ -2689,10 +2797,13 @@ function newMenuItems(p) {
     { label: 'Dokument tekstowy', icon: 'file', action: () => createNode('text', p, { rename: true, open: true }) },
     { label: 'Skrypt wsadowy (.bat)', icon: 'bat', action: () => createNode('bat', p, { rename: true }) },
     '-',
+    { label: 'Skrót do strony WWW…', icon: 'globe', action: () => openShortcutPicker({ tab: 'url' }) },
+    { label: 'Skrót do pliku z Dysku Google…', icon: 'link', action: () => openShortcutPicker({ tab: 'file' }) },
+    { label: 'Skrót aplikacji…', icon: 'apphtml', sub: appShortcutMenuItems },
+    '-',
     { label: 'Dokument Google', icon: 'gdoc', action: () => createGoogleFlow('gdoc', p) },
     { label: 'Arkusz Google', icon: 'gsheet', action: () => createGoogleFlow('gsheet', p) },
     '-',
-    { label: 'Skrót aplikacji…', icon: 'apphtml', sub: appShortcutMenuItems },
     { label: 'Aplikacja HTML…', icon: 'code', action: () => openAppDialog() }
   ];
 }
@@ -2735,10 +2846,20 @@ function nodeMenu(ids, x, y, source, extra) {
 
   if (one) {
     items.push({
-      label: one.type === 'app' ? 'Uruchom aplikację' : isBat(one) ? 'Uruchom skrypt' : 'Otwórz',
-      icon: (one.type === 'app' || isBat(one)) ? 'play' : 'eye',
+      label: one.type === 'app' ? 'Uruchom aplikację'
+        : isBat(one) ? 'Uruchom skrypt'
+        : isUrlShortcut(one) ? 'Otwórz stronę WWW' : 'Otwórz',
+      icon: (one.type === 'app' || isBat(one)) ? 'play' : isUrlShortcut(one) ? 'globe' : 'eye',
       action: () => one.type === 'folder' ? openExplorer(one.id) : openNode(one)
     });
+  }
+  if (one && isUrlShortcut(one)) {
+    items.push({ label: 'Edytuj adres i nazwę…', icon: 'edit', action: () => editUrlShortcut(one) });
+    items.push({ label: 'Kopiuj adres', icon: 'copy', action: async () => {
+      try { await navigator.clipboard.writeText(one.target.url); toast('Adres skopiowany.', { type: 'success', timeout: 2200 }); }
+      catch (e) { promptDlg('Adres strony', one.target.url, { label: 'Skopiuj ręcznie' }); }
+    } });
+    items.push({ label: 'Otwórz w nowej karcie', icon: 'external', action: () => window.open(one.target.url, '_blank', 'noopener') });
   }
   if (one && isBat(one)) {
     items.push({ label: 'Edytuj skrypt…', icon: 'edit', action: () => openBatEditor(one) });
@@ -2776,10 +2897,14 @@ function nodeMenu(ids, x, y, source, extra) {
       });
     } });
   }
-  if (one && one.type !== 'folder' && one.type !== 'app') {
+  if (one && one.type !== 'folder' && one.type !== 'app' && !isUrlShortcut(one)) {
     items.push({ label: 'Pobierz', icon: 'download', action: () => downloadNode(one) });
   }
-  if (one && one.type !== 'folder' && !one.system && !isBat(one) && ['app', 'appshortcut'].indexOf(one.type) < 0) {
+  if (one && isUrlShortcut(one)) {
+    items.push({ label: 'Pobierz skrót (.url)', icon: 'download', action: () => downloadUrlShortcut(one) });
+  }
+  if (one && one.type !== 'folder' && !one.system && !isBat(one) && !isUrlShortcut(one) &&
+      ['app', 'appshortcut'].indexOf(one.type) < 0) {
     items.push({ label: 'Otwórz za pomocą', icon: 'grid', sub: openWithItems(one) });
   }
   items.push('-');
@@ -2923,15 +3048,23 @@ async function createGoogleFlow(type, parent) {
     ]
   });
 }
-function makeShortcut(target, name, cell) {
+function makeShortcut(target, name, cell, icon) {
   const n = {
     id: uid(), type: 'shortcut', name: uniqueName(DESK, name || 'Skrót'), parent: DESK,
     origin: 'local', target: target, created: Date.now(), modified: Date.now(), pos: findFreeCell(cell)
   };
+  if (target && target.url) n.mime = 'text/uri-list';
+  if (icon && icon.data) n.iconData = icon.data;
+  else if (icon && icon.preset) n.iconPreset = icon.preset;
   state.nodes[n.id] = n;
   commit('create', n.id);
   Snd.play('pop');
   return n;
+}
+function downloadUrlShortcut(n) {
+  const body = '[InternetShortcut]\r\nURL=' + n.target.url + '\r\n';
+  download(new Blob([body], { type: 'application/octet-stream' }),
+    n.name.replace(/[\\/:*?"<>|]+/g, '_') + '.url');
 }
 function trashNodes(ids) {
   const set = new Set(ids);
@@ -3057,13 +3190,19 @@ function moveNodes(ids, dest, pt) {
     n.parent = dest;
     n.modified = Date.now();
     if (isDesktop(dest)) {
-      n.pos = (pt && !state.settings.snap)
-        ? { x: clamp(pt.x - 40, 0, innerWidth - 90), y: clamp(pt.y - 30, 0, innerHeight - 150) }
-        : findFreeCell(null, new Set(ids));
+      if (pt && !state.settings.snap) {
+        n.pos = {
+          x: clamp(pt.x - 44, 0, Math.max(0, innerWidth - 94)),
+          y: clamp(pt.y - 40, 0, Math.max(0, innerHeight - 150))
+        };
+      } else {
+        const pref = pt ? cellFromPoint(pt.x, pt.y) : null;
+        n.pos = findFreeCell(pref, new Set(ids));
+      }
     } else delete n.pos;
   });
   if (blocked) toast('Nie można przenosić między C: i Z: — utwórz skrót na pulpicie.', { type: 'warn' });
-  if (moved.length) commit('move');
+  if (moved.length) { commit('move'); Snd.play('drop'); }
 }
 async function copyTree(n, dest) {
   const nn = Object.assign({}, n, {
@@ -3097,7 +3236,8 @@ async function pasteClipboard(dest) {
   for (const id of ids) {
     const n = N(id);
     try {
-      if (rootOf(id) === rootOf(dest)) { await copyTree(n, dest); count++; }
+      if (isDesktop(dest) && rootOf(id) !== 'C') { makeShortcut({ nodeId: id, driveId: n.driveId }, n.name); count++; }
+      else if (rootOf(id) === rootOf(dest)) { await copyTree(n, dest); count++; }
       else { makeShortcut({ nodeId: id, driveId: n.driveId }, n.name); count++; }
     } catch (e) { toast(e.message, { type: 'error' }); }
   }
@@ -3108,6 +3248,9 @@ async function nodeBlob(n) {
     const a = state.apps[n.app];
     return a ? new Blob([a.html || ''], { type: 'text/html' }) : null;
   }
+  if (isUrlShortcut(n)) {
+    return new Blob(['[InternetShortcut]\r\nURL=' + n.target.url + '\r\n'], { type: 'application/octet-stream' });
+  }
   if (n.content != null) return new Blob([n.content], { type: n.mime || 'text/plain' });
   if (n.inline) return (await fetch(n.inline)).blob();
   if (n.blobKey) { const b = await Blobs.get(n.blobKey); if (b) return b; }
@@ -3115,18 +3258,24 @@ async function nodeBlob(n) {
   return null;
 }
 async function nodeText(n) {
+  if (isUrlShortcut(n)) return n.target.url;
   if (n.content != null) return n.content;
   const b = await nodeBlob(n);
   return b ? await b.text() : '';
 }
 async function downloadNode(n) {
   try {
+    if (isUrlShortcut(n)) { downloadUrlShortcut(n); return; }
     const b = await nodeBlob(n);
     if (!b) { toast('Brak danych pliku.', { type: 'warn' }); return; }
     download(b, n.type === 'app' ? appFileName((state.apps[n.app] || {}).name || n.name) : n.name);
   } catch (e) { toast('Pobieranie nieudane: ' + e.message, { type: 'error' }); }
 }
 function propertiesDlg(n) {
+  const urlRow = isUrlShortcut(n)
+    ? '<tr><td>Adres</td><td>' + esc(n.target.url) + '</td></tr>'
+    : (n.type === 'shortcut'
+      ? '<tr><td>Cel</td><td>' + esc((resolveTarget(n) || {}).name || 'niedostępny') + '</td></tr>' : '');
   const body = h('div', null,
     '<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">' + iconHTML(n, 44) +
     '<div class="field" style="flex:1;margin:0"><label>Nazwa</label><input class="inp" ' + (n.system ? 'disabled' : '') + '></div>' +
@@ -3134,19 +3283,25 @@ function propertiesDlg(n) {
     '</div><table class="prop-table">' +
     '<tr><td>Typ</td><td>' + esc(typeLabel(n)) + '</td></tr>' +
     '<tr><td>Lokalizacja</td><td>' + esc(pathStr(n)) + '</td></tr>' +
+    urlRow +
     '<tr><td>Rozmiar</td><td>' + (n.type === 'folder' ? desc(n.id).length + ' elementów' : fmtSize(sizeOf(n))) + '</td></tr>' +
     '<tr><td>Utworzono</td><td>' + fmtDate(n.created) + '</td></tr>' +
     '<tr><td>Zmodyfikowano</td><td>' + fmtDate(n.modified) + '</td></tr>' +
     (n.driveId ? '<tr><td>Drive ID</td><td>' + esc(n.driveId) + '</td></tr>' : '') +
     '<tr><td>Kopia w chmurze</td><td>' + (n.driveId ? 'Tak' : 'Nie') + '</td></tr></table>' +
     (isBat(n) ? '<div class="set-row"><button class="btn primary" id="ppRun">' + gl('play', 13) + ' Uruchom</button>' +
-      '<button class="btn" id="ppEdit">' + gl('edit', 13) + ' Edytuj</button></div>' : ''));
+      '<button class="btn" id="ppEdit">' + gl('edit', 13) + ' Edytuj</button></div>' : '') +
+    (isUrlShortcut(n) ? '<div class="set-row"><button class="btn primary" id="ppOpen">' + gl('globe', 13) + ' Otwórz stronę</button>' +
+      '<button class="btn" id="ppUrl">' + gl('edit', 13) + ' Edytuj adres</button></div>' : ''));
   const inp = $('input', body);
   inp.value = n.name;
   const runBtn = $('#ppRun', body), editBtn = $('#ppEdit', body), icoBtn = $('#ppIcon', body);
+  const openBtn = $('#ppOpen', body), urlBtn = $('#ppUrl', body);
   if (runBtn) runBtn.onclick = () => runBatNode(n);
   if (editBtn) editBtn.onclick = () => openBatEditor(n);
   if (icoBtn) icoBtn.onclick = () => changeNodeIcon(n);
+  if (openBtn) openBtn.onclick = () => openNode(n);
+  if (urlBtn) urlBtn.onclick = () => editUrlShortcut(n);
   dlg({
     title: 'Właściwości — ' + n.name, iconHTML: iconHTML(n, 26), body: body, width: 480,
     buttons: [{ label: 'Zamknij' }, { label: 'Zapisz', primary: true, keep: true, onClick: a => {
@@ -3177,7 +3332,12 @@ function openNode(x) {
     }
     case 'shortcut': {
       const t = n.target || {};
-      if (t.url) { window.open(t.url, '_blank', 'noopener'); return; }
+      if (t.url) {
+        const w = window.open(t.url, '_blank', 'noopener');
+        if (!w) toast('Przeglądarka zablokowała nową kartę. Zezwól na wyskakujące okna dla tej witryny.', { type: 'warn', timeout: 8000 });
+        else toast('Otwieranie: ' + urlHost(t.url), { timeout: 2200 });
+        return;
+      }
       if (t.app) { openNode({ type: 'appshortcut', app: t.app, id: n.id, name: n.name }); return; }
       const target = resolveTarget(n);
       if (target) openNode(target);
@@ -3189,7 +3349,206 @@ function openNode(x) {
 }
 
 /* ============================================================
-   13. Eksplorator plików
+   13. Skróty — strony WWW, pliki z Drive, aplikacje
+   ============================================================ */
+function editUrlShortcut(n) {
+  if (!isUrlShortcut(n)) return;
+  let icon = n.iconData ? { data: n.iconData } : n.iconPreset ? { preset: n.iconPreset } : null;
+  const body = h('div');
+  body.innerHTML =
+    '<div class="field"><label>Nazwa skrótu</label><input class="inp" id="euName" autofocus></div>' +
+    '<div class="field"><label>Adres strony (URL)</label><input class="inp" id="euUrl" placeholder="https://…"></div>' +
+    '<div class="set-row"><span class="lbl">Ikona</span><span id="euIco">' + iconHTML(n, 32) + '</span>' +
+    '<button class="mini-btn" id="euIcoPick">' + gl('image', 12) + ' Zmień</button>' +
+    '<button class="mini-btn" id="euIcoDef">' + gl('refresh', 12) + ' Domyślna</button></div>';
+  $('#euName', body).value = n.name;
+  $('#euUrl', body).value = n.target.url;
+  $('#euIcoPick', body).onclick = () => pickIconDialog({
+    title: n.name, preset: n.iconPreset, data: n.iconData, fallback: 'globe',
+    onPick: r => {
+      icon = r;
+      $('#euIco', body).innerHTML = r.data ? imgIco(r.data, 32) : svgIco(r.preset || 'globe', 32);
+    }
+  });
+  $('#euIcoDef', body).onclick = () => { icon = null; $('#euIco', body).innerHTML = svgIco('globe', 32); };
+  dlg({
+    title: 'Edytuj skrót do strony', icon: 'globe', body: body, width: 520,
+    buttons: [{ label: 'Anuluj' }, { label: 'Zapisz', primary: true, keep: true, onClick: a => {
+      const name = $('#euName', body).value.trim();
+      const raw = $('#euUrl', body).value.trim();
+      if (!name) { $('#euName', body).classList.add('bad'); return false; }
+      if (!raw) { $('#euUrl', body).classList.add('bad'); return false; }
+      const url = normalizeUrl(raw);
+      n.name = uniqueName(n.parent, name, n.id);
+      n.target = { url: url };
+      n.mime = 'text/uri-list';
+      if (icon && icon.data) { n.iconData = icon.data; delete n.iconPreset; }
+      else if (icon && icon.preset) { n.iconPreset = icon.preset; delete n.iconData; }
+      else { delete n.iconData; delete n.iconPreset; }
+      n.modified = Date.now();
+      commit('write', n.id);
+      renderDesktop();
+      toast('Skrót zaktualizowany.', { type: 'success' });
+      a.close();
+    } }]
+  });
+}
+
+function openShortcutPicker(pre) {
+  pre = pre || {};
+  let tab = pre.tab || 'url';
+  let cwd = 'Z', selId = null, q = '', appSel = null;
+  let icon = null;
+
+  const body = h('div');
+  body.innerHTML =
+    '<div class="tabs">' +
+    '<button class="tab" data-t="url">' + gl('globe', 13) + ' Strona WWW</button>' +
+    '<button class="tab" data-t="file">' + gl('drive', 13) + ' Plik z Dysku</button>' +
+    '<button class="tab" data-t="app">' + gl('apphtml', 13) + ' Aplikacja</button>' +
+    '</div>' +
+    '<div id="skUrl">' +
+    '<div class="field"><label>Nazwa skrótu</label><input class="inp" id="skName" placeholder="np. Dokumentacja MDN"></div>' +
+    '<div class="field"><label>Adres strony (URL)</label><input class="inp" id="skUrlInp" placeholder="https://developer.mozilla.org"></div>' +
+    '<div class="hint">Możesz pominąć „https://” — system dopisze je automatycznie. Obsługiwane są też adresy mailto: i tel:.</div>' +
+    '<div class="url-prev"><span id="skIco">' + svgIco('globe', 30) + '</span>' +
+    '<span class="u" id="skPrev">Adres pojawi się tutaj…</span></div>' +
+    '<div class="set-row"><button class="mini-btn" id="skIcoPick">' + gl('image', 12) + ' Wybierz ikonę</button>' +
+    '<button class="mini-btn" id="skIcoDef">' + gl('refresh', 12) + ' Domyślna</button>' +
+    '<label class="radio-row" style="padding:0"><input type="checkbox" id="skOpen">Otwórz po utworzeniu</label></div>' +
+    '</div>' +
+    '<div id="skFile" style="display:none">' +
+    '<div style="display:flex;gap:8px;align-items:center">' +
+    '<button class="mini-btn" id="skUp">' + gl('up', 12) + '</button>' +
+    '<div class="crumbs" id="skCrumb" style="flex:1"></div>' +
+    '<input class="inp" id="skQ" placeholder="Szukaj…" style="width:132px"></div>' +
+    '<div class="pick-list" id="skList"></div>' +
+    '<div class="hint" style="margin-top:8px">Kliknij folder, aby wejść. Kliknij plik, aby go zaznaczyć.</div>' +
+    '</div>' +
+    '<div id="skApp" style="display:none"><div class="pick-list" id="skApps"></div></div>';
+
+  const nameInp = $('#skName', body), urlInp = $('#skUrlInp', body), prev = $('#skPrev', body);
+  const paintUrl = () => {
+    const raw = urlInp.value.trim();
+    const u = raw ? normalizeUrl(raw) : '';
+    prev.textContent = u || 'Adres pojawi się tutaj…';
+    if (u && !nameInp.value.trim()) nameInp.placeholder = urlHost(u) || 'Nazwa skrótu';
+    urlInp.classList.remove('bad');
+  };
+  urlInp.oninput = paintUrl;
+  nameInp.oninput = () => nameInp.classList.remove('bad');
+  $('#skIcoPick', body).onclick = () => pickIconDialog({
+    title: 'Ikona skrótu', preset: icon && icon.preset, data: icon && icon.data, fallback: 'globe',
+    onPick: r => {
+      icon = r;
+      $('#skIco', body).innerHTML = r.data ? imgIco(r.data, 30) : svgIco(r.preset || 'globe', 30);
+    }
+  });
+  $('#skIcoDef', body).onclick = () => { icon = null; $('#skIco', body).innerHTML = svgIco('globe', 30); };
+
+  const list = $('#skList', body);
+  function renderFile() {
+    const n = cwd === 'Z' ? null : N(cwd);
+    $('#skCrumb', body).innerHTML = '<button class="crumb" data-c="Z">Dysk Google (Z:)</button>' +
+      (n ? pathOf(n).concat([n]).map(f =>
+        '<span class="crumb-sep">' + gl('chevR', 10) + '</span><button class="crumb" data-c="' + f.id + '">' + esc(f.name) + '</button>').join('') : '');
+    $$('.crumb', body).forEach(b => { b.onclick = () => { cwd = b.dataset.c; selId = null; renderFile(); }; });
+    let a = children(cwd);
+    if (q) a = a.filter(x => x.name.toLowerCase().indexOf(q) >= 0);
+    a.sort((x, y) => (x.type === 'folder' ? 0 : 1) - (y.type === 'folder' ? 0 : 1) || x.name.localeCompare(y.name, 'pl'));
+    list.innerHTML = a.length
+      ? a.map(x => '<button class="pick-row' + (x.id === selId ? ' selected' : '') + '" data-id="' + x.id + '">' +
+        iconHTML(x, 24) + '<span class="t"><b>' + esc(x.name) + '</b><i>' + esc(typeLabel(x)) + '</i></span>' +
+        (x.type === 'folder' ? gl('chevR', 13) : '') + '</button>').join('')
+      : '<div class="start-empty">' + (Drive.mode === 'google' && !cloudOk()
+        ? 'Dysk Google nie jest połączony.' : 'Pusty folder') + '</div>';
+    $$('.pick-row', list).forEach(b => {
+      b.onclick = () => {
+        const x = N(b.dataset.id);
+        if (!x) return;
+        if (x.type === 'folder') { cwd = x.id; selId = null; }
+        else selId = x.id;
+        renderFile();
+      };
+      b.ondblclick = () => {
+        const x = N(b.dataset.id);
+        if (x && x.type !== 'folder') { selId = x.id; d.primaryBtn.click(); }
+      };
+    });
+  }
+  $('#skUp', body).onclick = () => {
+    if (cwd !== 'Z') {
+      const n = N(cwd);
+      cwd = n && n.parent !== 'Z' ? n.parent : 'Z';
+      selId = null;
+      renderFile();
+    }
+  };
+  $('#skQ', body).oninput = e => { q = e.target.value.trim().toLowerCase(); renderFile(); };
+
+  function renderApps() {
+    const a = allApps().slice().sort((x, y) => x.name.localeCompare(y.name, 'pl'));
+    $('#skApps', body).innerHTML = a.map(x =>
+      '<button class="pick-row' + (x.id === appSel ? ' selected' : '') + '" data-app="' + esc(x.id) + '">' +
+      descIcon(x, 24) + '<span class="t"><b>' + esc(x.name) + '</b><i>' +
+      esc(x.desc || (x.custom ? 'Aplikacja HTML' : 'Aplikacja systemowa')) + '</i></span></button>').join('');
+    $$('[data-app]', body).forEach(b => {
+      b.onclick = () => { appSel = b.dataset.app; renderApps(); };
+      b.ondblclick = () => { appSel = b.dataset.app; d.primaryBtn.click(); };
+    });
+  }
+
+  function setTab(t) {
+    tab = t;
+    $$('.tab', body).forEach(x => x.classList.toggle('active', x.dataset.t === t));
+    $('#skUrl', body).style.display = t === 'url' ? '' : 'none';
+    $('#skFile', body).style.display = t === 'file' ? '' : 'none';
+    $('#skApp', body).style.display = t === 'app' ? '' : 'none';
+    if (t === 'file') renderFile();
+    if (t === 'app') renderApps();
+    if (t === 'url') setTimeout(() => urlInp.focus(), 40);
+  }
+  $$('.tab', body).forEach(t => { t.onclick = () => setTab(t.dataset.t); });
+
+  const d = dlg({
+    title: 'Nowy skrót', icon: 'link', body: body, width: 580,
+    buttons: [{ label: 'Anuluj' }, { label: 'Utwórz skrót', primary: true, keep: true, onClick: a => {
+      if (tab === 'url') {
+        const raw = urlInp.value.trim();
+        if (!raw) { urlInp.classList.add('bad'); urlInp.focus(); toast('Podaj adres strony.', { type: 'warn' }); return false; }
+        const url = normalizeUrl(raw);
+        const name = nameInp.value.trim() || urlHost(url) || 'Skrót WWW';
+        const n = makeShortcut({ url: url }, name, null, icon);
+        toast('Skrót do „' + name + '” utworzony.', { type: 'success' });
+        if ($('#skOpen', body).checked) {
+          const w = window.open(url, '_blank', 'noopener');
+          if (!w) toast('Przeglądarka zablokowała nową kartę — zezwól na wyskakujące okna.', { type: 'warn', timeout: 8000 });
+        }
+        a.close();
+        return;
+      }
+      if (tab === 'file') {
+        if (!selId) { toast('Wybierz plik z listy.', { type: 'warn' }); return false; }
+        const n = N(selId);
+        if (!n) { toast('Ten plik już nie istnieje.', { type: 'warn' }); return false; }
+        makeShortcut({ nodeId: n.id, driveId: n.driveId }, n.name);
+        toast('Skrót do „' + n.name + '” utworzony.', { type: 'success' });
+        a.close();
+        return;
+      }
+      if (!appSel) { toast('Wybierz aplikację z listy.', { type: 'warn' }); return false; }
+      const res = addAppDesktopShortcut(appSel);
+      if (!res) return false;
+      a.close();
+    } }]
+  });
+  setTab(tab);
+  paintUrl();
+  return d;
+}
+
+/* ============================================================
+   14. Eksplorator plików
    ============================================================ */
 function openExplorer(cwd, opt) {
   opt = opt || {};
@@ -3318,6 +3677,7 @@ function buildExplorer(win, initial) {
       mk(DESK, 'folderDesktop', 'Pulpit') +
       mk(DIRS.documents, 'folderDocuments', 'Dokumenty') +
       mk(DIRS.downloads, 'folderDownloads', 'Pobrane') +
+      mk(DIRS.web, 'folderWeb', 'Strony WWW') +
       mk(DIRS.scripts, 'folderScripts', 'Skrypty .bat') +
       mk(DIRS.apps, 'folderApps', 'Aplikacje') +
       mk(DIRS.system, 'folderSystem', 'System') +
@@ -3346,6 +3706,7 @@ function buildExplorer(win, initial) {
       '<div class="cmd-sep"></div><button class="cmd-btn warn-c" data-c="empty">' + gl('trash', 15) + 'Opróżnij kosz</button>';
     else html =
       '<button class="cmd-btn" data-c="new">' + gl('plus', 15) + 'Nowy ' + gl('chevD', 11) + '</button>' +
+      '<button class="cmd-btn" data-c="shortcut">' + gl('link', 15) + 'Skrót</button>' +
       '<button class="cmd-btn" data-c="upload">' + gl('upload', 15) + 'Prześlij</button><div class="cmd-sep"></div>' +
       '<button class="cmd-btn" data-c="cut" data-tip="Wytnij" ' + (canMod ? '' : 'disabled') + '>' + gl('cut', 15) + '</button>' +
       '<button class="cmd-btn" data-c="copy" data-tip="Kopiuj" ' + (sel.length ? '' : 'disabled') + '>' + gl('copy', 15) + '</button>' +
@@ -3355,8 +3716,11 @@ function buildExplorer(win, initial) {
       (one && isBat(one)
         ? '<button class="cmd-btn" data-c="run">' + gl('play', 15) + 'Uruchom</button>' +
           '<button class="cmd-btn" data-c="bedit">' + gl('code', 15) + 'Edytuj</button>' : '') +
+      (one && isUrlShortcut(one)
+        ? '<button class="cmd-btn" data-c="urlopen">' + gl('globe', 15) + 'Otwórz</button>' +
+          '<button class="cmd-btn" data-c="urledit">' + gl('edit', 15) + 'Adres</button>' : '') +
       '<button class="cmd-btn warn-c" data-c="del" data-tip="Usuń" ' + (canMod ? '' : 'disabled') + '>' + gl('trash', 15) + '</button>' +
-      '<button class="cmd-btn" data-c="shortcut" data-tip="Skrót na pulpicie" ' + (sel.length ? '' : 'disabled') + '>' + gl('link', 15) + '</button>' +
+      '<button class="cmd-btn" data-c="toshortcut" data-tip="Skrót na pulpicie" ' + (sel.length ? '' : 'disabled') + '>' + gl('external', 15) + '</button>' +
       '<button class="cmd-btn" data-c="download" data-tip="Pobierz" ' + (one && one.type !== 'folder' ? '' : 'disabled') + '>' + gl('download', 15) + '</button>';
 
     html += '<div class="cmd-sep"></div>' +
@@ -3370,6 +3734,7 @@ function buildExplorer(win, initial) {
         const c = b.dataset.c, r = b.getBoundingClientRect();
         Snd.play('click');
         if (c === 'new') openMenu(newMenuItems(S.cwd), r.left, r.bottom + 4);
+        else if (c === 'shortcut') openShortcutPicker({ tab: 'url' });
         else if (c === 'sort') openMenu([
           { label: 'Nazwa', check: S.sort === 'name', action: () => setSort('name') },
           { label: 'Data modyfikacji', check: S.sort === 'date', action: () => setSort('date') },
@@ -3387,9 +3752,12 @@ function buildExplorer(win, initial) {
         else if (c === 'icon') changeNodeIcon(one);
         else if (c === 'run') runBatNode(one);
         else if (c === 'bedit') openBatEditor(one);
+        else if (c === 'urlopen') openNode(one);
+        else if (c === 'urledit') editUrlShortcut(one);
         else if (c === 'del') deleteFlow(Array.from(S.sel));
-        else if (c === 'shortcut') Array.from(S.sel).map(N).forEach(n => {
+        else if (c === 'toshortcut') Array.from(S.sel).map(N).forEach(n => {
           if (n.type === 'app' || n.type === 'appshortcut') addAppDesktopShortcut(n.type === 'app' ? 'custom:' + n.app : n.app);
+          else if (isUrlShortcut(n)) makeShortcut({ url: n.target.url }, n.name, null, n.iconData ? { data: n.iconData } : n.iconPreset ? { preset: n.iconPreset } : null);
           else makeShortcut({ nodeId: n.id, driveId: n.driveId }, n.name);
         });
         else if (c === 'download') one.type === 'app' ? downloadApp('custom:' + one.app) : downloadNode(one);
@@ -3435,13 +3803,19 @@ function buildExplorer(win, initial) {
       { id: DESK, ico: 'folderDesktop', n: 'Pulpit' },
       { id: DIRS.documents, ico: 'folderDocuments', n: 'Dokumenty' },
       { id: DIRS.downloads, ico: 'folderDownloads', n: 'Pobrane' },
+      { id: DIRS.web, ico: 'folderWeb', n: 'Strony WWW' },
       { id: DIRS.scripts, ico: 'folderScripts', n: 'Skrypty' },
       { id: DIRS.apps, ico: 'folderApps', n: 'Aplikacje' },
       { id: DIRS.system, ico: 'folderSystem', n: 'System' },
       { id: 'trash', ico: 'trash', n: 'Kosz' }
     ];
-    let scripts = 0;
-    for (const k in state.nodes) if (isBat(state.nodes[k]) && !state.nodes[k].trashed) scripts++;
+    let scripts = 0, links = 0;
+    for (const k in state.nodes) {
+      const n = state.nodes[k];
+      if (n.trashed) continue;
+      if (isBat(n)) scripts++;
+      if (isUrlShortcut(n)) links++;
+    }
 
     main.dataset.folder = 'pc';
     main.innerHTML =
@@ -3456,7 +3830,8 @@ function buildExplorer(win, initial) {
       '<span>Motyw</span><b>' + currentTheme() + '</b>' +
       '<span>Tryb</span><b>' + (cloudOnly() ? 'Chmurowy (dane tylko na Drive)' : cloudOk() ? 'Google Drive połączony' : 'Lokalny / demo') + '</b>' +
       '<span>Aplikacje</span><b>' + allApps().length + '</b>' +
-      '<span>Skrypty .bat</span><b>' + scripts + '</b></div>';
+      '<span>Skrypty .bat</span><b>' + scripts + '</b>' +
+      '<span>Skróty WWW</span><b>' + links + '</b></div>';
 
     $$('[data-open]', main).forEach(el => {
       el.ondblclick = () => navigate(el.dataset.open);
@@ -3476,17 +3851,20 @@ function buildExplorer(win, initial) {
     if (trash) banner = '<div class="trash-banner">' + gl('info', 16) + 'Elementy w koszu można przywrócić lub usunąć trwale.</div>';
     else if (S.cwd === DIRS.scripts) banner = '<div class="info-banner">' + gl('bat', 16) +
       'Skrypty .bat — dwuklik uruchamia skrypt w konsoli. <button class="mini-btn" id="newBat">' + gl('plus', 12) + ' Nowy skrypt</button></div>';
+    else if (S.cwd === DIRS.web) banner = '<div class="info-banner">' + gl('globe', 16) +
+      'Skróty do stron internetowych. <button class="mini-btn" id="newUrl">' + gl('plus', 12) + ' Nowy skrót WWW</button></div>';
     else if (rootOf(S.cwd) === 'Z' && Drive.mode === 'google' && !cloudOk()) banner =
       '<div class="info-banner">' + gl('cloud', 16) + 'Dysk Google nie jest połączony. <button class="mini-btn" id="expConnect">Połącz konto…</button></div>';
 
     main.innerHTML = banner;
-    const nb = $('#newBat', main), ec = $('#expConnect', main);
+    const nb = $('#newBat', main), nu = $('#newUrl', main), ec = $('#expConnect', main);
     if (nb) nb.onclick = () => createNode('bat', S.cwd, { rename: true });
+    if (nu) nu.onclick = () => openShortcutPicker({ tab: 'url' });
     if (ec) ec.onclick = () => openSettings('drive');
 
     if (!arr.length) {
       main.insertAdjacentHTML('beforeend',
-        '<div class="empty-state">' + svgIco(trash ? 'trash' : S.cwd === DIRS.scripts ? 'bat' : S.cwd === 'Z' ? 'drive' : 'folder', 64) +
+        '<div class="empty-state">' + svgIco(trash ? 'trash' : S.cwd === DIRS.scripts ? 'bat' : S.cwd === DIRS.web ? 'globe' : S.cwd === 'Z' ? 'drive' : 'folder', 64) +
         '<p>' + (trash ? 'Kosz jest pusty' : S.q ? 'Brak wyników dla „' + esc(S.q) + '”' : 'Ten folder jest pusty') + '</p>' +
         (!trash && !S.q ? '<button class="btn primary" id="emptyNew">Utwórz coś nowego</button>' : '') + '</div>');
       const en = $('#emptyNew', main);
@@ -3511,9 +3889,12 @@ function buildExplorer(win, initial) {
         (clipboard.mode === 'cut' && clipboard.ids.indexOf(n.id) >= 0 ? ' cut' : '');
       const el = h('div', cls);
       el.dataset.id = n.id;
+      const badge = isUrlShortcut(n)
+        ? '<span class="sc-badge url">' + gl('globe', 9) + '</span>'
+        : (n.type === 'shortcut' || n.type === 'appshortcut')
+          ? '<span class="sc-badge">' + gl('external', 9) + '</span>' : '';
       if (S.view === 'grid') {
-        el.innerHTML = '<span class="gi-img">' + iconHTML(n, 40) +
-          ((n.type === 'shortcut' || n.type === 'appshortcut') ? '<span class="sc-badge">' + gl('external', 9) + '</span>' : '') +
+        el.innerHTML = '<span class="gi-img">' + iconHTML(n, 40) + badge +
           '</span><span class="gi-label">' + esc(n.name) + '</span>';
       } else {
         el.innerHTML = '<span class="lname">' + iconHTML(n, 20) + '<span class="n">' + esc(n.name) + '</span></span>' +
@@ -3634,6 +4015,7 @@ function buildExplorer(win, initial) {
     if (S.cwd === 'pc') return;
     openMenu([
       { label: 'Nowy', icon: 'plus', sub: newMenuItems(S.cwd) },
+      { label: 'Nowy skrót…', icon: 'link', action: () => openShortcutPicker() },
       '-',
       { label: 'Wklej', icon: 'paste', disabled: !clipboard.ids.length, action: () => pasteClipboard(S.cwd) },
       { label: 'Prześlij pliki…', icon: 'upload', action: () => pickFiles(f => importFiles(f, { parent: S.cwd })) },
@@ -3741,7 +4123,7 @@ function buildExplorer(win, initial) {
 }
 
 /* ============================================================
-   14. Notatnik
+   15. Notatnik
    ============================================================ */
 function mdHtml(src) {
   const lines = esc(src).split('\n');
@@ -3899,7 +4281,7 @@ function buildNotepad(win, node, unsaved) {
 }
 
 /* ============================================================
-   15. Edytor skryptów .bat
+   16. Edytor skryptów .bat
    ============================================================ */
 function openBatEditor(n) {
   if (!n) return;
@@ -3919,9 +4301,9 @@ function buildBatEditor(win, n) {
     ['call', 'call inny.bat'], ['pause', 'Czeka na Enter'], ['exit /b', 'Koniec skryptu'],
     ['cd', 'Zmienia folder'], ['dir', 'Lista plików'], ['md', 'Tworzy folder'],
     ['copy', 'Kopiuje'], ['del', 'Usuwa do kosza'], ['type', 'Pokazuje plik'],
-    ['run', 'run skrypt.bat'], ['msg', 'Powiadomienie'], ['ask', 'Pytanie → %ANSWER%'],
-    ['title', 'Tytuł konsoli'], ['color', 'green|amber|blue|matrix'], ['sleep', 'sleep 500'],
-    ['batlist', 'Lista skryptów']
+    ['run', 'run skrypt.bat'], ['url', 'url nazwa | adres'], ['msg', 'Powiadomienie'],
+    ['ask', 'Pytanie → %ANSWER%'], ['title', 'Tytuł konsoli'], ['color', 'green|amber|blue|matrix'],
+    ['sleep', 'sleep 500'], ['batlist', 'Lista skryptów']
   ];
   const root = h('div', 'batedit',
     '<div class="be-tool"><button class="btn primary" id="beRun">' + gl('play', 13) + ' Uruchom</button>' +
@@ -4029,7 +4411,7 @@ async function runBatNode(n, o) {
 }
 
 /* ============================================================
-   16. Powłoka / konsola CMD
+   17. Powłoka / konsola CMD
    ============================================================ */
 function expandVars(s, sh) {
   const now = new Date();
@@ -4251,6 +4633,30 @@ function createShell(opts) {
       return 0;
     } },
     start: { d: 'Alias open', u: 'start', f: a => CMDS.open.f(a) },
+    url: { d: 'Tworzy skrót do strony WWW', u: 'url <nazwa> | <adres>', f: a => {
+      const joined = a.join(' ');
+      let name, addr;
+      if (joined.indexOf('|') >= 0) {
+        const parts = joined.split('|');
+        name = parts[0].trim();
+        addr = parts.slice(1).join('|').trim();
+      } else {
+        addr = joined.trim();
+        name = urlHost(normalizeUrl(addr));
+      }
+      if (!addr) { print('Użycie: url Nazwa | https://adres', 'err'); return 1; }
+      const u = normalizeUrl(addr);
+      const n = makeShortcut({ url: u }, name || u);
+      print('Skrót WWW: ' + n.name + ' → ' + u, 'ok');
+      return 0;
+    } },
+    urls: { d: 'Lista skrótów WWW', u: 'urls', f: () => {
+      const l = Object.keys(state.nodes).map(k => state.nodes[k]).filter(n => isUrlShortcut(n) && !n.trashed);
+      if (!l.length) { print('Brak skrótów. Utwórz: url Nazwa | https://adres', 'dim'); return 0; }
+      print('SKRÓTY WWW (' + l.length + ')', 'head');
+      l.forEach(n => print('  ' + n.name.padEnd(26) + n.target.url, 'acc'));
+      return 0;
+    } },
     shortcut: { d: 'Skrót na pulpicie', u: 'shortcut <plik|app>', f: a => {
       const id = a.join(' ');
       const d = appDesc(id) || appDesc('custom:' + id);
@@ -4421,6 +4827,10 @@ function createShell(opts) {
         let v = a.slice(2).join(' ');
         try { v = JSON.parse(v); } catch (e) {}
         const p = a[1].split('.');
+        if (cloudOnly() && p[0] === 'drive' && (p[1] === 'autoLogin' || p[1] === 'cloudOnly')) {
+          print('W trybie chmurowym te flagi są zablokowane. Użyj: cloud off', 'warn');
+          return 1;
+        }
         let o = state.settings;
         for (let i = 0; i < p.length - 1; i++) { if (o[p[i]] == null) o[p[i]] = {}; o = o[p[i]]; }
         o[p[p.length - 1]] = v;
@@ -4449,7 +4859,11 @@ function createShell(opts) {
     cloud: { d: 'Tryb chmurowy', u: 'cloud on|off|status|flush', f: async a => {
       const m = a[0] || 'status';
       if (m === 'status') {
-        print(JSON.stringify({ cloudOnly: cloudOnly(), connected: cloudOk(), pending: !!state.cloudPending }, null, 1));
+        print(JSON.stringify({
+          cloudOnly: cloudOnly(), connected: cloudOk(), pending: !!state.cloudPending,
+          autoLogin: !!state.settings.drive.autoLogin,
+          autoLoginLock: !!state.settings.drive.autoLoginLock
+        }, null, 1));
         return 0;
       }
       if (m === 'flush') {
@@ -4461,6 +4875,7 @@ function createShell(opts) {
       if (!cloudOk()) { print('Najpierw połącz Dysk Google.', 'err'); return 1; }
       setCloudOnly(m === 'on');
       print('Tryb chmurowy: ' + (m === 'on' ? 'włączony' : 'wyłączony'), 'ok');
+      if (m === 'on') print('Automatyczne ponowne logowanie zostało wyłączone.', 'warn');
       return 0;
     } },
     drive: { d: 'Dysk Google', u: 'drive status|sync|apps|config|mirror', f: async a => {
@@ -4469,7 +4884,7 @@ function createShell(opts) {
         print(JSON.stringify({
           mode: Drive.mode, state: Drive.state,
           email: Drive.info && Drive.info.user ? Drive.info.user.emailAddress : null,
-          cloudOnly: cloudOnly(),
+          cloudOnly: cloudOnly(), autoLogin: !!state.settings.drive.autoLogin,
           lastSync: Drive.lastSync ? fmtDate(Drive.lastSync) : null
         }, null, 1));
         return 0;
@@ -4521,7 +4936,8 @@ function createShell(opts) {
         openCmd: openCmd, Drive: Drive, DIRS: DIRS, DESK: DESK,
         allApps: allApps, appDesc: appDesc, runBatNode: runBatNode,
         createShell: createShell, windows: windows, print: print,
-        cloudOnly: cloudOnly, setCloudOnly: setCloudOnly, purgeLocal: purgeLocal
+        cloudOnly: cloudOnly, setCloudOnly: setCloudOnly, purgeLocal: purgeLocal,
+        makeShortcut: makeShortcut, openShortcutPicker: openShortcutPicker, normalizeUrl: normalizeUrl
       };
       let r;
       try { r = Function('state', 'api', 'OS', '"use strict";return (' + code + ')')(state, api, api); }
@@ -4541,13 +4957,19 @@ function createShell(opts) {
       return 0;
     } },
     sysinfo: { d: 'Informacje', u: 'sysinfo', f: () => {
-      let scripts = 0;
-      for (const k in state.nodes) if (isBat(state.nodes[k]) && !state.nodes[k].trashed) scripts++;
+      let scripts = 0, links = 0;
+      for (const k in state.nodes) {
+        const n = state.nodes[k];
+        if (n.trashed) continue;
+        if (isBat(n)) scripts++;
+        if (isUrlShortcut(n)) links++;
+      }
       print(JSON.stringify({
         version: VER, theme: currentTheme(), nodes: Object.keys(state.nodes).length,
         apps: allApps().length, deletedApps: Object.keys(state.appTrash || {}).length,
-        scripts: scripts, storage: fmtSize(JSON.stringify(state).length),
-        drive: Drive.mode + '/' + Drive.state, cloudOnly: cloudOnly()
+        scripts: scripts, urlShortcuts: links, storage: fmtSize(JSON.stringify(state).length),
+        drive: Drive.mode + '/' + Drive.state, cloudOnly: cloudOnly(),
+        autoLogin: !!state.settings.drive.autoLogin
       }, null, 1));
       return 0;
     } },
@@ -4688,13 +5110,14 @@ function buildCmd(win, initial) {
     '<div class="cmd-tool"><button class="mini-btn" id="cHelp">' + gl('info', 12) + ' Pomoc</button>' +
     '<button class="mini-btn" id="cClear">' + gl('x', 12) + ' Wyczyść</button>' +
     '<button class="mini-btn" id="cBats">' + gl('bat', 12) + ' Skrypty</button>' +
+    '<button class="mini-btn" id="cUrls">' + gl('globe', 12) + ' Skróty WWW</button>' +
     '<button class="mini-btn" id="cRepair">' + gl('wrench', 12) + ' Napraw</button>' +
     '<button class="mini-btn" id="cCopy">' + gl('copy', 12) + ' Kopiuj</button>' +
     '<span style="flex:1"></span><span class="mini-btn" style="pointer-events:none">CMD ' + VER + '</span></div>' +
     '<div class="cmd-out" id="cOut"></div>' +
     '<div class="cmd-in" id="cInRow"><span class="ps" id="cPs"></span>' +
     '<input id="cIn" spellcheck="false" autocomplete="off" placeholder="wpisz polecenie… (help)"></div>' +
-    '<div class="cmd-hint">↑/↓ historia • Tab uzupełnia • run plik.bat • batlist • cloud status • js</div>');
+    '<div class="cmd-hint">↑/↓ historia • Tab uzupełnia • run plik.bat • url Nazwa | adres • cloud status • js</div>');
   win.body.append(root);
   const out = $('#cOut', root), inp = $('#cIn', root), ps = $('#cPs', root), inRow = $('#cInRow', root);
 
@@ -4722,7 +5145,7 @@ function buildCmd(win, initial) {
   });
   prompt();
   print('PulpitOS [Wersja ' + VER + '] — konsola systemowa', 'head');
-  print('Wpisz "help", "batlist" lub "repair".' + (cloudOnly() ? ' TRYB CHMUROWY aktywny.' : ''), 'dim');
+  print('Wpisz "help", "batlist", "urls" lub "repair".' + (cloudOnly() ? ' TRYB CHMUROWY aktywny.' : ''), 'dim');
   print('', '');
 
   const run = async line => {
@@ -4792,6 +5215,7 @@ function buildCmd(win, initial) {
   $('#cHelp', root).onclick = () => run('help');
   $('#cClear', root).onclick = () => { out.innerHTML = ''; inp.focus(); };
   $('#cBats', root).onclick = () => run('batlist');
+  $('#cUrls', root).onclick = () => run('urls');
   $('#cRepair', root).onclick = () => run('repair');
   $('#cCopy', root).onclick = async () => {
     try { await navigator.clipboard.writeText(out.innerText); toast('Skopiowano zawartość konsoli.', { type: 'success', timeout: 2000 }); }
@@ -4808,7 +5232,7 @@ function buildCmd(win, initial) {
 }
 
 /* ============================================================
-   17. Podgląd plików
+   18. Podgląd plików
    ============================================================ */
 function openGoogleDoc(n) {
   if (n.driveId && cloudOk()) {
@@ -4966,7 +5390,7 @@ async function installHtmlFile(n) {
 }
 
 /* ============================================================
-   18. Import plików
+   19. Import plików
    ============================================================ */
 async function confirmCloudFallback(name) {
   if (!cloudOk()) { toast('Brak miejsca lokalnie, a Dysk Google nie jest połączony.', { type: 'warn' }); return false; }
@@ -4978,6 +5402,15 @@ async function importDropped(files, parent) {
   for (const f of files) {
     try {
       if (f.size > 80 * 1048576) throw new Error('Plik > 80 MB');
+      if (/\.url$/i.test(f.name)) {
+        const txt = await f.text();
+        const m = /URL\s*=\s*(.+)/i.exec(txt);
+        if (m) {
+          makeShortcut({ url: normalizeUrl(m[1].trim()) }, f.name.replace(/\.url$/i, ''));
+          ok++;
+          continue;
+        }
+      }
       if (rootOf(parent) === 'Z' && cloudOk()) {
         await importSingle(f.name, f.type || mimeOf(f.name), f, { parent: parent, shortcut: false });
         cloud++;
@@ -5066,7 +5499,7 @@ async function importSingle(name, mime, blob, o) {
 }
 
 /* ============================================================
-   19. Rejestr aplikacji
+   20. Rejestr aplikacji
    ============================================================ */
 const BUILTIN = [
   { id: 'pc', name: 'Ten komputer', icon: 'pc', desc: 'Dyski i foldery systemowe', run: () => openExplorer('pc') },
@@ -5074,6 +5507,7 @@ const BUILTIN = [
     win: { w: 980, h: 620, minW: 520, minH: 320 }, run: () => openExplorer(DESK),
     actions: [
       { label: 'Nowy folder', icon: 'plus', run: w => createNode('folder', (w && w.api ? w.api.cwd() : DESK) || DESK, { rename: true }) },
+      { label: 'Nowy skrót WWW', icon: 'globe', run: () => openShortcutPicker({ tab: 'url' }) },
       { label: 'Nowy skrypt .bat', icon: 'bat', run: w => createNode('bat', (w && w.api ? w.api.cwd() : DIRS.scripts) || DIRS.scripts, { rename: true }) },
       { label: 'Odśwież', icon: 'refresh', run: w => w && w.api && w.api.refresh() }
     ] },
@@ -5090,10 +5524,19 @@ const BUILTIN = [
     win: { w: 920, h: 580, minW: 460, minH: 260 }, run: () => openCmd(),
     actions: [
       { label: 'Lista skryptów', icon: 'bat', run: w => w && w.api && w.api.run('batlist') },
+      { label: 'Skróty WWW', icon: 'globe', run: w => w && w.api && w.api.run('urls') },
       { label: 'Pomoc', icon: 'info', run: w => w && w.api && w.api.run('help') },
       { label: 'Napraw system', icon: 'wrench', run: w => w && w.api && w.api.run('repair') },
       { label: 'Wyczyść', icon: 'x', run: w => w && w.api && w.api.clear() }
     ] },
+  { id: 'shortcut', name: 'Nowy skrót', icon: 'link', desc: 'Skrót do strony WWW, pliku lub aplikacji',
+    run: () => openShortcutPicker(),
+    actions: [
+      { label: 'Skrót do strony WWW', icon: 'globe', run: () => openShortcutPicker({ tab: 'url' }) },
+      { label: 'Skrót do pliku z Drive', icon: 'drive', run: () => openShortcutPicker({ tab: 'file' }) },
+      { label: 'Skrót aplikacji', icon: 'apphtml', run: () => openShortcutPicker({ tab: 'app' }) }
+    ] },
+  { id: 'web', name: 'Strony WWW', icon: 'folderWeb', desc: 'Folder skrótów internetowych', run: () => openExplorer(DIRS.web) },
   { id: 'scripts', name: 'Skrypty wsadowe', icon: 'folderScripts', desc: 'Folder skryptów .bat', run: () => openExplorer(DIRS.scripts) },
   { id: 'gdoc', name: 'Dokument Google', icon: 'gdoc', desc: 'Google Docs', run: () => createGoogleFlow('gdoc', DESK) },
   { id: 'gsheet', name: 'Arkusz Google', icon: 'gsheet', desc: 'Google Sheets', run: () => createGoogleFlow('gsheet', DESK) },
@@ -5507,7 +5950,8 @@ function openAppEditor(id) {
       });
       $('#aeRes', root).checked = win0.resizable !== false;
       const PRE = ['apphtml', 'code', 'bat', 'cmd', 'notepad', 'settings', 'image', 'audio', 'video',
-        'folderApps', 'folderScripts', 'folderCode', 'gdoc', 'gsheet', 'drive', 'pc', 'trash', 'upload', 'link', 'logo'];
+        'folderApps', 'folderScripts', 'folderCode', 'folderWeb', 'globe', 'link', 'gdoc', 'gsheet',
+        'drive', 'pc', 'trash', 'upload', 'logo'];
       $('#aePresets', root).innerHTML = PRE.map(p =>
         '<button class="ae-preset" data-p="' + p + '">' + svgIco(p, 26) + '</button>').join('');
       const paint = () => {
@@ -5657,13 +6101,13 @@ async function fileToIconDataURL(file) {
 }
 
 /* ============================================================
-   20. Most API dla aplikacji HTML
+   21. Most API dla aplikacji HTML
    ============================================================ */
 const appFrames = new Set();
 const nodeInfo = n => ({
   id: n.id, name: n.name, type: n.type, parent: n.parent, drive: rootOf(n.id),
   size: sizeOf(n), created: n.created, modified: n.modified, mime: n.mime || null,
-  app: n.app || null, target: n.target || null, bat: isBat(n)
+  app: n.app || null, target: n.target || null, bat: isBat(n), url: isUrlShortcut(n) ? n.target.url : null
 });
 function attachBridge(win, iframe, app, file) {
   const entry = { iframe: iframe, win: win, app: app };
@@ -5680,7 +6124,8 @@ function attachBridge(win, iframe, app, file) {
         cloudOnly: cloudOnly(), appId: app.id, appName: app.name, window: win.getSize(),
         dirs: {
           desktop: DESK, apps: DIRS.apps, appdata: DIRS.appdata, documents: DIRS.documents,
-          downloads: DIRS.downloads, system: DIRS.system, scripts: DIRS.scripts, logs: DIRS.logs
+          downloads: DIRS.downloads, system: DIRS.system, scripts: DIRS.scripts,
+          logs: DIRS.logs, web: DIRS.web
         }
       }
     });
@@ -5724,7 +6169,8 @@ async function bridgeCall(m, p, ctx) {
       limits: { code: limitBytes('code'), read: limitBytes('read'), blob: limitBytes('blob') },
       dirs: {
         desktop: DESK, apps: DIRS.apps, appdata: DIRS.appdata, documents: DIRS.documents,
-        downloads: DIRS.downloads, system: DIRS.system, scripts: DIRS.scripts, logs: DIRS.logs
+        downloads: DIRS.downloads, system: DIRS.system, scripts: DIRS.scripts,
+        logs: DIRS.logs, web: DIRS.web
       },
       icons: Object.keys(ICO)
     };
@@ -5828,10 +6274,19 @@ async function bridgeCall(m, p, ctx) {
       let target, name = p.name;
       if (t.nodeId) { const x = need(t.nodeId); target = { nodeId: x.id, driveId: x.driveId }; name = name || x.name; }
       else if (t.appId) { target = { app: String(t.appId).replace(/^custom:/, '') }; name = name || t.appId; }
-      else if (t.url) { target = { url: String(t.url) }; name = name || t.url; }
+      else if (t.url) { target = { url: normalizeUrl(t.url) }; name = name || urlHost(target.url); }
       else throw new Error('Podaj target');
-      return nodeInfo(makeShortcut(target, name));
+      const icon = p.iconData ? { data: p.iconData } : p.iconPreset ? { preset: p.iconPreset } : null;
+      return nodeInfo(makeShortcut(target, name, p.col != null ? { c: p.col, r: p.row || 0 } : null, icon));
     }
+    case 'desktop.urlShortcut': {
+      if (!p.url) throw new Error('Wymagane pole url');
+      const u = normalizeUrl(p.url);
+      const icon = p.iconData ? { data: p.iconData } : p.iconPreset ? { preset: p.iconPreset } : null;
+      return nodeInfo(makeShortcut({ url: u }, p.name || urlHost(u), null, icon));
+    }
+    case 'desktop.urlShortcuts':
+      return Object.keys(state.nodes).map(k => state.nodes[k]).filter(n => isUrlShortcut(n) && !n.trashed).map(nodeInfo);
     case 'desktop.wallpaper': {
       if (p.preset) state.settings.wallpaper = { type: 'preset', id: p.preset };
       else if (p.dataURL) {
@@ -5844,6 +6299,7 @@ async function bridgeCall(m, p, ctx) {
     case 'desktop.arrange': arrangeDesktop(p.by || 'name'); return { ok: true };
     case 'drive.status': return {
       mode: Drive.mode, state: Drive.state, cloudOnly: cloudOnly(),
+      autoLogin: !!state.settings.drive.autoLogin,
       email: Drive.info && Drive.info.user ? Drive.info.user.emailAddress : null, lastSync: Drive.lastSync
     };
     case 'drive.sync': await Drive.fullSync(true); return { ok: true };
@@ -5895,12 +6351,13 @@ async function bridgeCall(m, p, ctx) {
     case 'ui.confirm': return confirmDlg(String(p.message || ''), { title: p.title, danger: !!p.danger });
     case 'ui.prompt': return promptDlg(p.title || 'Pytanie', String(p.value || ''), { label: p.label });
     case 'ui.pickIcon': return new Promise(res => pickIconDialog({ title: p.title || 'Ikona', onPick: res }));
+    case 'ui.shortcutPicker': return { ok: true, opened: !!openShortcutPicker({ tab: p.tab || 'url' }) };
     default: throw new Error('Nieznana metoda: ' + m);
   }
 }
 
 /* ============================================================
-   21. Dysk Google
+   22. Dysk Google
    ============================================================ */
 const Drive = {
   token: null, expiry: 0, info: null, state: 'demo', lastSync: 0,
@@ -5983,7 +6440,8 @@ const Drive = {
       await this.fullSync(true);
       this.setSt('ok');
       toast('Połączono z Dyskiem Google' +
-        (this.info && this.info.user ? ' jako ' + this.info.user.emailAddress : '') + '.', { type: 'success' });
+        (this.info && this.info.user ? ' jako ' + this.info.user.emailAddress : '') + '.' +
+        (cloudOnly() ? ' Tryb chmurowy aktywny — auto-logowanie wyłączone.' : ''), { type: 'success', timeout: 6000 });
     } catch (e) {
       this.setSt('error');
       if (/popup|blocked|zablokowa/i.test(e.message)) {
@@ -5993,7 +6451,7 @@ const Drive = {
     }
   },
   async silentLogin() {
-    if (this.mode !== 'google' || !state.settings.drive.autoLogin ||
+    if (this.mode !== 'google' || !state.settings.drive.autoLogin || cloudOnly() ||
       !state.settings.drive.connected || this._silentTried) return false;
     this._silentTried = true;
     try {
@@ -6093,7 +6551,6 @@ const Drive = {
       const seen = new Set();
       const mirrorIds = new Set();
 
-      // przebieg 1 — utwórz wszystkie węzły (bez kasowania rodziców)
       raw.forEach(f => {
         const props = f.appProperties || {};
         if (props.pulpitosMirror === '1') {
@@ -6109,7 +6566,6 @@ const Drive = {
         this.nodeFromJson(f, null);
       });
 
-      // przebieg 2 — przypisz rodziców dokładnie jak na Dysku
       raw.forEach(f => {
         if (mirrorIds.has(f.id)) return;
         const n = state.nodes['gd-' + f.id];
@@ -6125,12 +6581,10 @@ const Drive = {
         n.parent = cand || 'Z';
       });
 
-      // usuń tylko to, czego naprawdę nie ma na Dysku
       Object.keys(state.nodes).map(k => state.nodes[k])
         .filter(n => n.origin === 'google' && !seen.has(n.id))
         .forEach(n => { delete state.nodes[n.id]; });
 
-      // sieroty po skasowanych folderach → katalog główny (bez kasowania plików)
       Object.keys(state.nodes).map(k => state.nodes[k])
         .filter(n => n.origin === 'google' && n.parent !== 'Z' && !state.nodes[n.parent])
         .forEach(n => { n.parent = 'Z'; });
@@ -6197,7 +6651,6 @@ const Drive = {
     return this.appsFolderId;
   },
 
-  /* backup C: z zachowaniem struktury folderów */
   async mirrorLocal(manual) {
     if (!cloudOk() || !state.settings.drive.autoUpload || this._mirroring) return;
     this._mirroring = true;
@@ -6388,11 +6841,12 @@ const Drive = {
         app: Object.assign({}, v.app, { html: v.app.htmlKey ? '' : (v.app.html || '').slice(0, 200000) })
       };
     }
-    // tryb chmurowy NIE jest częścią konfiguracji zdalnej — steruje nim klucz lokalny
     const settings = JSON.parse(JSON.stringify(s));
     delete settings.drive.cloudOnly;
+    delete settings.drive.autoLogin;
+    delete settings.drive.autoLoginLock;
     return JSON.stringify({
-      v: 6, ts: Date.now(), settings: settings, nodes: nodes, appsMeta: appsMeta,
+      v: 7, ts: Date.now(), settings: settings, nodes: nodes, appsMeta: appsMeta,
       appMeta: state.appMeta, appTrash: appTrash,
       appTombstones: state.appTombstones, driveTombstones: state.driveTombstones,
       tombstones: state.tombstones, recent: state.recent,
@@ -6410,12 +6864,14 @@ const Drive = {
       const keepCloud = LS.get(CLOUD_KEY) === '1';
       const keepDriveLocal = {
         clientId: s.drive.clientId, connected: s.drive.connected,
-        lastEmail: s.drive.lastEmail, cloudOnly: keepCloud
+        lastEmail: s.drive.lastEmail, cloudOnly: keepCloud,
+        autoLogin: keepCloud ? false : s.drive.autoLogin,
+        autoLoginLock: keepCloud ? true : s.drive.autoLoginLock
       };
       Object.assign(s, ds);
       if (ds.drive) Object.assign(s.drive, ds.drive);
-      // ustawienia lokalne nigdy nie są nadpisywane przez chmurę
       Object.assign(s.drive, keepDriveLocal);
+      if (keepCloud) { s.drive.autoLogin = false; s.drive.autoLoginLock = true; }
       if (keepLocal) { s.localLayout = true; s.gridSize = keepGrid; }
 
       state.tombstones = Object.assign({}, state.tombstones, d.tombstones || {});
@@ -6645,7 +7101,7 @@ function updSyncChip(busy) {
   else if (Drive.state === 'error') { dot.classList.add('err'); lbl.textContent = 'Dysk: błąd'; }
   else lbl.textContent = 'Dysk: rozłączony';
   $('#syncChip').dataset.tip = 'Dysk Google — ' +
-    (cloudOnly() ? 'tryb chmurowy (dane tylko w chmurze)'
+    (cloudOnly() ? 'tryb chmurowy (auto-logowanie wyłączone)'
       : Drive.mode === 'demo' ? 'tryb demo' : Drive.state === 'ok' ? 'połączono' : 'nie połączono');
 }
 $('#syncChip').dataset.popanchor = '1';
@@ -6657,6 +7113,7 @@ $('#syncChip').onclick = e => {
     '<div class="pop-row"><span>Status</span><b>' + (cloudOk() ? 'Połączono' : Drive.mode === 'demo' ? 'Demo' : 'Nie połączono') + '</b></div>' +
     (Drive.info && Drive.info.user ? '<div class="pop-row"><span>Konto</span><b>' + esc(Drive.info.user.emailAddress) + '</b></div>' : '') +
     '<div class="pop-row"><span>Tryb chmurowy</span><b>' + (cloudOnly() ? 'włączony' : 'wyłączony') + '</b></div>' +
+    '<div class="pop-row"><span>Auto-logowanie</span><b>' + (state.settings.drive.autoLogin ? 'włączone' : 'wyłączone') + '</b></div>' +
     '<div class="pop-row"><span>Ostatnia sync</span><b>' + (Drive.lastSync ? relTime(Drive.lastSync) : '—') + '</b></div>' +
     '<div style="display:flex;gap:8px;margin-top:12px"><button class="btn primary" id="syNow" style="padding:6px 14px">Synchronizuj</button>' +
     '<button class="btn" id="sySet" style="padding:6px 14px">Ustawienia</button></div>', $('#syncChip'), 312);
@@ -6672,7 +7129,7 @@ setInterval(() => {
 }, 15000);
 
 /* ============================================================
-   22. Tryb chmurowy i reset fabryczny
+   23. Tryb chmurowy i reset fabryczny
    ============================================================ */
 async function purgeLocal() {
   for (const k in state.nodes) if (state.nodes[k].blobKey) await Blobs.del(state.nodes[k].blobKey);
@@ -6717,7 +7174,7 @@ async function factoryReset() {
     '• zainstalowane aplikacje HTML i ich stan\n' +
     '• konfiguracja, tapeta, motyw, akcent\n' +
     '• przypięcia i układ paska zadań\n' +
-    '• układ ikon, skróty, kosz i historia\n\n' +
+    '• układ ikon, skróty (także WWW), kosz i historia\n\n' +
     'Pliki na Dysku Google pozostaną nienaruszone.',
     { title: 'Stan fabryczny', danger: true, okLabel: 'Usuń wszystko i uruchom ponownie', icon: 'trash' });
   if (!ok) return;
@@ -6733,7 +7190,7 @@ async function factoryReset() {
 }
 
 /* ============================================================
-   23. Naprawa systemu
+   24. Naprawa systemu
    ============================================================ */
 function repairSystem() {
   const rep = [], now = Date.now();
@@ -6758,6 +7215,7 @@ function repairSystem() {
   mk(DESK, 'pulpit', DIRS.user);
   mk(DIRS.downloads, 'pobrane', DIRS.user);
   mk(DIRS.documents, 'dokumenty', DIRS.user);
+  mk(DIRS.web, 'strony www', DIRS.user);
   mk(DIRS.system, 'system', 'C');
   mk(DIRS.logs, 'logs', DIRS.system);
   mk(DIRS.config, 'config', DIRS.system);
@@ -6799,7 +7257,12 @@ function repairSystem() {
     };
     rep.push('Utworzono dziennik zdarzeń');
   }
-  state.fsVersion = 6;
+  if (cloudOnly() && state.settings.drive.autoLogin) {
+    state.settings.drive.autoLogin = false;
+    state.settings.drive.autoLoginLock = true;
+    rep.push('Tryb chmurowy: wyłączono automatyczne logowanie');
+  }
+  state.fsVersion = 7;
   save();
   renderDesktop();
   tbSync();
@@ -6809,7 +7272,7 @@ function repairSystem() {
 }
 
 /* ============================================================
-   24. Ustawienia
+   25. Ustawienia
    ============================================================ */
 function openSettings(tab) {
   const d = appDesc('settings');
@@ -6880,6 +7343,8 @@ function buildSettings(win, tab) {
       '<option value="s">Mała</option><option value="m">Średnia</option><option value="l">Duża</option></select></div>' +
       '<div class="set-row"><span class="lbl">Wyrównaj do siatki</span><label class="toggle">' +
       '<input type="checkbox" id="snapT" ' + (state.settings.snap ? 'checked' : '') + '><span class="tr"></span></label></div>' +
+      '<div class="hint">Ikony przestawiasz przeciąganiem w dowolne miejsce pulpitu. Przytrzymaj <b>Shift</b> podczas upuszczania, ' +
+      'aby pominąć siatkę i ustawić ikonę całkowicie swobodnie.</div>' +
       '<div class="set-row"><span class="lbl">Układ tylko na tym urządzeniu</span><label class="toggle">' +
       '<input type="checkbox" id="localLayout" ' + (state.settings.localLayout ? 'checked' : '') + '><span class="tr"></span></label></div></div>';
 
@@ -6938,6 +7403,7 @@ function buildSettings(win, tab) {
   function renderDrive() {
     const d = state.settings.drive;
     const disabled = d.mode === 'google' ? '' : 'opacity:.45;pointer-events:none';
+    const co = cloudOnly();
     pane.innerHTML =
       '<h2>Dysk Google (Z:)</h2><div class="sub">Struktura folderów, backup C:, aplikacje i tryb chmurowy</div>' +
       '<div class="set-card"><div class="status-line">' + gl('cloud', 18) + '<b>' +
@@ -6959,8 +7425,10 @@ function buildSettings(win, tab) {
       '<div class="field"><label>Zakres dostępu</label><select class="inp" id="dScope">' +
       '<option value="drive" ' + (d.scope !== 'drive.file' ? 'selected' : '') + '>drive — pełny dostęp</option>' +
       '<option value="drive.file" ' + (d.scope === 'drive.file' ? 'selected' : '') + '>drive.file — tylko pliki aplikacji</option></select></div>' +
-      '<div class="set-row"><span class="lbl">Automatyczne logowanie</span><label class="toggle">' +
-      '<input type="checkbox" id="dAutoLogin" ' + (d.autoLogin !== false ? 'checked' : '') + '><span class="tr"></span></label></div>' +
+      '<div class="set-row"><span class="lbl">Automatyczne logowanie</span>' +
+      '<label class="toggle' + (co ? ' off' : '') + '"><input type="checkbox" id="dAutoLogin" ' +
+      (d.autoLogin && !co ? 'checked' : '') + ' ' + (co ? 'disabled' : '') + '><span class="tr"></span></label>' +
+      (co ? '<span class="hint warn">' + gl('lock', 12) + ' zablokowane w trybie chmurowym</span>' : '') + '</div>' +
       '<div class="hint">Jeśli logowanie nie startuje, przeglądarka blokuje wyskakujące okna — zezwól na nie dla tej witryny.</div>' +
       '<div class="set-row"><button class="btn primary" id="dConn">' + gl('cloud', 13) + ' Połącz z Google</button>' +
       '<button class="btn" id="dSync">' + gl('refresh', 13) + ' Pełna synchronizacja</button>' +
@@ -6972,9 +7440,12 @@ function buildSettings(win, tab) {
       '<li>Autoryzowane źródła JS: <code>' + esc(location.origin) + '</code></li></ol></details></div>' +
       '<div class="set-card" style="' + disabled + '"><h3>' + gl('shield', 15) + 'Tryb chmurowy</h3>' +
       '<div class="set-row"><span class="lbl">Nie zapisuj danych lokalnie</span><label class="toggle">' +
-      '<input type="checkbox" id="dCloud" ' + (cloudOnly() ? 'checked' : '') + '><span class="tr"></span></label></div>' +
+      '<input type="checkbox" id="dCloud" ' + (co ? 'checked' : '') + '><span class="tr"></span></label></div>' +
       '<div class="hint">Wszystko trafia na Dysk Google, a pamięć lokalna jest czyszczona przy zamykaniu systemu z menu Start ' +
       'oraz przy kolejnym uruchomieniu (gdy zamknięcie zostało pominięte). Ekran otrzymuje delikatną obwódkę.</div>' +
+      '<div class="hint warn" style="margin-top:8px">' + gl('lock', 12) +
+      ' Włączenie trybu chmurowego automatycznie wyłącza flagę automatycznego ponownego logowania — ' +
+      'po restarcie logujesz się świadomie, zanim dane zostaną odtworzone z chmury.</div>' +
       '<div class="set-row"><button class="btn" id="dCloudNow">' + gl('upload', 13) + ' Wyślij i wyczyść teraz</button></div></div>' +
       '<div class="set-card" style="' + disabled + '"><h3>' + gl('refresh', 15) + 'Synchronizacja</h3>' +
       '<div class="set-row"><span class="lbl">Dynamiczna po operacjach</span><label class="toggle">' +
@@ -7004,7 +7475,10 @@ function buildSettings(win, tab) {
     });
     $('#dCid', pane).onchange = e => { d.clientId = e.target.value.trim() || DEFAULT_CID; Drive.tc = null; save(); };
     $('#dScope', pane).onchange = e => { d.scope = e.target.value; Drive.tc = null; save(); };
-    $('#dAutoLogin', pane).onchange = e => { d.autoLogin = e.target.checked; save(); };
+    $('#dAutoLogin', pane).onchange = e => {
+      if (co) { e.target.checked = false; return; }
+      d.autoLogin = e.target.checked; save();
+    };
     $('#dConn', pane).onclick = () => connectDialog();
     $('#dSync', pane).onclick = () => Drive.fullSync(true);
     $('#dDisc', pane).onclick = async () => { await Drive.disconnect(); render(); };
@@ -7015,9 +7489,11 @@ function buildSettings(win, tab) {
         return;
       }
       setCloudOnly(e.target.checked);
+      render();
       toast(e.target.checked
-        ? 'Tryb chmurowy włączony — dane będą przechowywane tylko na Dysku Google.'
-        : 'Tryb chmurowy wyłączony.', { type: 'info', timeout: 5000 });
+        ? 'Tryb chmurowy włączony. Automatyczne ponowne logowanie zostało wyłączone.'
+        : 'Tryb chmurowy wyłączony. Możesz ponownie włączyć auto-logowanie.',
+        { type: 'info', timeout: 6500 });
     };
     $('#dCloudNow', pane).onclick = async () => {
       if (!cloudOk()) { toast('Najpierw połącz Dysk Google.', { type: 'warn' }); return; }
@@ -7068,7 +7544,8 @@ function buildSettings(win, tab) {
         : '<div class="hint">Nie dodano własnych rozszerzeń.</div>') +
       '<div class="def-add"><input class="inp" id="defExt" placeholder="np. psd" maxlength="16">' +
       '<button class="btn" id="defAdd">' + gl('plus', 13) + ' Dodaj</button></div>' +
-      '<div class="set-row" style="margin-top:12px"><button class="btn" id="defReset">Przywróć domyślne</button></div></div>';
+      '<div class="set-row" style="margin-top:12px"><button class="btn" id="defReset">Przywróć domyślne</button></div>' +
+      '<div class="hint">Skróty do stron WWW otwierają się zawsze w nowej karcie przeglądarki.</div></div>';
 
     $$('select[data-ext]', pane).forEach(s => {
       s.onchange = () => { state.settings.defaultApps[s.dataset.ext] = s.value; save(); };
@@ -7189,18 +7666,25 @@ function buildSettings(win, tab) {
   }
 
   function renderSystem() {
-    let scripts = 0;
-    for (const k in state.nodes) if (isBat(state.nodes[k]) && !state.nodes[k].trashed) scripts++;
+    let scripts = 0, links = 0;
+    for (const k in state.nodes) {
+      const n = state.nodes[k];
+      if (n.trashed) continue;
+      if (isBat(n)) scripts++;
+      if (isUrlShortcut(n)) links++;
+    }
     pane.innerHTML =
       '<h2>System</h2><div class="sub">PulpitOS ' + VER + ' — informacje, naprawa i konserwacja</div>' +
       '<div class="set-card"><div class="pc-info" style="margin:0">' +
       '<span>Wersja</span><b>' + VER + '</b>' +
       '<span>Motyw</span><b>' + currentTheme() + '</b>' +
       '<span>Tryb pracy</span><b>' + (cloudOnly() ? 'Chmurowy' : cloudOk() ? 'Google Drive' : 'Lokalny / demo') + '</b>' +
+      '<span>Auto-logowanie</span><b>' + (state.settings.drive.autoLogin ? 'włączone' : 'wyłączone') + '</b>' +
       '<span>Elementy systemu plików</span><b>' + Object.keys(state.nodes).length + '</b>' +
       '<span>Aplikacje</span><b>' + allApps().length + ' (' + Object.keys(state.apps).length + ' HTML)</b>' +
       '<span>Usunięte aplikacje</span><b>' + Object.keys(state.appTrash || {}).length + '</b>' +
       '<span>Skrypty .bat</span><b>' + scripts + '</b>' +
+      '<span>Skróty WWW</span><b>' + links + '</b>' +
       '<span>Rozmiar konfiguracji</span><b>' + fmtSize(JSON.stringify(state).length) + '</b>' +
       '<span>Pamięć plików</span><b id="stEst">…</b></div></div>' +
       '<div class="set-card"><h3>' + gl('wrench', 15) + 'Naprawa systemu</h3>' +
@@ -7210,13 +7694,13 @@ function buildSettings(win, tab) {
       '<button class="btn" id="safeMode">Tryb awaryjny</button></div>' +
       '<div id="repOut" class="hint" style="margin-top:8px"></div></div>' +
       '<div class="set-card"><h3>' + gl('folder', 15) + 'Struktura dysku C:</h3>' +
-      '<div class="hint">C:\\aplikacje — pliki aplikacji + appdata • C:\\użytkownik — pulpit, dokumenty, pobrane • C:\\system — dokumentacja, logs, config, skrypty.</div>' +
+      '<div class="hint">C:\\aplikacje — pliki aplikacji + appdata • C:\\użytkownik — pulpit, dokumenty, pobrane, strony www • C:\\system — dokumentacja, logs, config, skrypty.</div>' +
       '<div class="set-row"><button class="btn" id="openC">' + gl('hdd', 13) + ' Otwórz C:</button>' +
       '<button class="btn" id="openSys">' + gl('folderSystem', 13) + ' Folder systemowy</button></div></div>' +
       '<div class="set-card"><h3>' + gl('save', 15) + 'Kopia zapasowa</h3>' +
       '<button class="btn" id="bkExp">' + gl('download', 13) + ' Eksport konfiguracji (.json)</button></div>' +
       '<div class="set-card"><h3 style="color:var(--danger)">' + gl('alert', 15) + 'Strefa niebezpieczna</h3>' +
-      '<div class="hint">Reset usuwa wszystkie lokalne pliki, aplikacje, konfigurację, tapetę, motyw oraz przypięcia paska zadań.</div>' +
+      '<div class="hint">Reset usuwa wszystkie lokalne pliki, aplikacje, konfigurację, tapetę, motyw, skróty oraz przypięcia paska zadań.</div>' +
       '<div class="set-row"><button class="btn danger" id="sysReset">' + gl('trash', 13) + ' Przywróć stan fabryczny…</button></div></div>';
 
     const est = $('#stEst', pane);
@@ -7253,9 +7737,11 @@ function connectDialog() {
     'Jeśli przeglądarka je zablokuje, zezwól na wyskakujące okna dla tej witryny.</div>' +
     '<label class="radio-row"><input type="checkbox" id="cnCloud">Tryb chmurowy — nie zapisuj moich danych lokalnie</label>' +
     '<div class="hint">W trybie chmurowym wszystko trafia na Dysk Google, a pamięć lokalna jest czyszczona ' +
-    'przy zamknięciu systemu z menu Start (lub przy następnym uruchomieniu). Ekran otrzyma delikatną obwódkę.</div>';
+    'przy zamknięciu systemu z menu Start (lub przy następnym uruchomieniu). Ekran otrzyma delikatną obwódkę.</div>' +
+    '<div class="hint warn" style="margin-top:8px">' + gl('lock', 12) +
+    ' Zaznaczenie tej opcji automatycznie wyłączy flagę automatycznego ponownego logowania.</div>';
   dlg({
-    title: 'Połącz z Dyskiem Google', icon: 'drive', body: body, width: 520,
+    title: 'Połącz z Dyskiem Google', icon: 'drive', body: body, width: 540,
     buttons: [{ label: 'Anuluj' }, { label: 'Połącz', primary: true, keep: true, onClick: async a => {
       const co = $('#cnCloud', body).checked;
       a.close();
@@ -7266,7 +7752,7 @@ function connectDialog() {
 }
 
 /* ============================================================
-   25. Menu Start
+   26. Menu Start
    ============================================================ */
 const startEl = $('#start');
 let startOpen = false;
@@ -7339,7 +7825,9 @@ function renderStart() {
     if (!q) { home(); return; }
     const ah = apps.filter(a => a.name.toLowerCase().indexOf(q) >= 0);
     const fh = Object.keys(state.nodes).map(k => state.nodes[k])
-      .filter(n => !isTrashedRoot(n) && !n.system && n.name.toLowerCase().indexOf(q) >= 0).slice(0, 8);
+      .filter(n => !isTrashedRoot(n) && !n.system &&
+        (n.name.toLowerCase().indexOf(q) >= 0 ||
+          (isUrlShortcut(n) && n.target.url.toLowerCase().indexOf(q) >= 0))).slice(0, 8);
     const sh = [
       ['Tapeta i wygląd', 'personal'], ['Motyw jasny / ciemny', 'personal'],
       ['Dysk Google i tryb chmurowy', 'drive'], ['Aplikacje domyślne', 'defaults'],
@@ -7351,7 +7839,8 @@ function renderStart() {
         '<span class="t"><b>' + esc(a.name) + '</b><i>' + (a.custom ? 'Aplikacja HTML' : 'Aplikacja systemowa') + '</i></span></button>').join('') : '') +
       (fh.length ? '<div class="start-h"><span>Pliki i foldery</span></div>' + fh.map(n =>
         '<button class="st-row" data-node="' + n.id + '">' + iconHTML(n, 26) +
-        '<span class="t"><b>' + esc(n.name) + '</b><i>' + esc(pathStr(n)) + '</i></span></button>').join('') : '') +
+        '<span class="t"><b>' + esc(n.name) + '</b><i>' +
+        esc(isUrlShortcut(n) ? n.target.url : pathStr(n)) + '</i></span></button>').join('') : '') +
       (sh.length ? '<div class="start-h"><span>Ustawienia</span></div>' + sh.map(s =>
         '<button class="st-row" data-set="' + s[1] + '">' + gl('sliders', 20) +
         '<span class="t"><b>' + s[0] + '</b><i>Ustawienia</i></span></button>').join('') : '') ||
@@ -7405,7 +7894,7 @@ async function shutdownScreen(mode) {
 }
 
 /* ============================================================
-   26. Podpowiedzi
+   27. Podpowiedzi
    ============================================================ */
 (function () {
   const tip = $('#tip');
@@ -7426,7 +7915,7 @@ async function shutdownScreen(mode) {
 })();
 
 /* ============================================================
-   27. Szablony i dane startowe
+   28. Szablony i dane startowe
    ============================================================ */
 const SDK = '<script>\n' +
   'const OS=(function(){let i=0;const p={},ev={};' +
@@ -7444,19 +7933,23 @@ const APP_TEMPLATE = '<!DOCTYPE html><html lang="pl"><head><meta charset="UTF-8"
   'textarea{width:100%;min-height:90px;background:#0b1020;color:#fff;border:1px solid #2c3a55;border-radius:7px;padding:9px;font-family:Consolas,monospace}' +
   '</style></head><body><h1>Moja aplikacja</h1>' +
   '<textarea id="note" placeholder="Notatka lub skrypt .bat…"></textarea>' +
-  '<button id="save">Zapisz stan</button><button id="mkbat">Utwórz .bat</button>' + SDK +
+  '<button id="save">Zapisz stan</button><button id="mkbat">Utwórz .bat</button>' +
+  '<button id="mkurl">Skrót WWW</button>' + SDK +
   '<script>function theme(m){document.body.classList.toggle("light",m==="light")}' +
   'OS.on("ready",async i=>{theme(i.theme);' +
-  'OS.call("apps.quickActions",{actions:[{id:"save",label:"Zapisz stan",icon:"save"},{id:"bat",label:"Utwórz .bat",icon:"bolt"}]});' +
+  'OS.call("apps.quickActions",{actions:[{id:"save",label:"Zapisz stan",icon:"save"},{id:"bat",label:"Utwórz .bat",icon:"bolt"},{id:"url",label:"Skrót WWW",icon:"globe"}]});' +
   'const s=await OS.call("app.state",{key:"note"});if(s&&s.value)document.getElementById("note").value=s.value});' +
   'OS.on("theme.change",i=>theme(i.mode));' +
   'async function mkbat(){const n=await OS.call("fs.create",{parent:"scripts",type:"bat",name:"Skrypt.bat",' +
   'content:document.getElementById("note").value||"@echo off\\necho Hello\\npause"});OS.call("bat.run",{id:n.id})}' +
+  'async function mkurl(){const u=await OS.call("ui.prompt",{title:"Nowy skrót WWW",label:"Adres strony",value:"https://"});' +
+  'if(!u)return;const n=await OS.call("desktop.urlShortcut",{url:u});OS.call("ui.toast",{message:"Skrót: "+n.name,type:"success"})}' +
   'OS.on("quickAction",async i=>{if(i.action==="save"){await OS.call("app.state",{key:"note",value:document.getElementById("note").value});' +
-  'OS.call("ui.toast",{message:"Zapisano.",type:"success"})}if(i.action==="bat")mkbat()});' +
+  'OS.call("ui.toast",{message:"Zapisano.",type:"success"})}if(i.action==="bat")mkbat();if(i.action==="url")mkurl()});' +
   'document.getElementById("save").onclick=async()=>{await OS.call("app.state",{key:"note",value:document.getElementById("note").value});' +
   'OS.call("ui.toast",{message:"Zapisano.",type:"success"})};' +
-  'document.getElementById("mkbat").onclick=mkbat;<\/script></body></html>';
+  'document.getElementById("mkbat").onclick=mkbat;' +
+  'document.getElementById("mkurl").onclick=mkurl;<\/script></body></html>';
 
 const CALC_HTML = '<!DOCTYPE html><html lang="pl"><head><meta charset="UTF-8"><style>' +
   'body{margin:0;font-family:Segoe UI,system-ui,sans-serif;background:#0d1424;color:#eef3fb;display:flex;flex-direction:column;height:100vh}' +
@@ -7520,6 +8013,20 @@ const BAT_BACKUP = [
   'msg Kopia gotowa.', 'exit /b 0', ''
 ].join('\n');
 
+const BAT_LINKS = [
+  '@echo off', 'title Moje strony WWW', 'color blue',
+  'rem Tworzy zestaw skrótów do stron internetowych',
+  'echo Dodaje skroty do folderu "strony www"...',
+  'cd web',
+  'url MDN Web Docs | https://developer.mozilla.org',
+  'url Can I use | https://caniuse.com',
+  'url GitHub | https://github.com',
+  'echo.',
+  'urls',
+  'msg Skroty WWW gotowe.',
+  'exit /b 0', ''
+].join('\n');
+
 const BAT_CLEAN = [
   '@echo off', 'title Porzadki', 'color matrix', 'set N=1',
   ':start', 'echo Krok %N% z 5', 'sleep 300', 'set /a N=%N%+1',
@@ -7533,9 +8040,26 @@ const DOCS_TXT = [
   '1. STRUKTURA DYSKU C:',
   'C:\\aplikacje — pliki .html aplikacji',
   'C:\\aplikacje\\appdata — stan aplikacji',
-  'C:\\użytkownik\\pulpit, dokumenty, pobrane',
+  'C:\\użytkownik\\pulpit, dokumenty, pobrane, strony www',
   'C:\\system — dokumentacja, logs, config, skrypty', '',
-  '2. DYSK GOOGLE',
+  '2. PULPIT — SWOBODNE PRZESTAWIANIE IKON',
+  'Chwyć ikonę wskaźnikiem i przeciągnij w dowolne miejsce.',
+  'Domyślnie ikona wyrównuje się do siatki w miejscu upuszczenia.',
+  'Przytrzymaj Shift podczas upuszczania, aby ustawić ją całkowicie',
+  'swobodnie (z dokładnością do piksela). Siatkę można też wyłączyć',
+  'w Ustawienia → Personalizacja → Wyrównaj do siatki.',
+  'Ikony systemowe (Ten komputer, Kosz) również można przestawiać.', '',
+  '3. SKRÓTY DO STRON INTERNETOWYCH',
+  'Tworzenie: PPM pulpitu → Nowy → Skrót do strony WWW…,',
+  'menu Start → Nowy skrót, przycisk Skrót w eksploratorze,',
+  'polecenie konsoli: url Nazwa | https://adres',
+  'Adres bez protokołu dostaje automatycznie https://.',
+  'Obsługiwane są też mailto: oraz tel:.',
+  'PPM skrótu: Edytuj adres i nazwę, Kopiuj adres,',
+  'Otwórz w nowej karcie, Pobierz skrót (.url).',
+  'Upuszczenie pliku .url z komputera tworzy skrót automatycznie.',
+  'Folder C:\\użytkownik\\strony www gromadzi takie skróty.', '',
+  '4. DYSK GOOGLE',
   'Struktura folderów z prawdziwego Dysku jest odtwarzana 1:1.',
   'Backup C: trafia do folderu PulpitOS i jest oznaczony jako kopia,',
   'dzięki czemu nie zaśmieca widoku Z:.', '',
@@ -7543,63 +8067,73 @@ const DOCS_TXT = [
   'Włączany przy logowaniu lub w Ustawienia → Dysk Google.',
   'Dane są wysyłane na Drive i usuwane z pamięci lokalnej przy',
   'zamknięciu systemu z menu Start oraz przy kolejnym starcie.',
-  'Ekran otacza delikatna obwódka. Tryb jest zapamiętany lokalnie',
-  'i nigdy nie jest wyłączany przez synchronizację.', '',
-  '3. SKRYPTY .BAT',
+  'Ekran otacza delikatna obwódka.',
+  'WAŻNE: wejście w tryb chmurowy automatycznie wyłącza flagę',
+  'automatycznego ponownego logowania. Flaga jest zablokowana',
+  'dopóki tryb chmurowy pozostaje włączony — po restarcie logujesz',
+  'się świadomie, zanim dane zostaną odtworzone z chmury.',
+  'Wyłączenie trybu chmurowego odblokowuje przełącznik.', '',
+  '5. SKRYPTY .BAT',
   'Tworzenie: Nowy → Skrypt wsadowy, batnew, CMD',
   'Uruchamianie: dwuklik, PPM → Uruchom, run plik.bat, runbg',
   'Składnia: @echo off, rem, set X=1, set /a N=N+1, %X%,',
   '  :etykieta, goto, if [not] exist, if "%X%"=="1", call, pause, exit /b', '',
-  '4. SORTOWANIE W EKSPLORATORZE',
+  '6. SORTOWANIE W EKSPLORATORZE',
   'Nagłówki kolumn (Nazwa / Data / Typ / Rozmiar) przełączają',
   'sortowanie i kierunek. Menu Sortuj oraz pasek stanu pokazują',
   'aktywny tryb. Ustawienie jest zapamiętywane.', '',
-  '5. PRZECIĄGANIE',
+  '7. PRZECIĄGANIE',
   'Ikony pulpitu i elementy eksploratora przeciągasz wskaźnikiem.',
   'Upuść na folder, panel boczny, okno eksploratora lub pulpit.',
   'Etykieta przy kursorze pokazuje, co się stanie.', '',
-  '6. API APLIKACJI HTML', SDK, '',
+  '8. API APLIKACJI HTML', SDK, '',
   'METODY',
   'system.info / system.theme / system.icons / system.repair',
   'fs.list / fs.stat / fs.search / fs.read / fs.readBlob',
   'fs.write / fs.writeBlob / fs.create / fs.rename / fs.move',
   'fs.setIcon({id,preset|dataURL}) / fs.delete / fs.restore / fs.purge',
   'app.state({key[,value]})',
-  'desktop.icons / desktop.appShortcut / desktop.shortcut / desktop.wallpaper',
+  'desktop.icons / desktop.appShortcut / desktop.shortcut',
+  'desktop.urlShortcut({url,name?,iconPreset?,iconData?})',
+  'desktop.urlShortcuts() / desktop.wallpaper / desktop.arrange',
   'drive.status / drive.sync / drive.mirror / drive.appsSync / drive.upload',
   'apps.list / apps.open / apps.edit / apps.delete / apps.window',
   'apps.pin / apps.unpin / apps.quickActions / apps.download',
   'windows.setTitle / getSize / setSize / maximize / minimize / close',
-  'ui.toast / ui.confirm / ui.prompt / ui.pickIcon',
+  'ui.toast / ui.confirm / ui.prompt / ui.pickIcon / ui.shortcutPicker',
   'bat.run / bat.list / bat.exec', '',
   'ZDARZENIA',
   'ready, theme.change, quickAction, file.open, fs.change, drive.change', '',
-  '7. RESET FABRYCZNY',
+  '9. RESET FABRYCZNY',
   'Ustawienia → System → Przywróć stan fabryczny usuwa wszystkie',
-  'lokalne pliki, aplikacje, konfigurację, tapetę, motyw i przypięcia',
-  'paska zadań. Pliki na Dysku Google pozostają nienaruszone.'
+  'lokalne pliki, aplikacje, konfigurację, tapetę, motyw, skróty',
+  'i przypięcia paska zadań. Pliki na Dysku Google pozostają.'
 ].join('\n');
 
 const WELCOME_TXT = [
   '# Witaj w PulpitOS ' + VER, '',
-  '## Naprawione w tej wersji',
-  '- **Struktura folderów Dysku Google** jest odtwarzana 1:1 —',
-  '  katalogi i podkatalogi nie są już mieszane ani spłaszczane.',
-  '- **Przeciąganie ikon na pulpicie działa płynnie** — brak',
-  '  systemowego „prostokąta” przy kursorze, ikony nie blokują się.',
-  '- **Sortowanie w eksploratorze działa** — nagłówki kolumn',
-  '  i menu Sortuj (nazwa, data, rozmiar, typ; rosnąco/malejąco).',
-  '- **Tryb chmurowy nie wyłącza się przy synchronizacji** —',
-  '  jest zapisany w osobnym kluczu lokalnym. Obwódka jest delikatna.',
-  '- **Reset fabryczny usuwa wszystko** — pliki, aplikacje,',
-  '  konfigurację, tapetę, motyw i przypięcia paska zadań.', '',
-  '## Przeciąganie między oknami',
-  'Chwyć plik w eksploratorze i upuść na pulpit, inny folder,',
-  'panel boczny albo drugie okno eksploratora — i odwrotnie.',
-  'Etykieta przy kursorze zawsze mówi, co się stanie.', '',
-  '## Skrypty .bat',
-  'W C:\\system\\skrypty czekają przykłady: Witaj.bat,',
-  'Kopia zapasowa.bat, Porządki.bat. Dwuklik uruchamia skrypt.',
+  '## Poprawki w tej wersji',
+  '- **Tryb chmurowy wyłącza auto-logowanie.** Zaznaczenie opcji przy',
+  '  logowaniu (lub w Ustawienia → Dysk Google) automatycznie zeruje',
+  '  flagę automatycznego ponownego logowania i blokuje przełącznik.',
+  '  Backup na Drive i czyszczenie pamięci lokalnej przy zamknięciu',
+  '  systemu z menu Start oraz przy kolejnym starcie działają bez zmian.',
+  '- **Ikony pulpitu przestawiają się swobodnie.** Przeciągnij ikonę',
+  '  w dowolne miejsce. Przytrzymaj **Shift** przy upuszczaniu, aby',
+  '  pominąć siatkę i ustawić ją z dokładnością do piksela.',
+  '- **Skróty do stron WWW wróciły.** PPM pulpitu → Nowy →',
+  '  „Skrót do strony WWW…”, menu Start → „Nowy skrót”, przycisk',
+  '  Skrót w eksploratorze oraz polecenie `url Nazwa | adres`.', '',
+  '## Skróty internetowe',
+  'Nowy folder **C:\\użytkownik\\strony www** oraz aplikacja',
+  '**Strony WWW** w menu Start. Skrót można edytować (nazwa, adres,',
+  'ikona), skopiować adres, otworzyć w nowej karcie i pobrać jako .url.',
+  'Upuszczenie pliku .url z komputera tworzy skrót automatycznie.',
+  'Wypróbuj skrypt **Moje strony.bat** w C:\\system\\skrypty.', '',
+  '## Co pozostaje bez zmian',
+  'Struktura folderów Dysku Google 1:1, sortowanie w eksploratorze,',
+  'przeciąganie między oknami, skrypty .bat, konsola CMD,',
+  'aplikacje HTML z API, motywy, tapety i pełny reset fabryczny.', '',
   'W konsoli wpisz `help`, aby zobaczyć wszystkie polecenia.', '',
   'Miłej pracy!'
 ].join('\n');
@@ -7607,7 +8141,7 @@ const WELCOME_TXT = [
 function seedState() {
   const now = Date.now();
   const s = {
-    v: 1, fsVersion: 6, fresh: true,
+    v: 1, fsVersion: 7, fresh: true,
     settings: {
       wallpaper: { type: 'preset', id: 'forest' }, accent: '#4cc2ff', theme: 'dark',
       snap: true, sound: true, volume: 70, gridSize: 'm', localLayout: false,
@@ -7617,7 +8151,8 @@ function seedState() {
       drive: {
         mode: 'demo', clientId: DEFAULT_CID, scope: 'drive', autoUpload: true,
         configSync: true, appsSync: true, wallpaperSync: true, autoLogin: true,
-        connected: false, lastEmail: '', dynamicSync: true, fullInterval: 5, cloudOnly: false
+        autoLoginLock: false, connected: false, lastEmail: '',
+        dynamicSync: true, fullInterval: 5, cloudOnly: false
       }
     },
     nodes: {}, apps: {}, appMeta: {}, appTrash: {}, recent: [], cmdHistory: [],
@@ -7633,6 +8168,11 @@ function seedState() {
     mime: 'application/x-batch', origin: 'local', content: content,
     size: content.length, created: now, modified: now
   });
+  const URLS = (id, name, url, parent, preset) => add({
+    id: id, type: 'shortcut', name: name, parent: parent || DIRS.web, origin: 'local',
+    target: { url: url }, mime: 'text/uri-list', iconPreset: preset || null,
+    created: now, modified: now
+  });
 
   F(DIRS.apps, 'aplikacje', 'C');
   F(DIRS.appdata, 'appdata', DIRS.apps);
@@ -7640,6 +8180,7 @@ function seedState() {
   F(DESK, 'pulpit', DIRS.user);
   F(DIRS.downloads, 'pobrane', DIRS.user);
   F(DIRS.documents, 'dokumenty', DIRS.user);
+  F(DIRS.web, 'strony www', DIRS.user);
   F(DIRS.system, 'system', 'C');
   F(DIRS.logs, 'logs', DIRS.system);
   F(DIRS.config, 'config', DIRS.system);
@@ -7653,25 +8194,32 @@ function seedState() {
 
   BAT('bat-hello', 'Witaj.bat', BAT_HELLO);
   BAT('bat-backup', 'Kopia zapasowa.bat', BAT_BACKUP);
+  BAT('bat-links', 'Moje strony.bat', BAT_LINKS);
   BAT('bat-clean', 'Porządki.bat', BAT_CLEAN);
 
   add({ id: 'f-proj', type: 'folder', name: 'Projekty', iconPreset: 'folderProjects', parent: DIRS.documents, origin: 'local', created: now, modified: now });
   add({ id: 'f-photo', type: 'folder', name: 'Zdjęcia', iconPreset: 'folderPictures', parent: DIRS.documents, origin: 'local', created: now, modified: now });
   add({ id: 't-ideas', type: 'text', name: 'Pomysły.txt', parent: DIRS.documents, origin: 'local',
-    content: '# Pomysły\n- Napisać własny skrypt .bat\n- Zbudować aplikację HTML\n- Wypróbować tryb chmurowy\n- run "Kopia zapasowa.bat"\n',
-    size: 120, created: now, modified: now });
+    content: '# Pomysły\n- Napisać własny skrypt .bat\n- Zbudować aplikację HTML\n- Dodać skróty do ulubionych stron\n- Wypróbować tryb chmurowy\n- run "Moje strony.bat"\n',
+    size: 150, created: now, modified: now });
   add({ id: 't-todo', type: 'text', name: 'Lista zadań.txt', parent: DIRS.documents, origin: 'local',
-    content: 'Lista zadań\n===========\n1. Zaimportować pliki z komputera\n2. Uporządkować foldery na Dysku Google\n3. Sprawdzić sortowanie w eksploratorze\n4. Opróżnić kosz\n',
-    size: 150, created: now - 86400000, modified: now - 86400000 });
+    content: 'Lista zadań\n===========\n1. Zaimportować pliki z komputera\n2. Uporządkować foldery na Dysku Google\n3. Przestawić ikony pulpitu (Shift = swobodnie)\n4. Opróżnić kosz\n',
+    size: 160, created: now - 86400000, modified: now - 86400000 });
+
+  URLS('url-mdn', 'MDN Web Docs', 'https://developer.mozilla.org', DIRS.web, 'globe');
+  URLS('url-caniuse', 'Can I use', 'https://caniuse.com', DIRS.web, 'globe');
+  URLS('url-github', 'GitHub', 'https://github.com', DIRS.web, 'globe');
+  URLS('url-drive', 'Dysk Google (www)', 'https://drive.google.com', DIRS.web, 'drive');
 
   add({ id: 'z-proj', type: 'folder', name: 'Projekty', parent: 'Z', origin: 'demo', iconPreset: 'folderProjects', created: now, modified: now });
   add({ id: 'z-spec', type: 'folder', name: 'Specyfikacje', parent: 'z-proj', origin: 'demo', iconPreset: 'folderDocuments', created: now, modified: now });
   add({ id: 'z-notes', type: 'text', name: 'Notatki ze spotkania.txt', parent: 'z-spec', origin: 'demo',
-    content: 'Notatki ze spotkania\n- Struktura folderów Drive zachowana\n- Sortowanie w eksploratorze naprawione\n- Tryb chmurowy dostępny przy logowaniu\n',
-    size: 140, created: now, modified: now });
+    content: 'Notatki ze spotkania\n- Tryb chmurowy wyłącza auto-logowanie\n- Ikony pulpitu przestawiają się swobodnie\n- Skróty WWW dostępne z menu i konsoli\n',
+    size: 150, created: now, modified: now });
 
   add({ id: 'sc-scripts', type: 'shortcut', name: 'Skrypty .bat', parent: DESK, origin: 'local', target: { nodeId: DIRS.scripts }, pos: { c: 1, r: 0 }, created: now, modified: now });
-  add({ id: 'sc-docs', type: 'shortcut', name: 'Dokumenty', parent: DESK, origin: 'local', target: { nodeId: DIRS.documents }, pos: { c: 1, r: 1 }, created: now, modified: now });
+  add({ id: 'sc-web', type: 'shortcut', name: 'Strony WWW', parent: DESK, origin: 'local', target: { nodeId: DIRS.web }, pos: { c: 1, r: 1 }, created: now, modified: now });
+  add({ id: 'sc-mdn', type: 'shortcut', name: 'MDN Web Docs', parent: DESK, origin: 'local', target: { url: 'https://developer.mozilla.org' }, mime: 'text/uri-list', pos: { c: 3, r: 0 }, created: now, modified: now });
 
   s.apps.calc = {
     id: 'calc', name: 'Kalkulator', html: CALC_HTML, created: now, modified: now,
@@ -7681,11 +8229,12 @@ function seedState() {
   add({ id: 'appnode-calc', type: 'app', app: 'calc', name: 'Kalkulator.html', parent: DIRS.apps, origin: 'local', created: now, modified: now });
   add({ id: 'sc-notepad', type: 'appshortcut', app: 'notepad', name: 'Notatnik', parent: DESK, origin: 'local', pos: { c: 2, r: 0 }, created: now, modified: now });
   add({ id: 'sc-cmd', type: 'appshortcut', app: 'cmd', name: 'Konsola (CMD)', parent: DESK, origin: 'local', pos: { c: 2, r: 1 }, created: now, modified: now });
+  add({ id: 'sc-shortcut', type: 'appshortcut', app: 'shortcut', name: 'Nowy skrót', parent: DESK, origin: 'local', pos: { c: 2, r: 2 }, created: now, modified: now });
   return s;
 }
 
 /* ============================================================
-   28. Zdarzenia globalne
+   29. Zdarzenia globalne
    ============================================================ */
 document.addEventListener('contextmenu', e => {
   if (!e.target.closest('input,textarea,[contenteditable="true"],iframe,.cmd-out')) e.preventDefault();
@@ -7717,6 +8266,9 @@ document.addEventListener('keydown', e => {
     renderDesktop();
   }
   else if ((e.ctrlKey || e.metaKey) && e.key === 'v') pasteClipboard(DESK);
+  else if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'N' || e.key === 'n')) {
+    e.preventDefault(); openShortcutPicker({ tab: 'url' });
+  }
   else if (e.key === 'Enter' && sel.length === 1) openNode(sel[0]);
 });
 window.addEventListener('resize', debounce(() => renderDesktop(), 150));
@@ -7728,7 +8280,7 @@ bus.on('apps', () => { if (startOpen) renderStart(); tbSync(); });
 bus.on('pins', () => { if (startOpen) renderStart(); });
 
 /* ============================================================
-   29. Rozruch
+   30. Rozruch
    ============================================================ */
 (function boot() {
   function fail(msg) {
@@ -7771,7 +8323,8 @@ bus.on('pins', () => { if (startOpen) renderStart(); });
         drive: {
           mode: 'demo', clientId: DEFAULT_CID, scope: 'drive', autoUpload: true,
           configSync: true, appsSync: true, wallpaperSync: true, autoLogin: true,
-          connected: false, lastEmail: '', dynamicSync: true, fullInterval: 5, cloudOnly: false
+          autoLoginLock: false, connected: false, lastEmail: '',
+          dynamicSync: true, fullInterval: 5, cloudOnly: false
         }
       };
       state.settings = Object.assign({}, defSettings, state.settings || {});
@@ -7789,8 +8342,16 @@ bus.on('pins', () => { if (startOpen) renderStart(); });
       state.appTombstones = state.appTombstones || {};
       state.driveTombstones = state.driveTombstones || {};
 
-      // tryb chmurowy pochodzi wyłącznie z klucza lokalnego
-      state.settings.drive.cloudOnly = LS.get(CLOUD_KEY) === '1';
+      /* Tryb chmurowy pochodzi wyłącznie z klucza lokalnego i zawsze
+         wymusza wyłączenie automatycznego ponownego logowania. */
+      const co = LS.get(CLOUD_KEY) === '1';
+      state.settings.drive.cloudOnly = co;
+      if (co) {
+        state.settings.drive.autoLogin = false;
+        state.settings.drive.autoLoginLock = true;
+      } else {
+        state.settings.drive.autoLoginLock = false;
+      }
 
       for (const id in state.apps) {
         const a = state.apps[id];
@@ -7823,14 +8384,28 @@ bus.on('pins', () => { if (startOpen) renderStart(); });
         };
       } else {
         state.nodes['doc-welcome'].content = WELCOME_TXT;
+        state.nodes['doc-welcome'].size = WELCOME_TXT.length;
       }
       [['bat-hello', 'Witaj.bat', BAT_HELLO],
        ['bat-backup', 'Kopia zapasowa.bat', BAT_BACKUP],
+       ['bat-links', 'Moje strony.bat', BAT_LINKS],
        ['bat-clean', 'Porządki.bat', BAT_CLEAN]].forEach(t => {
         if (!state.nodes[t[0]]) {
           state.nodes[t[0]] = {
             id: t[0], type: 'text', name: t[1], parent: DIRS.scripts, iconPreset: 'bat',
             mime: 'application/x-batch', origin: 'local', content: t[2], size: t[2].length,
+            created: Date.now(), modified: Date.now()
+          };
+        }
+      });
+      [['url-mdn', 'MDN Web Docs', 'https://developer.mozilla.org'],
+       ['url-caniuse', 'Can I use', 'https://caniuse.com'],
+       ['url-github', 'GitHub', 'https://github.com'],
+       ['url-drive', 'Dysk Google (www)', 'https://drive.google.com']].forEach(t => {
+        if (!state.nodes[t[0]]) {
+          state.nodes[t[0]] = {
+            id: t[0], type: 'shortcut', name: t[1], parent: DIRS.web, origin: 'local',
+            target: { url: t[2] }, mime: 'text/uri-list', iconPreset: t[0] === 'url-drive' ? 'drive' : 'globe',
             created: Date.now(), modified: Date.now()
           };
         }
@@ -7867,16 +8442,20 @@ bus.on('pins', () => { if (startOpen) renderStart(); });
           setTimeout(() => openNotepad('doc-welcome'), 400);
         }
         if (cloudOnly()) {
-          toast('Tryb chmurowy aktywny — dane będą przechowywane wyłącznie na Dysku Google.',
-            { type: 'info', timeout: 7000, action: { label: 'Ustawienia', fn: () => openSettings('drive') } });
+          toast('Tryb chmurowy aktywny — dane tylko na Dysku Google, auto-logowanie wyłączone.',
+            { type: 'info', timeout: 8000, action: { label: 'Połącz konto', fn: () => connectDialog() } });
         }
-        if (state.settings.drive.mode === 'google' && state.settings.drive.autoLogin && state.settings.drive.connected) {
+        if (state.settings.drive.mode === 'google' && state.settings.drive.autoLogin &&
+            state.settings.drive.connected && !cloudOnly()) {
           setTimeout(() => {
             Drive.silentLogin().then(ok => {
               if (!ok) toast('Nie wznowiono automatycznie sesji Google.',
                 { type: 'warn', timeout: 7000, action: { label: 'Połącz', fn: () => connectDialog() } });
             });
           }, 900);
+        } else if (state.settings.drive.mode === 'google' && state.settings.drive.connected && cloudOnly()) {
+          setTimeout(() => toast('Tryb chmurowy: połącz konto, aby odtworzyć dane z Dysku Google.',
+            { type: 'info', timeout: 8000, action: { label: 'Połącz', fn: () => connectDialog() } }), 700);
         }
       }, RM ? 100 : 700);
     } catch (e) {

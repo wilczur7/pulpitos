@@ -1,0 +1,41 @@
+Polityka Prywatności PulpitOS
+Ostatnia aktualizacja: 18 listopada 2026
+1. Informacje ogólne
+	Niniejsza Polityka Prywatności określa zasady przetwarzania i ochrony danych osobowych przekazanych przez Użytkowników w związku z korzystaniem z aplikacji internetowej PulpitOS (dalej: "Aplikacja"), dostępnej pod adresem: https://wilczur7.github.io/pulpitos/
+	- Administratorem danych jest: Paweł Wilczewski
+	- Adres e-mail do kontaktu: wilczewski.pw@gmail.com
+2. Jakie dane zbieramy i przetwarzamy
+	Aplikacja PulpitOS została zaprojektowana z naciskiem na prywatność i zasadę minimalizacji danych. Przetwarzanie odbywa się głównie po stronie klienta (w przeglądarce Użytkownika). W związku z korzystaniem z Aplikacji mogą być przetwarzane następujące dane:
+	- Dane uwierzytelniające Google (OAuth 2.0):
+		W przypadku, gdy Użytkownik zdecyduje się połączyć Aplikację z Dyskiem Google, przetwarzane są dane niezbędne do autoryzacji. Aplikacja oferuje elastyczny model integracji:
+		- Tryb Demo: Użytkownik może korzystać z podstawowej funkcjonalności systemu w trybie demonstracyjnym bez konieczności logowania i udostępniania jakichkolwiek danych.
+		- Własne dane uwierzytelniające: Pole identyfikatora klienta (Client ID) jest domyślnie wypełnione danymi twórcy Aplikacji wyłącznie w celu ułatwienia konfiguracji. Użytkownik ma jednak pełną możliwość wpisania własnego, utworzonego przez siebie Client ID. W takiej sytuacji komunikacja odbywa się bezpośrednio między przeglądarką Użytkownika a serwerami Google, a Administrator Aplikacji nie ma dostępu do tokenów ani danych Użytkownika.
+	- Zakres uprawnień do Dysku Google (Scopes):
+		Podczas procesu logowania Użytkownik ma świadomy wybór co do zakresu przyznawanych aplikacji uprawnień:
+		- Opcja ograniczona: Użytkownik może zaznaczyć opcję, która ogranicza uprawnienia Aplikacji do zakresu https://www.googleapis.com/auth/drive.file. Oznacza to, że Aplikacja ma dostęp wyłącznie do plików, które zostały utworzone lub otwarte za jej pośrednictwem.
+		- Opcja pełna (domyślna): W celu zapewnienia zaawansowanych funkcji zarządzania plikami (np. przeglądanie całej struktury folderów), Aplikacja może zażądać pełnego dostępu do Dysku Google (https://www.googleapis.com/auth/drive).
+	- Dane przechowywane lokalnie (Local Storage / IndexedDB):
+		Aplikacja zapisuje w pamięci lokalnej przeglądarki Użytkownika dane takie jak: ustawienia pulpitu, zawartość utworzonych plików tekstowych, konfigurację okien i skrótów, a także (opcjonalnie) tokeny sesji OAuth. Dane te nie są przesyłane na żadne zewnętrzne serwery inne niż serwery Google (wyłącznie w ramach aktywnej, autoryzowanej sesji).
+3. Cel i podstawa prawna przetwarzania danych
+	Dane są przetwarzane w następujących celach:
+		- Świadczenie usługi symulacji systemu operacyjnego w przeglądarce (podstawa prawna: art. 6 ust. 1 lit. b RODO – wykonanie usługi).
+		- Integracja z Dyskiem Google w celu zapisywania i odczytywania plików Użytkownika, ściśle w zakresie wybranym przez Użytkownika podczas autoryzacji (podstawa prawna: art. 6 ust. 1 lit. a RODO – dobrowolna, świadoma zgoda).
+		- Zapewnienie bezpieczeństwa i ciągłości działania Aplikacji.
+4. Udostępnianie danych podmiotom trzecim
+	- Nie sprzedajemy ani nie udostępniamy danych osobowych Użytkowników podmiotom trzecim w celach marketingowych.
+	- Dane są przekazywane wyłącznie do Google LLC w zakresie niezbędnym do działania autoryzacji OAuth i synchronizacji plików z Dyskiem Google, zgodnie z Polityką Prywatności Google (https://policies.google.com/privacy).
+	- Aplikacja jest hostowana na platformie GitHub Pages, co może wiązać się z przetwarzaniem danych technicznych przez GitHub, Inc. zgodnie z ich polityką prywatności.
+5. Przechowywanie i bezpieczeństwo danych
+	Dane przechowywane lokalnie w przeglądarce pozostają na urządzeniu Użytkownika do momentu ich ręcznego usunięcia lub wyczyszczenia pamięci podręcznej przeglądarki.
+	Tokeny dostępu (access tokens) do API Google są przechowywane w pamięci przeglądarki w sposób bezpieczny i są używane wyłącznie do komunikacji z serwerami Google.
+	Aplikacja korzysta z bezpiecznego protokołu HTTPS, zapewniającego szyfrowanie przesyłanych danych.
+6. Prawa Użytkownika
+	Zgodnie z Ogólnym Rozporządzeniem o Ochronie Danych (RODO), Użytkownikowi przysługują następujące prawa:
+		- Prawo dostępu do swoich danych oraz ich sprostowania.
+		- Prawo do usunięcia danych ("prawo do bycia zapomnianym") – w przypadku PulpitOS oznacza to usunięcie danych z Local Storage przeglądarki oraz odwołanie zgody na dostęp do Dysku Google w ustawieniach konta Google (https://myaccount.google.com/permissions).
+		- Prawo do ograniczenia przetwarzania i przenoszenia danych.
+		- Prawo do wniesienia skargi do organu nadzorczego (w Polsce: Prezes Urzędu Ochrony Danych Osobowych).
+7. Zmiany w Polityce Prywatności
+	Administrator zastrzega sobie prawo do wprowadzania zmian w niniejszej Polityce Prywatności w celu zapewnienia zgodności z obowiązującymi przepisami prawa lub w przypadku zmian w funkcjonowaniu Aplikacji. O wszelkich zmianach Użytkownik zostanie poinformowany poprzez opublikowanie zaktualizowanego dokumentu na stronie Aplikacji.
+8. Kontakt
+	W sprawach związanych z ochroną danych osobowych, w tym w celu realizacji swoich praw, Użytkownik może skontaktować się z Administratorem pod adresem e-mail: [Twój adres e-mail].

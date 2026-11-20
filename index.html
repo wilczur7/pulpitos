@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PulpitOS 1.13 — Web Desktop</title>
+<title>PulpitOS 1.14 — Web Desktop</title>
 <style>
 /* ============================================================
    PulpitOS — design tokens
@@ -220,6 +220,9 @@ html[data-theme=light] #taskbar{background:rgba(243,247,252,.90)}
 .clock span:last-child{font-size:10.5px;color:var(--dim)}
 .show-desktop{width:9px;height:100%;border-left:1px solid var(--stroke2);margin-left:3px}
 .show-desktop:hover{background:rgba(var(--accent-rgb),.28)}
+.avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.tray-btn .nm{font-size:11.5px;font-weight:650;color:var(--text);max-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:860px){.tray-btn .nm{display:none}}
 
 /* ============================================================
    Start menu
@@ -624,6 +627,77 @@ details.help code{background:rgba(8,13,25,.8);padding:2px 7px;border-radius:5px;
 .power-big{width:74px;height:74px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;color:var(--accent)}
 #tip{position:fixed;z-index:7900;background:var(--solid);border:1px solid var(--stroke2);border-radius:8px;padding:6px 11px;font-size:11.5px;box-shadow:var(--shadow);pointer-events:none;display:none;max-width:280px}
 
+/* Muzyka / wideo / zdjecia / przegladarka (1.14) */
+.mu{display:flex;flex-direction:column;height:100%;background:linear-gradient(165deg,#151f38,#0a1020)}
+.mu-top{flex:none;display:flex;gap:16px;padding:18px;align-items:center}
+.mu-art{width:110px;height:110px;border-radius:14px;flex:none;background:linear-gradient(140deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;box-shadow:0 12px 34px rgba(0,0,0,.5)}
+.mu-meta{flex:1;min-width:0}.mu-meta b{font-size:17px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mu-meta i{font-style:normal;font-size:12px;color:var(--dim);display:block;margin:3px 0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mu-seek{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;color:var(--dim)}
+.mu-seek input{flex:1;width:auto}
+.mu-ctl{flex:none;display:flex;align-items:center;justify-content:center;gap:9px;padding:4px 18px 12px;flex-wrap:wrap}
+.mu-btn{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.09);border:1px solid var(--stroke)}
+.mu-btn:hover{background:rgba(255,255,255,.18)}.mu-btn.on{background:rgba(var(--accent-rgb),.26);border-color:rgba(var(--accent-rgb),.55);color:var(--accent)}
+.mu-btn.big{width:56px;height:56px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#06111e;border:0}
+.mu-vol{display:flex;align-items:center;gap:7px;color:var(--dim)}.mu-vol input{width:90px}
+.mu-list{flex:1;overflow-y:auto;padding:6px 12px 14px;border-top:1px solid var(--stroke)}
+.mu-row{display:flex;align-items:center;gap:11px;width:100%;padding:8px 10px;border-radius:9px;text-align:left;font-size:12.5px;color:var(--dim)}
+.mu-row:hover{background:rgba(255,255,255,.09)}.mu-row.on{background:rgba(var(--accent-rgb),.2);color:var(--text)}
+.mu-row .n{width:24px;text-align:right;font-family:var(--mono);font-size:11px;color:var(--dim2)}
+.mu-row .t{flex:1;min-width:0}.mu-row b{display:block;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mu-row i{font-style:normal;font-size:10.5px}
+.vi{display:flex;flex-direction:column;height:100%;background:#05080f}
+.vi-stage{flex:1;position:relative;display:flex;align-items:center;justify-content:center;min-height:0;background:#000}
+.vi-stage video{width:100%;height:100%;object-fit:contain;background:#000}
+.vi-bar{flex:none;display:flex;align-items:center;gap:8px;padding:9px 12px;background:#0b1120;border-top:1px solid rgba(255,255,255,.09);flex-wrap:wrap}
+.vi-bar input[type=range]{flex:1;min-width:110px;width:auto}
+.vi-time{font-family:var(--mono);font-size:11px;color:#9caac1;min-width:96px;text-align:center}
+.vi-list{flex:none;max-height:150px;overflow-y:auto;background:#080d18;border-top:1px solid rgba(255,255,255,.07);padding:5px}
+.ph{display:flex;flex-direction:column;height:100%;background:linear-gradient(170deg,#141d33,#090f1c);position:relative}
+.ph-tool{flex:none;display:flex;align-items:center;gap:7px;padding:9px 12px;border-bottom:1px solid var(--stroke);background:var(--solid);flex-wrap:wrap}
+.ph-grid{flex:1;overflow-y:auto;padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px;align-content:start}
+.ph-cell{position:relative;aspect-ratio:1;border-radius:11px;overflow:hidden;border:1px solid var(--stroke);background:#0d1424;cursor:pointer}
+.ph-cell img{width:100%;height:100%;object-fit:cover;transition:transform .25s}.ph-cell:hover img{transform:scale(1.07)}
+.ph-cell span{position:absolute;left:0;right:0;bottom:0;padding:14px 8px 6px;font-size:10.5px;background:linear-gradient(transparent,rgba(0,0,0,.85));color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ph-view{position:absolute;inset:0;background:rgba(4,8,16,.97);display:none;flex-direction:column;z-index:10}.ph-view.on{display:flex}
+.ph-stage{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.ph-stage img{max-width:96%;max-height:96%;transition:transform .18s;box-shadow:0 16px 60px #000}
+.ph-bar{flex:none;display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(10,16,28,.92);border-top:1px solid var(--stroke);flex-wrap:wrap}
+.ph-bar .nm{flex:1;min-width:120px;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.br{display:flex;flex-direction:column;height:100%;background:var(--solid2)}
+.br-tabs{flex:none;display:flex;align-items:center;gap:3px;padding:6px 8px 0;background:rgba(8,13,25,.35);overflow-x:auto;scrollbar-width:none}
+.br-tab{display:flex;align-items:center;gap:7px;max-width:180px;min-width:104px;padding:7px 9px;border-radius:9px 9px 0 0;background:rgba(255,255,255,.05);font-size:11.8px;color:var(--dim);border:1px solid transparent;border-bottom:0}
+.br-tab.on{background:var(--solid);color:var(--text);border-color:var(--stroke2)}
+.br-tab .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.br-tab .x{opacity:.55;padding:1px;border-radius:4px;display:flex}.br-tab .x:hover{opacity:1;background:rgba(255,93,108,.25);color:var(--danger)}
+.br-new{width:28px;height:28px;border-radius:8px;color:var(--dim);display:flex;align-items:center;justify-content:center;flex:none}
+.br-new:hover{background:rgba(255,255,255,.13);color:var(--text)}
+.br-bar{flex:none;display:flex;align-items:center;gap:5px;padding:8px 10px;background:var(--solid);border-bottom:1px solid var(--stroke);flex-wrap:wrap}
+.br-addr{flex:1;display:flex;align-items:center;gap:8px;background:rgba(8,13,25,.55);border:1px solid var(--stroke2);border-radius:20px;padding:6px 13px;min-width:150px;position:relative}
+.br-addr:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px rgba(var(--accent-rgb),.2)}
+.br-addr input{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--text);font-size:12.5px}
+.br-sug{position:absolute;z-index:30;left:0;right:0;top:100%;margin-top:4px;background:var(--solid);border:1px solid var(--stroke2);border-radius:11px;box-shadow:var(--shadow);max-height:280px;overflow-y:auto;display:none}
+.br-sug.on{display:block}
+.br-sug button{display:flex;align-items:center;gap:9px;width:100%;padding:8px 12px;text-align:left;font-size:12.3px;color:var(--dim)}
+.br-sug button:hover{background:rgba(var(--accent-rgb),.2);color:var(--text)}
+.br-sug .u{font-size:10.5px;color:var(--dim2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.br-bm{flex:none;display:flex;align-items:center;gap:4px;padding:5px 10px;background:rgba(8,13,25,.22);border-bottom:1px solid var(--stroke);overflow-x:auto;scrollbar-width:none}
+.br-bmi{display:flex;align-items:center;gap:6px;padding:4px 9px;border-radius:7px;font-size:11.5px;color:var(--dim);white-space:nowrap;flex:none}
+.br-bmi:hover{background:rgba(255,255,255,.12);color:var(--text)}
+.br-stage{flex:1;position:relative;background:#fff;min-height:0}
+.br-frame{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff;display:none}.br-frame.on{display:block}
+.br-block{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:13px;padding:28px;text-align:center;background:linear-gradient(160deg,#101a2e,#0a1120);color:#eef5ff;overflow:auto}
+.br-block.on{display:flex}.br-block h3{font-size:17px}.br-block p{font-size:12.5px;color:#9caac1;max-width:520px;line-height:1.6}
+.br-note{flex:none;display:flex;align-items:center;gap:8px;padding:6px 12px;font-size:11px;color:var(--dim2);background:rgba(8,13,25,.35);border-top:1px solid var(--stroke)}
+.br-note .sp{flex:1}
+.br-hist{position:absolute;right:10px;top:10px;bottom:10px;width:320px;max-width:calc(100% - 20px);background:var(--solid);border:1px solid var(--stroke2);border-radius:12px;box-shadow:var(--shadow);display:none;flex-direction:column;z-index:20}
+.br-hist.on{display:flex}
+.br-hist header{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--stroke);font-weight:750;font-size:13px}
+.br-hist .ls{flex:1;overflow-y:auto;padding:6px}
+.br-hist .rw{display:flex;gap:9px;align-items:center;width:100%;padding:7px 9px;border-radius:8px;text-align:left;font-size:12px;color:var(--dim)}
+.br-hist .rw:hover{background:rgba(255,255,255,.1);color:var(--text)}
+.br-hist .rw .t{flex:1;min-width:0}.br-hist .rw b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.br-hist .rw i{font-style:normal;font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
 @media(max-width:760px){
   .tb-search{display:none}
   .tb-center{max-width:calc(100vw - 190px)}
@@ -666,7 +740,8 @@ details.help code{background:rgba(8,13,25,.8);padding:2px 7px;border-radius:5px;
     <button class="tray-btn sync-chip" id="syncChip">
       <span id="syncIco"></span><span class="lbl" id="syncLbl">Dysk: demo</span><span class="sync-dot" id="syncDot"></span>
     </button>
-    <button class="tray-btn" id="sndBtn"></button>
+    <button class="tray-btn" id="acctChip"></button>
+<button class="tray-btn" id="sndBtn"></button>
     <button class="tray-btn clock" id="clockBtn"><span id="clockT"></span><span id="clockD"></span></button>
     <button class="show-desktop" id="showDesk" data-tip="Pokaż pulpit"></button>
   </div>
@@ -742,7 +817,7 @@ setTimeout(function () {
 /* ============================================================
    1. Stałe i narzędzia
    ============================================================ */
-const VER = '1.13';
+const VER = '1.14';
 const LSK = 'pulpitos.v1';
 const LAYOUT_KEY = 'pulpitos.layout.v1';
 const CLOUD_KEY = 'pulpitos.cloudmode';
@@ -1199,8 +1274,31 @@ const GL = {
   lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'
 };
 const gl = (n, s) =>
-  '<span class="gl"><svg width="' + (s || 16) + '" height="' + (s || 16) + '" viewBox="0 0 24 24" fill="none" ' +
-  'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (GL[n] || '') + '</svg></span>';
+'<span class="gl"><svg width="' + (s || 16) + '" height="' + (s || 16) + '" viewBox="0 0 24 24" fill="none" ' +
+'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (GL[n] || '') + '</svg></span>';
+Object.assign(GL, {
+pause: '<rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor" stroke="none"/><rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor" stroke="none"/>',
+prev: '<path d="M19 20L9 12l10-8z" fill="currentColor" stroke="none"/><path d="M5 19V5"/>',
+next: '<path d="M5 4l10 8-10 8z" fill="currentColor" stroke="none"/><path d="M19 5v14"/>',
+shuffle: '<path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/>',
+repeat: '<path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>',
+music: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+film: '<rect x="2" y="3" width="20" height="18" rx="2"/><path d="M7 3v18M17 3v18M2 9h20M2 15h20"/>',
+zoomIn: '<circle cx="11" cy="11" r="7.5"/><path d="M21 21l-4.8-4.8M11 8v6M8 11h6"/>',
+zoomOut: '<circle cx="11" cy="11" r="7.5"/><path d="M21 21l-4.8-4.8M8 11h6"/>',
+pip: '<rect x="2" y="4" width="20" height="16" rx="2"/><rect x="12" y="12" width="8" height="6" rx="1" fill="currentColor"/>',
+maximize: '<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>',
+home: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
+bookmark: '<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>',
+star: '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/>',
+user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+mouse: '<rect x="6" y="2" width="12" height="20" rx="6"/><path d="M12 6v4"/>'
+});
+Object.assign(ICO, {
+music: '<rect x="4" y="4" width="40" height="40" rx="11" fill="url(#gPu)"/><path d="M20 33V17l14-3v15" stroke="#fff" stroke-width="2.8" fill="none" stroke-linejoin="round"/><circle cx="16.6" cy="33" r="4.4" fill="#fff"/><circle cx="30.6" cy="29" r="4.4" fill="#fff"/>',
+photos: '<rect x="4" y="7" width="40" height="34" rx="7" fill="url(#gB)"/><rect x="9" y="12" width="30" height="24" rx="4" fill="#0d1424" opacity=".55"/><circle cx="18" cy="20" r="3.2" fill="#ffd76a"/><path d="M9 33l8-9 6 6 7-8 9 10v3a3 3 0 0 1-3 3H12a3 3 0 0 1-3-3z" fill="#57d977"/>',
+browser: '<rect x="4" y="6" width="40" height="36" rx="7" fill="url(#gN)"/><rect x="4" y="6" width="40" height="9" rx="7" fill="#1d5fa8"/><circle cx="10" cy="10.5" r="1.7" fill="#ff5d6c"/><circle cx="15.5" cy="10.5" r="1.7" fill="#ffc83d"/><circle cx="21" cy="10.5" r="1.7" fill="#57d977"/><circle cx="24" cy="28" r="10" fill="none" stroke="#fff" stroke-width="2.2"/><ellipse cx="24" cy="28" rx="4.6" ry="10" fill="none" stroke="#fff" stroke-width="1.9"/><path d="M14.4 25h19.2M14.4 31h19.2" stroke="#fff" stroke-width="1.9"/>'
+});
 
 /* ============================================================
    5. Stan systemu
@@ -1208,7 +1306,8 @@ const gl = (n, s) =>
 const DIRS = {
   apps: 'c-apps', appdata: 'c-appdata', user: 'c-user', desktop: 'c-desktop',
   downloads: 'c-downloads', documents: 'c-documents', system: 'c-system',
-  logs: 'c-logs', config: 'c-config', scripts: 'c-scripts', web: 'c-web'
+  logs: 'c-logs', config: 'c-config', scripts: 'c-scripts', web: 'c-web',
+music: 'c-music', videos: 'c-videos', pictures: 'c-pictures'
 };
 const DESK = DIRS.desktop;
 const DIR_ICON = {};
@@ -1223,6 +1322,9 @@ DIR_ICON[DIRS.config] = 'folderSystem';
 DIR_ICON[DIRS.user] = 'folderUser';
 DIR_ICON[DIRS.scripts] = 'folderScripts';
 DIR_ICON[DIRS.web] = 'folderWeb';
+DIR_ICON[DIRS.music] = 'folderMusic';
+DIR_ICON[DIRS.videos] = 'folderVideos';
+DIR_ICON[DIRS.pictures] = 'folderPictures';
 
 const SYSICONS = [
   { id: 'sys-pc', target: 'pc', name: 'Ten komputer' },
@@ -1258,6 +1360,26 @@ function setCloudOnly(v) {
   bus.emit('settings', { drive: true });
 }
 const cloudOk = () => Drive.mode === 'google' && Drive.state === 'ok';
+/* ---- konto uzytkownika (1.14) ---- */
+function acct() { return state.settings.account; }
+function userName() {
+const a = acct();
+if (a.override && a.name && a.name.trim()) return a.name.trim();
+if (a.google && a.google.name) return a.google.name;
+if (a.name && a.name.trim()) return a.name.trim();
+return 'Użytkownik';
+}
+function avatarHTML(sz) {
+const a = acct(), st = 'width:' + sz + 'px;height:' + sz + 'px;font-size:' + Math.round(sz * .42) + 'px;margin-right:10px';
+if (a.avatar) return '<span class="avatar" style="' + st + '"><img src="' + esc(a.avatar) + '" alt=""></span>';
+if (a.google && a.google.picture) return '<span class="avatar" style="' + st + '"><img src="' + esc(a.google.picture) + '" alt="" referrerpolicy="no-referrer"></span>';
+return '<span class="avatar" style="' + st + '">' + esc((userName().trim()[0] || 'U').toUpperCase()) + '</span>';
+}
+function refreshAccountUI() { try { updAcctChip(); } catch (e) {} if (startOpen) renderStart(); }
+function startDir() {
+const m = { desktop: DESK, pc: 'pc', documents: DIRS.documents, downloads: DIRS.downloads, Z: 'Z' };
+return m[state.settings.expStart] || DESK;
+}
 
 function saveNow() {
   try {
@@ -1525,19 +1647,19 @@ const limitBytes = k => {
   return v ? v * 1048576 : 0;
 };
 function saveLocalLayout() {
-  try {
-    const pos = {};
-    children(DESK).forEach(n => { if (n.pos) pos[n.id] = n.pos; });
-    LS.set(LAYOUT_KEY, JSON.stringify({ gridSize: state.settings.gridSize, pos: pos }));
-  } catch (e) {}
+try {
+const pos = {};
+children(DESK).forEach(n => { if (n.pos) pos[n.id] = n.pos; });
+LS.set(LAYOUT_KEY, JSON.stringify({ grid: state.settings.grid, pos: pos }));
+} catch (e) {}
 }
 function loadLocalLayout() {
-  try {
-    const d = JSON.parse(LS.get(LAYOUT_KEY) || 'null');
-    if (!d) return;
-    if (d.gridSize) state.settings.gridSize = d.gridSize;
-    for (const id in (d.pos || {})) { const n = N(id); if (n && d.pos[id]) n.pos = d.pos[id]; }
-  } catch (e) {}
+try {
+const d = JSON.parse(LS.get(LAYOUT_KEY) || 'null');
+if (!d) return;
+if (d.grid) state.settings.grid = d.grid;
+for (const id in (d.pos || {})) { const n = N(id); if (n && d.pos[id]) n.pos = d.pos[id]; }
+} catch (e) {}
 }
 
 /* ============================================================
@@ -1849,7 +1971,7 @@ const windows = new Map(), winKeys = new Map();
 let winSeq = 0, zTop = 100, activeWin = null, showSet = null;
 
 const PINS = [
-  { app: 'exp:files', icon: 'folder', tip: 'Eksplorator plików', run: () => openExplorer(DESK) },
+  { app: 'exp:files', icon: 'folder', tip: 'Eksplorator plików', run: () => openExplorer(startDir()) },
   { app: 'notepad', icon: 'notepad', tip: 'Notatnik', run: () => openNotepad() },
   { app: 'cmd', icon: 'cmd', tip: 'Konsola (CMD)', run: () => openCmd() },
   { app: 'exp:Z', icon: 'drive', tip: 'Dysk Google (Z:)', run: () => openExplorer('Z') },
@@ -2264,9 +2386,10 @@ $('#showDesk').onclick = () => {
   }
 };
 $('#sndBtn').onclick = () => {
-  state.settings.sound = !state.settings.sound;
-  save(); updSndBtn();
-  if (state.settings.sound) Snd.play('click');
+state.settings.sound = !state.settings.sound;
+save(); updSndBtn();
+Media.setMuted(!state.settings.sound);
+if (state.settings.sound) Snd.play('click');
 };
 function updSndBtn() {
   $('#sndBtn').innerHTML = gl(state.settings.sound ? 'vol' : 'volx', 18);
@@ -2508,88 +2631,100 @@ const deskSel = new Set();
 let deskEnter = false;
 let clipboard = { mode: null, ids: [] };
 
-function gridDims() {
-  const map = { s: { w: 78, h: 92, i: 32 }, m: { w: 94, h: 108, i: 44 }, l: { w: 114, h: 128, i: 56 } };
-  return map[state.settings.gridSize || 'm'];
-}
-function gridMetrics() {
-  const g = gridDims();
-  return {
-    g: g,
-    cols: Math.max(1, Math.floor((innerWidth - 8) / g.w)),
-    rows: Math.max(1, Math.floor((innerHeight - 58) / g.h))
-  };
+/* Kanoniczna siatka: stala liczba kolumn/wierszy synchronizowana w konfiguracji.
+Rozmiar komorki i ikony wyliczany z ekranu — uklad identyczny na kazdym urzadzeniu. */
+function deskGrid() {
+const g = state.settings.grid || { cols: 12, rows: 7 };
+const aw = Math.max(120, innerWidth - 16), ah = Math.max(120, innerHeight - 68);
+const cw = aw / g.cols, ch = ah / g.rows;
+return {
+cols: g.cols, rows: g.rows, cw: cw, ch: ch, aw: aw, ah: ah,
+icon: clamp(Math.round(Math.min(cw, ch) * .46), 16, 64),
+label: cw >= 52 && ch >= 50
+};
 }
 function occCells(ex) {
-  const s = new Set();
-  children(DESK).forEach(n => {
-    if (ex && ex.has(n.id)) return;
-    if (n.pos && n.pos.c != null) s.add(n.pos.c + ',' + n.pos.r);
-  });
-  return s;
+const s = new Set();
+children(DESK).forEach(n => {
+if (ex && ex.has(n.id)) return;
+if (n.pos && n.pos.c != null) s.add(n.pos.c + ',' + n.pos.r);
+});
+return s;
 }
 function findFreeCell(pref, ex) {
-  const m = gridMetrics(), occ = occCells(ex);
-  let best = null, bd = 1e12;
-  for (let c = 0; c < m.cols; c++) {
-    for (let r = 0; r < m.rows; r++) {
-      if (occ.has(c + ',' + r)) continue;
-      if (!pref) return { c: c, r: r };
-      const d = Math.pow(c - pref.c, 2) + Math.pow(r - pref.r, 2);
-      if (d < bd) { bd = d; best = { c: c, r: r }; }
-    }
-  }
-  return best || { c: 0, r: 0 };
+const G = deskGrid(), occ = occCells(ex);
+let best = null, bd = 1e12;
+for (let c = 0; c < G.cols; c++) for (let r = 0; r < G.rows; r++) {
+if (occ.has(c + ',' + r)) continue;
+if (!pref) return { c: c, r: r };
+const d = Math.pow(c - pref.c, 2) + Math.pow(r - pref.r, 2);
+if (d < bd) { bd = d; best = { c: c, r: r }; }
+}
+return best || { c: 0, r: 0 };
 }
 function cellFromPoint(x, y) {
-  const m = gridMetrics();
-  return {
-    c: clamp(Math.round((x - 44) / m.g.w), 0, m.cols - 1),
-    r: clamp(Math.round((y - 40) / m.g.h), 0, m.rows - 1)
-  };
+const G = deskGrid();
+return {
+c: clamp(Math.round((x - 8 - G.cw / 2) / G.cw), 0, G.cols - 1),
+r: clamp(Math.round((y - 8 - G.ch / 2) / G.ch), 0, G.rows - 1)
+};
 }
 function iconPx(n) {
-  const g = gridDims(), p = n.pos || { c: 0, r: 0 };
-  if (p.x != null) return { x: p.x, y: p.y };
-  return { x: 6 + p.c * g.w, y: 6 + p.r * g.h };
+const G = deskGrid(), p = n.pos || { c: 0, r: 0 };
+if (p.fx != null) return { x: 8 + p.fx * Math.max(0, G.aw - G.cw), y: 8 + p.fy * Math.max(0, G.ah - G.ch) };
+return { x: 8 + (p.c || 0) * G.cw, y: 8 + (p.r || 0) * G.ch };
 }
-
+function autoGrid() {
+const cols = clamp(Math.round((innerWidth - 16) / 104), 4, 26);
+const rows = clamp(Math.round((innerHeight - 68) / 112), 3, 18);
+state.settings.grid = { cols: cols, rows: rows };
+Object.keys(state.nodes).map(k => state.nodes[k]).forEach(n => {
+if (n.parent !== DESK || !n.pos) return;
+if (n.pos.fx != null) {
+const p = iconPx(n);
+n.pos = cellFromPoint(p.x + deskGrid().cw / 2, p.y + deskGrid().ch / 2);
+} else {
+n.pos.c = clamp(n.pos.c, 0, cols - 1);
+n.pos.r = clamp(n.pos.r, 0, rows - 1);
+}
+});
+commit('grid');
+renderDesktop();
+}
 function renderDesktop() {
-  const m = gridMetrics(), g = m.g;
-  const frag = document.createDocumentFragment();
-  let changed = false, idx = 0;
-
-  children(DESK).forEach(n => {
-    if (!n.pos) { n.pos = findFreeCell(null, new Set([n.id])); changed = true; }
-    const p = iconPx(n);
-    p.x = clamp(p.x, 0, Math.max(0, innerWidth - g.w));
-    p.y = clamp(p.y, 0, Math.max(0, innerHeight - 50 - g.h));
-
-    const d = h('div', 'dicon' +
-      (deskSel.has(n.id) ? ' selected' : '') +
-      (clipboard.mode === 'cut' && clipboard.ids.indexOf(n.id) >= 0 ? ' cut' : '') +
-      (deskEnter ? ' enter' : ''));
-    d.dataset.id = n.id;
-    d.style.cssText = 'left:' + p.x + 'px;top:' + p.y + 'px;width:' + (g.w - 6) + 'px';
-    if (deskEnter) d.style.animationDelay = (idx++ * 30) + 'ms';
-    d.dataset.tip = typeLabel(n) + (isUrlShortcut(n) ? ' • ' + n.target.url : '');
-    const badge = isUrlShortcut(n)
-      ? '<span class="sc-badge url">' + gl('globe', 9) + '</span>'
-      : (n.type === 'shortcut' || n.type === 'appshortcut')
-        ? '<span class="sc-badge">' + gl('external', 9) + '</span>' : '';
-    d.innerHTML = '<span class="dicon-img">' + iconHTML(n, g.i) + badge +
-      '</span><span class="dicon-label"></span>';
-    $('.dicon-label', d).textContent = n.name;
-    bindIcon(d, n);
-    frag.append(d);
-  });
-
-  iconsEl.innerHTML = '';
-  iconsEl.append(frag);
-  deskEnter = false;
-  if (changed) save();
+const G = deskGrid();
+const frag = document.createDocumentFragment();
+let changed = false, idx = 0;
+children(DESK).forEach(n => {
+if (!n.pos) { n.pos = findFreeCell(null, new Set([n.id])); changed = true; }
+if (n.pos.c != null) {
+const c = clamp(n.pos.c, 0, G.cols - 1), r = clamp(n.pos.r, 0, G.rows - 1);
+if (c !== n.pos.c || r !== n.pos.r) { n.pos = { c: c, r: r }; changed = true; }
 }
-
+const p = iconPx(n);
+const d = h('div', 'dicon' +
+(deskSel.has(n.id) ? ' selected' : '') +
+(clipboard.mode === 'cut' && clipboard.ids.indexOf(n.id) >= 0 ? ' cut' : '') +
+(deskEnter ? ' enter' : ''));
+d.dataset.id = n.id;
+d.style.cssText = 'left:' + p.x + 'px;top:' + p.y + 'px;width:' + Math.max(34, G.cw - 6) + 'px';
+if (deskEnter) d.style.animationDelay = (idx++ * 30) + 'ms';
+d.dataset.tip = typeLabel(n) + (isUrlShortcut(n) ? ' • ' + n.target.url : '');
+const badge = isUrlShortcut(n)
+? '<span class="sc-badge url">' + gl('globe', 9) + '</span>'
+: (n.type === 'shortcut' || n.type === 'appshortcut')
+? '<span class="sc-badge">' + gl('external', 9) + '</span>' : '';
+d.innerHTML = '<span class="dicon-img">' + iconHTML(n, G.icon) + badge + '</span>' +
+(G.label ? '<span class="dicon-label" style="font-size:' + clamp(Math.round(G.icon * .27), 9, 12) + 'px"></span>' : '');
+if (G.label) $('.dicon-label', d).textContent = n.name;
+bindIcon(d, n);
+frag.append(d);
+});
+iconsEl.innerHTML = '';
+iconsEl.append(frag);
+deskEnter = false;
+if (changed) save();
+}
 function bindIcon(d, n) {
   d.ondblclick = e => { e.stopPropagation(); openNode(n); };
   d.oncontextmenu = e => {
@@ -2657,36 +2792,36 @@ function bindIcon(d, n) {
       /* Operacja na plikach albo brak celu → przerysuj i wyjdź. */
       if (result !== 'reposition') { renderDesktop(); return; }
 
-      /* Swobodne przestawienie ikon na pulpicie. */
-      const g = gridDims(), mm = gridMetrics();
-      const free = ev.shiftKey || !state.settings.snap;
-      if (free) {
-        starts.forEach(s => {
-          const nn = N(s.el.dataset.id);
-          if (!nn) return;
-          nn.pos = {
-            x: clamp(parseFloat(s.el.style.left), 0, Math.max(0, innerWidth - g.w)),
-            y: clamp(parseFloat(s.el.style.top), 0, Math.max(0, innerHeight - 50 - g.h))
-          };
-        });
-      } else {
-        const occ = occCells(new Set(allIds));
-        starts.forEach(s => {
-          const nn = N(s.el.dataset.id);
-          if (!nn) return;
-          let c = clamp(Math.round((parseFloat(s.el.style.left) - 6) / g.w), 0, mm.cols - 1);
-          let r = clamp(Math.round((parseFloat(s.el.style.top) - 6) / g.h), 0, mm.rows - 1);
-          let tries = 0;
-          while (occ.has(c + ',' + r) && tries++ < 500) {
-            r++;
-            if (r >= mm.rows) { r = 0; c++; }
-            if (c >= mm.cols) { c = 0; }
-          }
-          nn.pos = { c: c, r: r };
-          occ.add(c + ',' + r);
-        });
-      }
-      Snd.play('drop');
+      /* Swobodne przestawienie ikon na pulpicie (siatka kanoniczna). */
+const G = deskGrid();
+const free = ev.shiftKey || !state.settings.snap;
+if (free) {
+starts.forEach(s => {
+const nn = N(s.el.dataset.id);
+if (!nn) return;
+nn.pos = {
+fx: clamp((parseFloat(s.el.style.left) - 8) / Math.max(1, G.aw - G.cw), 0, 1),
+fy: clamp((parseFloat(s.el.style.top) - 8) / Math.max(1, G.ah - G.ch), 0, 1)
+};
+});
+} else {
+const occ = occCells(new Set(allIds));
+starts.forEach(s => {
+const nn = N(s.el.dataset.id);
+if (!nn) return;
+let c = clamp(Math.round((parseFloat(s.el.style.left) - 8) / G.cw), 0, G.cols - 1);
+let r = clamp(Math.round((parseFloat(s.el.style.top) - 8) / G.ch), 0, G.rows - 1);
+let tries = 0;
+while (occ.has(c + ',' + r) && tries++ < 600) {
+r++;
+if (r >= G.rows) { r = 0; c++; }
+if (c >= G.cols) c = 0;
+}
+nn.pos = { c: c, r: r };
+occ.add(c + ',' + r);
+});
+}
+Snd.play('drop');
       commit('move');
       renderDesktop();
     };
@@ -2756,10 +2891,9 @@ function appShortcutMenuItems() {
 function desktopMenu(x, y) {
   openMenu([
     { label: 'Widok', icon: 'grid', sub: [
-      { label: 'Duża siatka', check: state.settings.gridSize === 'l', action: () => { state.settings.gridSize = 'l'; save(); renderDesktop(); } },
-      { label: 'Średnia siatka', check: !state.settings.gridSize || state.settings.gridSize === 'm', action: () => { state.settings.gridSize = 'm'; save(); renderDesktop(); } },
-      { label: 'Mała siatka', check: state.settings.gridSize === 's', action: () => { state.settings.gridSize = 's'; save(); renderDesktop(); } },
-      '-',
+      { label: 'Dopasuj siatkę do ekranu', icon: 'maximize', action: autoGrid },
+{ label: 'Ustawienia siatki…', icon: 'sliders', action: () => openSettings('explorer') },
+'-',
       { label: 'Wyrównaj do siatki', check: state.settings.snap, action: () => { state.settings.snap = !state.settings.snap; save(); renderDesktop(); } },
       { label: 'Shift = placement swobodny', disabled: true }
     ] },
@@ -2878,8 +3012,11 @@ function nodeMenu(ids, x, y, source, extra) {
     items.push({ label: 'Zainstaluj jako aplikację…', icon: 'code', action: () => installHtmlFile(one) });
   }
   if (one && one.type === 'folder') {
-    items.push({ label: 'Otwórz w nowym oknie', icon: 'external', action: () => openExplorer(one.id, { newWindow: true }) });
-  }
+items.push({ label: 'Otwórz w nowym oknie', icon: 'external', action: () => openExplorer(one.id, { newWindow: true }) });
+}
+if (one && /^image\//.test(one.mime || mimeOf(one.name))) {
+items.push({ label: 'Ustaw jako tapetę', icon: 'image', action: () => setWallpaperFromNode(one) });
+}
   items.push('-');
   items.push({ label: 'Wytnij', icon: 'cut', accel: 'Ctrl+X', disabled: nodes.some(n => n.system),
     action: () => { clipboard = { mode: 'cut', ids: ids }; renderDesktop(); bus.emit('fs', { op: 'clipboard' }); } });
@@ -2960,8 +3097,8 @@ function arrangeDesktop(by) {
     if (by === 'date') return (b.modified || 0) - (a.modified || 0);
     return a.name.localeCompare(b.name, 'pl');
   });
-  const rows = gridMetrics().rows;
-  nodes.forEach((n, i) => { n.pos = { c: Math.floor(i / rows), r: i % rows }; });
+  const G = deskGrid();
+nodes.forEach((n, i) => { n.pos = { c: Math.floor(i / G.rows) % G.cols, r: i % G.rows }; });
   commit('arrange');
 }
 
@@ -3082,14 +3219,16 @@ function trashNodes(ids) {
   if (done.length) { commit('trash'); Snd.play('trash'); }
   return done;
 }
-function deleteFlow(ids) {
-  ids = ids.filter(id => N(id) && !N(id).system);
+async function deleteFlow(ids) {
+ids = ids.filter(id => N(id) && !N(id).system);
   const appNode = ids.map(N).filter(n => n.type === 'app' && state.apps[n.app])[0];
   if (appNode && ids.length === 1) { deleteApp(appNode.app); return; }
   const real = ids.map(N).filter(n => n.driveId && rootOf(n.id) === 'Z' && n.origin === 'google' && cloudOk());
   const local = ids.filter(id => !real.some(r => r.id === id));
   if (local.length) {
-    const done = trashNodes(local);
+if (state.settings.expConfirmDel &&
+!await confirmDlg('Przenieść ' + local.length + ' elementów do kosza?', { title: 'Usuwanie', danger: true, okLabel: 'Do kosza', icon: 'trash' })) return;
+const done = trashNodes(local);
     if (done.length) {
       toast('Przeniesiono ' + done.length + ' elementów do kosza.',
         { action: { label: 'Cofnij', fn: () => restoreNodes(done) } });
@@ -3191,11 +3330,12 @@ function moveNodes(ids, dest, pt) {
     n.modified = Date.now();
     if (isDesktop(dest)) {
       if (pt && !state.settings.snap) {
-        n.pos = {
-          x: clamp(pt.x - 44, 0, Math.max(0, innerWidth - 94)),
-          y: clamp(pt.y - 40, 0, Math.max(0, innerHeight - 150))
-        };
-      } else {
+const G = deskGrid();
+n.pos = {
+fx: clamp((pt.x - 8 - G.cw / 2) / Math.max(1, G.aw - G.cw), 0, 1),
+fy: clamp((pt.y - 8 - G.ch / 2) / Math.max(1, G.ah - G.ch), 0, 1)
+};
+} else {
         const pref = pt ? cellFromPoint(pt.x, pt.y) : null;
         n.pos = findFreeCell(pref, new Set(ids));
       }
@@ -3319,8 +3459,9 @@ function openNode(x) {
     return;
   }
   if (['folder', 'system'].indexOf(n.type) < 0) { n.opened = Date.now(); recordRecent('node', n.id); }
-  if (isBat(n)) { runBatNode(n); return; }
-  switch (n.type) {
+if (isBat(n)) { runBatNode(n); return; }
+if (n.type !== 'shortcut' && (n.mime || mimeOf(n.name)) === 'text/html') { openBrowser({ nodeId: n.id }); return; }
+switch (n.type) {
     case 'system': openExplorer(n.target === 'trash' ? 'trash' : 'pc'); break;
     case 'folder': openExplorer(n.id); break;
     case 'text': openNotepad(n.id); break;
@@ -3332,12 +3473,7 @@ function openNode(x) {
     }
     case 'shortcut': {
       const t = n.target || {};
-      if (t.url) {
-        const w = window.open(t.url, '_blank', 'noopener');
-        if (!w) toast('Przeglądarka zablokowała nową kartę. Zezwól na wyskakujące okna dla tej witryny.', { type: 'warn', timeout: 8000 });
-        else toast('Otwieranie: ' + urlHost(t.url), { timeout: 2200 });
-        return;
-      }
+      if (t.url) { openBrowser({ url: t.url }); return; }
       if (t.app) { openNode({ type: 'appshortcut', app: t.app, id: n.id, name: n.name }); return; }
       const target = resolveTarget(n);
       if (target) openNode(target);
@@ -3520,10 +3656,7 @@ function openShortcutPicker(pre) {
         const name = nameInp.value.trim() || urlHost(url) || 'Skrót WWW';
         const n = makeShortcut({ url: url }, name, null, icon);
         toast('Skrót do „' + name + '” utworzony.', { type: 'success' });
-        if ($('#skOpen', body).checked) {
-          const w = window.open(url, '_blank', 'noopener');
-          if (!w) toast('Przeglądarka zablokowała nową kartę — zezwól na wyskakujące okna.', { type: 'warn', timeout: 8000 });
-        }
+        if ($('#skOpen', body).checked) { openBrowser({ url: url }); }
         a.close();
         return;
       }
@@ -3677,7 +3810,10 @@ function buildExplorer(win, initial) {
       mk(DESK, 'folderDesktop', 'Pulpit') +
       mk(DIRS.documents, 'folderDocuments', 'Dokumenty') +
       mk(DIRS.downloads, 'folderDownloads', 'Pobrane') +
-      mk(DIRS.web, 'folderWeb', 'Strony WWW') +
+      mk(DIRS.pictures, 'folderPictures', 'Zdjęcia') +
+mk(DIRS.music, 'folderMusic', 'Muzyka') +
+mk(DIRS.videos, 'folderVideos', 'Wideo') +
+mk(DIRS.web, 'folderWeb', 'Strony WWW') +
       mk(DIRS.scripts, 'folderScripts', 'Skrypty .bat') +
       mk(DIRS.apps, 'folderApps', 'Aplikacje') +
       mk(DIRS.system, 'folderSystem', 'System') +
@@ -3690,7 +3826,8 @@ function buildExplorer(win, initial) {
         folders.map(f => mk(f.id, f.iconPreset || folderIconFor(f), f.name)).join('');
     }
     side.innerHTML = html;
-    $$('.side-item', side).forEach(b => { b.onclick = () => navigate(b.dataset.nav); });
+side.style.display = state.settings.expSidebar === false ? 'none' : '';
+$$('.side-item', side).forEach(b => { b.onclick = () => navigate(b.dataset.nav); });
   }
 
   function renderCmd() {
@@ -3742,8 +3879,10 @@ function buildExplorer(win, initial) {
           { label: 'Typ', check: S.sort === 'type', action: () => setSort('type') },
           '-',
           { label: 'Rosnąco', check: S.dir === 1, action: () => { S.dir = 1; state.settings.expDir = 1; save(); renderMain(); } },
-          { label: 'Malejąco', check: S.dir === -1, action: () => { S.dir = -1; state.settings.expDir = -1; save(); renderMain(); } }
-        ], r.left, r.bottom + 4);
+          { label: 'Malejąco', check: S.dir === -1, action: () => { S.dir = -1; state.settings.expDir = -1; save(); renderMain(); } },
+'-',
+{ label: 'Foldery zawsze na górze', disabled: true }
+], r.left, r.bottom + 4);
         else if (c === 'upload') pickFiles(f => importFiles(f, { parent: S.cwd }));
         else if (c === 'cut') { clipboard = { mode: 'cut', ids: Array.from(S.sel) }; renderMain(); renderDesktop(); }
         else if (c === 'copy') { clipboard = { mode: 'copy', ids: Array.from(S.sel) }; renderCmd(); }
@@ -3853,11 +3992,21 @@ function buildExplorer(win, initial) {
       'Skrypty .bat — dwuklik uruchamia skrypt w konsoli. <button class="mini-btn" id="newBat">' + gl('plus', 12) + ' Nowy skrypt</button></div>';
     else if (S.cwd === DIRS.web) banner = '<div class="info-banner">' + gl('globe', 16) +
       'Skróty do stron internetowych. <button class="mini-btn" id="newUrl">' + gl('plus', 12) + ' Nowy skrót WWW</button></div>';
-    else if (rootOf(S.cwd) === 'Z' && Drive.mode === 'google' && !cloudOk()) banner =
+    else if (S.cwd === DIRS.music) banner = '<div class="info-banner">' + gl('music', 16) +
+'Pliki audio. <button class="mini-btn" id="openMu">' + gl('play', 12) + ' Otwórz odtwarzacz</button></div>';
+else if (S.cwd === DIRS.videos) banner = '<div class="info-banner">' + gl('film', 16) +
+'Pliki wideo. <button class="mini-btn" id="openVi">' + gl('play', 12) + ' Otwórz odtwarzacz</button></div>';
+else if (S.cwd === DIRS.pictures) banner = '<div class="info-banner">' + gl('image', 16) +
+'Obrazy. <button class="mini-btn" id="openPh">' + gl('image', 12) + ' Otwórz galerię</button></div>';
+else if (rootOf(S.cwd) === 'Z' && Drive.mode === 'google' && !cloudOk()) banner =
       '<div class="info-banner">' + gl('cloud', 16) + 'Dysk Google nie jest połączony. <button class="mini-btn" id="expConnect">Połącz konto…</button></div>';
 
     main.innerHTML = banner;
     const nb = $('#newBat', main), nu = $('#newUrl', main), ec = $('#expConnect', main);
+const om = $('#openMu', main), ov = $('#openVi', main), op = $('#openPh', main);
+if (om) om.onclick = () => openMusic();
+if (ov) ov.onclick = () => openVideo();
+if (op) op.onclick = () => openPhotos();
     if (nb) nb.onclick = () => createNode('bat', S.cwd, { rename: true });
     if (nu) nu.onclick = () => openShortcutPicker({ tab: 'url' });
     if (ec) ec.onclick = () => openSettings('drive');
@@ -3894,9 +4043,17 @@ function buildExplorer(win, initial) {
         : (n.type === 'shortcut' || n.type === 'appshortcut')
           ? '<span class="sc-badge">' + gl('external', 9) + '</span>' : '';
       if (S.view === 'grid') {
-        el.innerHTML = '<span class="gi-img">' + iconHTML(n, 40) + badge +
-          '</span><span class="gi-label">' + esc(n.name) + '</span>';
-      } else {
+const T = state.settings.expTile || 98, IS = Math.round(T * .42);
+el.style.width = T + 'px';
+el.innerHTML = '<span class="gi-img" style="width:' + IS + 'px;height:' + IS + 'px;display:flex;align-items:center;justify-content:center">' + iconHTML(n, IS) + badge +
+'</span><span class="gi-label">' + esc(n.name) + '</span>';
+if (state.settings.expThumbs && /^image\//.test(n.mime || mimeOf(n.name))) {
+const holder = $('.gi-img', el);
+thumbFor(n).then(src => {
+if (src && el.isConnected) holder.innerHTML = '<img src="' + esc(src) + '" style="width:' + IS + 'px;height:' + IS + 'px;object-fit:cover;border-radius:6px" alt="">' + badge;
+});
+}
+} else {
         el.innerHTML = '<span class="lname">' + iconHTML(n, 20) + '<span class="n">' + esc(n.name) + '</span></span>' +
           '<span class="c">' + fmtDate(n.modified) + '</span>' +
           '<span class="c hide-s">' + esc(typeLabel(n)) + '</span>' +
@@ -3915,9 +4072,17 @@ function buildExplorer(win, initial) {
       const n = N(el.dataset.id);
       if (!n) return;
 
-      el.ondblclick = e => {
-        e.stopPropagation();
-        if (trash) {
+      const doOpen = () => {
+if (trash) {
+toast('Przywróć element, aby go otworzyć.', { type: 'warn', action: { label: 'Przywróć', fn: () => restoreNodes([n.id]) } });
+return;
+}
+if (n.type === 'folder') navigate(n.id); else openNode(n);
+};
+el.ondblclick = e => {
+e.stopPropagation();
+if (state.settings.expSingleClick) return;
+if (trash) {
           toast('Przywróć element, aby go otworzyć.', { type: 'warn', action: { label: 'Przywróć', fn: () => restoreNodes([n.id]) } });
           return;
         }
@@ -3968,12 +4133,15 @@ function buildExplorer(win, initial) {
           Drag.update(ev.clientX, ev.clientY);
         };
         const up = ev => {
-          el.onpointermove = el.onpointerup = el.onpointercancel = null;
-          try { el.releasePointerCapture(e.pointerId); } catch (err) {}
-          if (!started) return;
-          Idle.busy = Math.max(0, Idle.busy - 1);
-          Drag.finish(ev.clientX, ev.clientY);
-        };
+el.onpointermove = el.onpointerup = el.onpointercancel = null;
+try { el.releasePointerCapture(e.pointerId); } catch (err) {}
+if (!started) {
+if (state.settings.expSingleClick || e.pointerType === 'touch') doOpen();
+return;
+}
+Idle.busy = Math.max(0, Idle.busy - 1);
+Drag.finish(ev.clientX, ev.clientY);
+};
         el.onpointermove = move;
         el.onpointerup = el.onpointercancel = up;
       };
@@ -3986,7 +4154,7 @@ function buildExplorer(win, initial) {
     let sz = 0;
     Array.from(S.sel).map(N).filter(Boolean).forEach(n => { sz += sizeOf(n) || 0; });
     $('.st-sel', root).textContent = S.sel.size ? 'Zaznaczono: ' + S.sel.size + ' (' + fmtSize(sz) + ')' : '';
-    $('.st-sort', root).textContent = S.cwd === 'pc' ? '' :
+    $('.st-sort', root).textContent = (S.cwd === 'pc' || state.settings.expStatus === false) ? '' :
       'Sortowanie: ' + SORT_LABEL[S.sort] + ' ' + (S.dir === 1 ? 'rosnąco' : 'malejąco');
   }
   function renderAll() { renderCrumbs(); renderSide(); renderMain(); }
@@ -4116,9 +4284,10 @@ function buildExplorer(win, initial) {
   };
 
   win.cleanup.push(
-    bus.on('fs', () => { Array.from(S.sel).forEach(id => { if (!N(id)) S.sel.delete(id); }); renderAll(); }),
-    bus.on('drive', renderAll)
-  );
+bus.on('fs', () => { Array.from(S.sel).forEach(id => { if (!N(id)) S.sel.delete(id); }); renderAll(); }),
+bus.on('drive', renderAll),
+bus.on('settings', d => { if (d && d.exp) { S.view = state.settings.expView; renderAll(); } })
+);
   navigate(initial, true);
 }
 
@@ -4276,8 +4445,17 @@ function buildNotepad(win, node, unsaved) {
     if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); e.stopPropagation(); doSave(); }
   });
   win.api = { dirty: () => dirty && !bound, save: doSave };
-  upd();
-  setTimeout(() => ta.focus(), 80);
+upd();
+setTimeout(() => {
+preview = false;
+prev.style.display = 'none';
+pv.style.color = '';
+ta.focus();
+try { ta.setSelectionRange(0, 0); } catch (e) {}
+ta.scrollTop = 0;
+ta.scrollLeft = 0;
+upd();
+}, 80);
 }
 
 /* ============================================================
@@ -4421,7 +4599,7 @@ function expandVars(s, sh) {
     TIME: now.toLocaleTimeString('pl-PL'),
     RANDOM: String(Math.floor(Math.random() * 32768)),
     ERRORLEVEL: String(sh.errorlevel),
-    USERNAME: 'Użytkownik', VER: VER,
+    USERNAME: userName(), VER: VER,
     SCRIPTDIR: fullPath(sh.scriptDir || sh.cwd)
   };
   return String(s)
@@ -5239,8 +5417,8 @@ function openGoogleDoc(n) {
     const url = n.type === 'gsheet' ? 'https://docs.google.com/spreadsheets/d/' + n.driveId + '/edit'
       : n.type === 'gslides' ? 'https://docs.google.com/presentation/d/' + n.driveId + '/edit'
       : 'https://docs.google.com/document/d/' + n.driveId + '/edit';
-    window.open(url, '_blank', 'noopener');
-    return;
+openBrowser({ url: url });
+return;
   }
   dlg({
     title: n.name, icon: nodeIco(n),
@@ -5254,8 +5432,11 @@ const prefFor = n => {
 };
 function openWithItems(n) {
   const items = [
-    { label: isBat(n) ? 'Uruchom skrypt' : 'Podgląd systemowy', icon: isBat(n) ? 'play' : 'eye', action: () => openFileDefault(n) }
-  ];
+{ label: isBat(n) ? 'Uruchom skrypt' : 'Podgląd systemowy', icon: isBat(n) ? 'play' : 'eye', action: () => openLegacyViewer(n) }
+];
+if ((n.mime || mimeOf(n.name)) === 'text/html' || isUrlShortcut(n)) {
+items.push({ label: 'Przeglądarka systemowa', icon: 'browser', action: () => isUrlShortcut(n) ? openBrowser({ url: n.target.url }) : openBrowser({ nodeId: n.id }) });
+}
   if (isBat(n)) items.push({ label: 'Edytor skryptów', icon: 'code', action: () => openBatEditor(n) });
   items.push({ label: 'Notatnik', icon: 'notepad', action: async () => openNotepad(null, { name: n.name, content: await nodeText(n) }) });
   items.push({ label: 'Pobierz', icon: 'download', action: () => downloadNode(n) });
@@ -5270,10 +5451,21 @@ function openFileNode(n) {
   if (p === 'notepad') { nodeText(n).then(t => openNotepad(null, { name: n.name, content: t })); return; }
   if (p === 'batedit') { openBatEditor(n); return; }
   if (p === 'download') { downloadNode(n); return; }
+if (p === 'browser') { openBrowser({ nodeId: n.id }); return; }
   if (p.indexOf('app:') === 0 && state.apps[p.slice(4)]) { launchApp(p.slice(4), n); return; }
   openFileDefault(n);
 }
-async function openFileDefault(n) {
+function openFileDefault(n) {
+const m = n.mime || mimeOf(n.name);
+if (isBat(n)) { runBatNode(n); return; }
+if (m.indexOf('google-apps') >= 0) { openGoogleDoc(n); return; }
+if (m.indexOf('audio/') === 0) { openMusic(n); return; }
+if (m.indexOf('video/') === 0) { openVideo(n); return; }
+if (m.indexOf('image/') === 0) { openPhotos(n); return; }
+if (m === 'text/html') { openBrowser({ nodeId: n.id }); return; }
+return openLegacyViewer(n);
+}
+async function openLegacyViewer(n) {
   if (isBat(n)) { runBatNode(n); return; }
   const m = n.mime || mimeOf(n.name);
   if (m.indexOf('google-apps') >= 0) { openGoogleDoc(n); return; }
@@ -5504,7 +5696,7 @@ async function importSingle(name, mime, blob, o) {
 const BUILTIN = [
   { id: 'pc', name: 'Ten komputer', icon: 'pc', desc: 'Dyski i foldery systemowe', run: () => openExplorer('pc') },
   { id: 'explorer', name: 'Eksplorator plików', icon: 'folderDesktop', desc: 'Menedżer plików C: i Z:',
-    win: { w: 980, h: 620, minW: 520, minH: 320 }, run: () => openExplorer(DESK),
+    win: { w: 980, h: 620, minW: 520, minH: 320 }, run: () => openExplorer(startDir()),
     actions: [
       { label: 'Nowy folder', icon: 'plus', run: w => createNode('folder', (w && w.api ? w.api.cwd() : DESK) || DESK, { rename: true }) },
       { label: 'Nowy skrót WWW', icon: 'globe', run: () => openShortcutPicker({ tab: 'url' }) },
@@ -6436,9 +6628,9 @@ const Drive = {
       state.settings.drive.lastEmail = (this.info && this.info.user && this.info.user.emailAddress) || '';
       if (opts.cloudOnly != null) setCloudOnly(!!opts.cloudOnly);
       save();
-      updateCloudFrame();
-      await this.fullSync(true);
-      this.setSt('ok');
+updateCloudFrame();
+this.setSt('ok');          // NAJPIERW stan ok — inaczej fullSync odbija sie od cloudOk()
+await this.fullSync(true); // pelna synchronizacja natychmiast po zalogowaniu
       toast('Połączono z Dyskiem Google' +
         (this.info && this.info.user ? ' jako ' + this.info.user.emailAddress : '') + '.' +
         (cloudOnly() ? ' Tryb chmurowy aktywny — auto-logowanie wyłączone.' : ''), { type: 'success', timeout: 6000 });
@@ -6491,11 +6683,16 @@ const Drive = {
   },
   async about() {
     this.info = await (await this.req('https://www.googleapis.com/drive/v3/about?fields=user,storageQuota')).json();
-    if (this.info && this.info.user && this.info.user.emailAddress) {
-      state.settings.drive.lastEmail = this.info.user.emailAddress;
-      save();
-    }
-    bus.emit('drive');
+    if (this.info && this.info.user) {
+const u = this.info.user;
+if (u.emailAddress) state.settings.drive.lastEmail = u.emailAddress;
+state.settings.account.google = {
+name: u.displayName || '', email: u.emailAddress || '', picture: u.photoLink || ''
+};
+save();
+}
+bus.emit('drive');
+refreshAccountUI();
   },
   async ensureRoot() {
     if (this.rootId) return this.rootId;
@@ -6849,7 +7046,7 @@ const Drive = {
       v: 7, ts: Date.now(), settings: settings, nodes: nodes, appsMeta: appsMeta,
       appMeta: state.appMeta, appTrash: appTrash,
       appTombstones: state.appTombstones, driveTombstones: state.driveTombstones,
-      tombstones: state.tombstones, recent: state.recent,
+      tombstones: state.tombstones, recent: state.recent, browser: state.browser,
       sysIcons: SYSICONS.map(x => {
         const n = state.nodes[x.id];
         return n ? { id: n.id, target: n.target, name: n.name, pos: s.localLayout ? null : n.pos } : null;
@@ -6860,7 +7057,7 @@ const Drive = {
     this._applying = true;
     try {
       const s = state.settings, ds = d.settings || {};
-      const keepLocal = s.localLayout, keepGrid = s.gridSize;
+      const keepLocal = s.localLayout, keepGrid = s.gridSize, keepGridCols = s.grid;
       const keepCloud = LS.get(CLOUD_KEY) === '1';
       const keepDriveLocal = {
         clientId: s.drive.clientId, connected: s.drive.connected,
@@ -6872,7 +7069,7 @@ const Drive = {
       if (ds.drive) Object.assign(s.drive, ds.drive);
       Object.assign(s.drive, keepDriveLocal);
       if (keepCloud) { s.drive.autoLogin = false; s.drive.autoLoginLock = true; }
-      if (keepLocal) { s.localLayout = true; s.gridSize = keepGrid; }
+      if (keepLocal) { s.localLayout = true; s.gridSize = keepGrid; s.grid = keepGridCols; }
 
       state.tombstones = Object.assign({}, state.tombstones, d.tombstones || {});
       state.appTombstones = Object.assign({}, state.appTombstones, d.appTombstones || {});
@@ -6889,8 +7086,9 @@ const Drive = {
           state.nodes[e.id] = n;
         }
         const localPos = n.pos;
-        Object.assign(n, e);
-        if (s.localLayout && localPos) n.pos = localPos;
+Object.assign(n, e);
+if (s.localLayout && localPos) n.pos = localPos;
+else if (!n.pos && localPos && isDesktop(n.parent)) n.pos = localPos;
         if (!n.pos && isDesktop(n.parent)) n.pos = findFreeCell(null, new Set([n.id]));
       });
       for (const id in (d.appsMeta || {})) {
@@ -6907,6 +7105,7 @@ const Drive = {
         ensureAppNode(id);
       }
       if (d.recent) state.recent = d.recent;
+if (d.browser) state.browser = Object.assign({ home: '', bookmarks: [], history: [] }, d.browser);
       ensureSystemIcons();
       if (!s.localLayout && d.sysIcons) {
         d.sysIcons.forEach(x => { const n = state.nodes[x.id]; if (n && x.pos) n.pos = x.pos; });
@@ -7120,9 +7319,34 @@ $('#syncChip').onclick = e => {
   $('#syNow', p).onclick = () => { closePopups(); Drive.fullSync(true); };
   $('#sySet', p).onclick = () => { closePopups(); openSettings('drive'); };
 };
+function updAcctChip() {
+const c = $('#acctChip'); if (!c) return;
+c.innerHTML = avatarHTML(24) + '<span class="nm">' + esc(userName()) + '</span>';
+c.dataset.tip = 'Konto: ' + userName() + (acct().google.email ? ' • ' + acct().google.email : '');
+}
+$('#acctChip').dataset.popanchor = '1';
+$('#acctChip').onclick = e => {
+e.stopPropagation();
+if (popoverEl) { closePopups(); return; }
+const a = acct();
+const p = openPopover(
+'<div class="pop-h">' + avatarHTML(30) + esc(userName()) + '</div>' +
+'<div class="pop-row"><span>Konto Google</span><b>' + esc(a.google.email || 'nie połączono') + '</b></div>' +
+'<div class="pop-row"><span>Nazwa</span><b>' + (a.override ? 'własna' : 'z konta Google') + '</b></div>' +
+'<div class="pop-row"><span>Tryb chmurowy</span><b>' + (cloudOnly() ? 'włączony' : 'wyłączony') + '</b></div>' +
+'<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">' +
+'<button class="btn primary" id="acSet" style="padding:6px 14px">Ustawienia konta</button>' +
+(a.google.email
+? '<button class="btn" id="acSync" style="padding:6px 14px">Synchronizuj</button>'
+: '<button class="btn" id="acConn" style="padding:6px 14px">Połącz Google</button>') + '</div>',
+$('#acctChip'), 312);
+$('#acSet', p).onclick = () => { closePopups(); openSettings('account'); };
+const sy = $('#acSync', p); if (sy) sy.onclick = () => { closePopups(); Drive.fullSync(true); };
+const cn = $('#acConn', p); if (cn) cn.onclick = () => { closePopups(); connectDialog(); };
+};
 setInterval(() => {
-  if (!cloudOk()) return;
-  if (Date.now() - Drive.lastSync < (state.settings.drive.fullInterval || 5) * 60000) return;
+if (!cloudOk()) return;
+if (Date.now() - Drive.lastSync < (state.settings.drive.fullInterval || 5) * 60000) return;
   if (!Idle.idle()) return;
   if (window.requestIdleCallback) requestIdleCallback(() => Drive.fullSync(false), { timeout: 20000 });
   else Drive.fullSync(false);
@@ -7216,6 +7440,9 @@ function repairSystem() {
   mk(DIRS.downloads, 'pobrane', DIRS.user);
   mk(DIRS.documents, 'dokumenty', DIRS.user);
   mk(DIRS.web, 'strony www', DIRS.user);
+mk(DIRS.music, 'muzyka', DIRS.user);
+mk(DIRS.videos, 'wideo', DIRS.user);
+mk(DIRS.pictures, 'zdjęcia', DIRS.user);
   mk(DIRS.system, 'system', 'C');
   mk(DIRS.logs, 'logs', DIRS.system);
   mk(DIRS.config, 'config', DIRS.system);
@@ -7289,8 +7516,10 @@ function buildSettings(win, tab) {
   win.body.append(root);
   const nav = $('.set-nav', root), pane = $('.set-pane', root);
   const TABS = [
-    ['personal', 'image', 'Personalizacja'],
-    ['drive', 'cloud', 'Dysk Google'],
+['personal', 'image', 'Personalizacja'],
+['account', 'user', 'Konto'],
+['explorer', 'folder', 'Eksplorator plików'],
+['drive', 'cloud', 'Dysk Google'],
     ['defaults', 'grid', 'Aplikacje domyślne'],
     ['sound', 'vol', 'Dźwięk'],
     ['apps', 'code', 'Aplikacje'],
@@ -7307,9 +7536,10 @@ function buildSettings(win, tab) {
       gl(x[1], 17) + '<span>' + x[2] + '</span></button>').join('');
     $$('.side-item', nav).forEach(b => { b.onclick = () => { cur = b.dataset.t; render(); }; });
     ({
-      personal: renderPersonal, drive: renderDrive, defaults: renderDefaults,
-      sound: renderSound, apps: renderApps, system: renderSystem
-    }[cur] || renderPersonal)();
+personal: renderPersonal, account: renderAccount, explorer: renderExplorer,
+drive: renderDrive, defaults: renderDefaults,
+sound: renderSound, apps: renderApps, system: renderSystem
+}[cur] || renderPersonal)();
   }
 
   function renderPersonal() {
@@ -7338,17 +7568,8 @@ function buildSettings(win, tab) {
         '<button class="swatch' + (state.settings.accent === c ? ' active' : '') + '" data-c="' + c +
         '" style="background:' + c + '"></button>').join('') +
       '<input type="color" class="inp" id="accPick" value="' + esc(state.settings.accent) + '"></div></div>' +
-      '<div class="set-card"><h3>' + gl('grid', 15) + 'Pulpit i siatka</h3>' +
-      '<div class="set-row"><span class="lbl">Rozmiar siatki</span><select class="inp" id="gridSize" style="width:160px">' +
-      '<option value="s">Mała</option><option value="m">Średnia</option><option value="l">Duża</option></select></div>' +
-      '<div class="set-row"><span class="lbl">Wyrównaj do siatki</span><label class="toggle">' +
-      '<input type="checkbox" id="snapT" ' + (state.settings.snap ? 'checked' : '') + '><span class="tr"></span></label></div>' +
-      '<div class="hint">Ikony przestawiasz przeciąganiem w dowolne miejsce pulpitu. Przytrzymaj <b>Shift</b> podczas upuszczania, ' +
-      'aby pominąć siatkę i ustawić ikonę całkowicie swobodnie.</div>' +
-      '<div class="set-row"><span class="lbl">Układ tylko na tym urządzeniu</span><label class="toggle">' +
-      '<input type="checkbox" id="localLayout" ' + (state.settings.localLayout ? 'checked' : '') + '><span class="tr"></span></label></div></div>';
-
-    $('#themeSel', pane).value = state.settings.theme || 'dark';
+      '';
+$('#themeSel', pane).value = state.settings.theme || 'dark';
     $('#themeSel', pane).onchange = e => { state.settings.theme = e.target.value; save(); applyTheme(); };
     $$('[data-sysicon]', pane).forEach(c => {
       c.onchange = () => {
@@ -7385,22 +7606,110 @@ function buildSettings(win, tab) {
       b.onclick = () => { state.settings.accent = b.dataset.c; save(); applyAccent(); render(); };
     });
     $('#accPick', pane).oninput = e => { state.settings.accent = e.target.value; save(); applyAccent(); };
-    $('#gridSize', pane).value = state.settings.gridSize || 'm';
-    $('#gridSize', pane).onchange = e => {
-      state.settings.gridSize = e.target.value;
-      save();
-      if (state.settings.localLayout) saveLocalLayout();
-      renderDesktop();
-    };
-    $('#snapT', pane).onchange = e => { state.settings.snap = e.target.checked; save(); renderDesktop(); };
-    $('#localLayout', pane).onchange = e => {
-      state.settings.localLayout = e.target.checked;
-      if (e.target.checked) { loadLocalLayout(); saveLocalLayout(); }
-      save(); renderDesktop();
-    };
-  }
+    }
 
-  function renderDrive() {
+  function renderAccount() {
+const a = acct();
+pane.innerHTML =
+'<h2>Konto</h2><div class="sub">Nazwa użytkownika, avatar i synchronizacja profilu</div>' +
+'<div class="set-card"><div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">' + avatarHTML(64) +
+'<div style="flex:1;min-width:160px"><b style="font-size:16px;display:block">' + esc(userName()) + '</b>' +
+'<i style="font-style:normal;font-size:12px;color:var(--dim)">' + esc(a.google.email || (a.override ? 'Nazwa własna' : 'Nie połączono z Google')) + '</i></div>' +
+'<button class="btn" id="acAv">' + gl('image', 13) + ' Zmień avatar</button>' +
+(a.avatar ? '<button class="btn" id="acAvDel">' + gl('refresh', 13) + ' Usuń</button>' : '') + '</div></div>' +
+'<div class="set-card"><h3>' + gl('user', 15) + 'Nazwa użytkownika</h3>' +
+'<div class="field"><label>Nazwa wyświetlana</label><input class="inp" id="acName" value="' + esc(a.name) + '" placeholder="np. Jan Kowalski"></div>' +
+'<label class="radio-row"><input type="checkbox" id="acOv" ' + (a.override ? 'checked' : '') + '>Używaj własnej nazwy (priorytet nad nazwą z konta Google)</label>' +
+'<div class="hint">Po zalogowaniu nazwa pochodzi z konta Google (<b>displayName</b>). Własna nazwa ma pierwszeństwo, gdy zaznaczysz pole powyżej. Obie wartości są synchronizowane z Dyskiem Google.</div>' +
+'<div class="set-row"><button class="btn primary" id="acSave">' + gl('save', 13) + ' Zapisz profil</button>' +
+(a.google.name ? '<button class="btn" id="acFromG">' + gl('refresh', 13) + ' Przywróć nazwę z Google</button>' : '') + '</div></div>' +
+'<div class="set-card"><h3>' + gl('cloud', 15) + 'Konto Google</h3>' +
+(a.google.email
+? '<div class="status-line">' + gl('check', 15) + '<span>' + esc(a.google.email) + '</span></div>' +
+'<div class="status-line">' + gl('user', 15) + '<span>' + esc(a.google.name || '—') + '</span></div>'
+: '<div class="hint">Nie połączono konta Google. Połącz, aby pobrać nazwę i avatar oraz synchronizować pliki.</div>') +
+'<div class="set-row"><button class="btn primary" id="acConn">' + gl('cloud', 13) + ' Połącz z Google</button>' +
+'<button class="btn" id="acSync">' + gl('refresh', 13) + ' Synchronizuj teraz</button>' +
+(a.google.email ? '<button class="btn danger" id="acDisc">Rozłącz</button>' : '') + '</div>' +
+'<div class="hint" style="margin-top:8px">Tryb chmurowy: <b>' + (cloudOnly() ? 'włączony' : 'wyłączony') +
+'</b> • Auto-logowanie: <b>' + (state.settings.drive.autoLogin ? 'włączone' : 'wyłączone') + '</b></div></div>';
+$('#acAv', pane).onclick = () => pickFiles(async f => {
+try { a.avatar = await fileToIconDataURL(f[0]); commit('account'); refreshAccountUI(); render(); toast('Avatar zaktualizowany.', { type: 'success' }); }
+catch (e) { toast(e.message, { type: 'error' }); }
+}, 'image/*', false);
+const avd = $('#acAvDel', pane);
+if (avd) avd.onclick = () => { a.avatar = null; commit('account'); refreshAccountUI(); render(); };
+$('#acSave', pane).onclick = () => {
+a.name = $('#acName', pane).value.trim();
+a.override = $('#acOv', pane).checked;
+commit('account'); refreshAccountUI(); render();
+toast('Profil zapisany i zsynchronizowany.', { type: 'success' });
+};
+const fg = $('#acFromG', pane);
+if (fg) fg.onclick = () => { a.override = false; commit('account'); refreshAccountUI(); render(); toast('Przywrócono nazwę z konta Google.', { type: 'success' }); };
+$('#acConn', pane).onclick = () => connectDialog();
+$('#acSync', pane).onclick = () => Drive.fullSync(true).then(render);
+const dc = $('#acDisc', pane);
+if (dc) dc.onclick = async () => { await Drive.disconnect(); render(); };
+}
+function renderExplorer() {
+const s = state.settings, G = s.grid;
+pane.innerHTML =
+'<h2>Eksplorator plików</h2><div class="sub">Widok, sortowanie, siatka pulpitu i zachowanie</div>' +
+'<div class="set-card"><h3>' + gl('grid', 15) + 'Widok i sortowanie</h3>' +
+'<div class="set-row"><span class="lbl">Widok domyślny</span><select class="inp" id="exView" style="width:180px">' +
+'<option value="grid">Siatka ikon</option><option value="list">Lista szczegółowa</option></select></div>' +
+'<div class="set-row"><span class="lbl">Sortowanie</span><select class="inp" id="exSort" style="width:180px">' +
+'<option value="name">Nazwa</option><option value="date">Data modyfikacji</option><option value="size">Rozmiar</option><option value="type">Typ</option></select></div>' +
+'<div class="set-row"><span class="lbl">Kierunek</span><select class="inp" id="exDir" style="width:180px">' +
+'<option value="1">Rosnąco</option><option value="-1">Malejąco</option></select></div>' +
+'<div class="hint">Foldery są <b>zawsze wyświetlane na górze</b>, niezależnie od klucza i kierunku sortowania — bez separatorów i etykiet.</div>' +
+'<div class="set-row"><span class="lbl">Rozmiar kafelka</span><input type="range" id="exTile" min="72" max="150" step="2" value="' + (s.expTile || 98) + '"><b id="exTileV">' + (s.expTile || 98) + ' px</b></div></div>' +
+'<div class="set-card"><h3>' + gl('list', 15) + 'Zawartość i zachowanie</h3>' +
+'<label class="radio-row"><input type="checkbox" id="exTh" ' + (s.expThumbs ? 'checked' : '') + '>Miniatury obrazów</label>' +
+'<label class="radio-row"><input type="checkbox" id="exSb" ' + (s.expSidebar !== false ? 'checked' : '') + '>Panel boczny (szybki dostęp)</label>' +
+'<label class="radio-row"><input type="checkbox" id="exSt" ' + (s.expStatus !== false ? 'checked' : '') + '>Informacje o sortowaniu na pasku stanu</label>' +
+'<label class="radio-row"><input type="checkbox" id="exCf" ' + (s.expConfirmDel ? 'checked' : '') + '>Potwierdzaj przenoszenie do kosza</label>' +
+'<label class="radio-row"><input type="checkbox" id="exSc" ' + (s.expSingleClick ? 'checked' : '') + '>Otwieranie pojedynczym kliknięciem</label>' +
+'<div class="set-row"><span class="lbl">Katalog startowy</span><select class="inp" id="exStart" style="width:210px">' +
+'<option value="desktop">Pulpit</option><option value="pc">Ten komputer</option><option value="documents">Dokumenty</option>' +
+'<option value="downloads">Pobrane</option><option value="Z">Dysk Google (Z:)</option></select></div></div>' +
+'<div class="set-card"><h3>' + gl('move', 15) + 'Siatka pulpitu (kanoniczna)</h3>' +
+'<div class="hint">Układ ikon jest zapisany jako stała liczba kolumn i wierszy, synchronizowana z chmurą. Rozmiar kafelka wylicza się z ekranu, więc ten sam slot wypada w tym samym miejscu na każdym urządzeniu.</div>' +
+'<div class="set-row"><span class="lbl">Kolumny</span><input type="range" id="grC" min="4" max="26" value="' + G.cols + '"><b id="grCV">' + G.cols + '</b></div>' +
+'<div class="set-row"><span class="lbl">Wiersze</span><input type="range" id="grR" min="3" max="18" value="' + G.rows + '"><b id="grRV">' + G.rows + '</b></div>' +
+'<label class="radio-row"><input type="checkbox" id="grSnap" ' + (s.snap ? 'checked' : '') + '>Wyrównaj ikony do siatki</label>' +
+'<div class="hint">Przytrzymaj <b>Shift</b> podczas upuszczania ikony, aby ustawić ją całkowicie swobodnie.</div>' +
+'<div class="set-row"><button class="btn" id="grAuto">' + gl('maximize', 13) + ' Dopasuj do tego ekranu</button>' +
+'<button class="btn" id="grReset">' + gl('refresh', 13) + ' Przywróć 12 × 7</button></div>' +
+'<label class="radio-row"><input type="checkbox" id="grLocal" ' + (s.localLayout ? 'checked' : '') + '>Układ pulpitu tylko na tym urządzeniu</label></div>';
+$('#exView', pane).value = s.expView; $('#exSort', pane).value = s.expSort;
+$('#exDir', pane).value = String(s.expDir); $('#exStart', pane).value = s.expStart;
+const set = (k, v) => { s[k] = v; save(); bus.emit('settings', { exp: true }); };
+$('#exView', pane).onchange = e => set('expView', e.target.value);
+$('#exSort', pane).onchange = e => set('expSort', e.target.value);
+$('#exDir', pane).onchange = e => set('expDir', +e.target.value);
+$('#exStart', pane).onchange = e => set('expStart', e.target.value);
+$('#exTile', pane).oninput = e => { s.expTile = +e.target.value; $('#exTileV', pane).textContent = e.target.value + ' px'; save(); bus.emit('settings', { exp: true }); };
+[['exTh', 'expThumbs'], ['exSb', 'expSidebar'], ['exSt', 'expStatus'], ['exCf', 'expConfirmDel'], ['exSc', 'expSingleClick']]
+.forEach(p => { $('#' + p[0], pane).onchange = e => set(p[1], e.target.checked); });
+const gridSet = () => {
+G.cols = +$('#grC', pane).value; G.rows = +$('#grR', pane).value;
+$('#grCV', pane).textContent = G.cols; $('#grRV', pane).textContent = G.rows;
+s.grid = G; commit('grid'); renderDesktop();
+};
+$('#grC', pane).oninput = gridSet; $('#grR', pane).oninput = gridSet;
+$('#grSnap', pane).onchange = e => { s.snap = e.target.checked; save(); renderDesktop(); };
+$('#grAuto', pane).onclick = () => { autoGrid(); render(); };
+$('#grReset', pane).onclick = () => { s.grid = { cols: 12, rows: 7 }; commit('grid'); renderDesktop(); render(); };
+$('#grLocal', pane).onchange = e => {
+s.localLayout = e.target.checked;
+if (e.target.checked) { loadLocalLayout(); saveLocalLayout(); }
+save(); renderDesktop();
+};
+}
+
+function renderDrive() {
     const d = state.settings.drive;
     const disabled = d.mode === 'google' ? '' : 'opacity:.45;pointer-events:none';
     const co = cloudOnly();
@@ -7458,7 +7767,9 @@ function buildSettings(win, tab) {
       '<div class="set-row"><span class="lbl">Konfiguracja i pulpit</span><label class="toggle">' +
       '<input type="checkbox" id="dCfg" ' + (d.configSync !== false ? 'checked' : '') + '><span class="tr"></span></label></div>' +
       '<div class="set-row"><span class="lbl">Aplikacje HTML</span><label class="toggle">' +
-      '<input type="checkbox" id="dApps" ' + (d.appsSync !== false ? 'checked' : '') + '><span class="tr"></span></label></div>' +
+'<input type="checkbox" id="dApps" ' + (d.appsSync !== false ? 'checked' : '') + '><span class="tr"></span></label></div>' +
+'<div class="set-row"><span class="lbl">Synchronizuj przy zamykaniu</span><label class="toggle">' +
+'<input type="checkbox" id="dShut" ' + (d.syncOnShutdown !== false ? 'checked' : '') + '><span class="tr"></span></label></div>' +
       '<div class="hint">Hierarchia folderów z prawdziwego Dysku Google jest odtwarzana 1:1 — pliki nie są spłaszczane do katalogu głównego Z:.</div>' +
       '<div class="set-row"><button class="btn" id="dMirror">' + gl('upload', 13) + ' Backup C:</button>' +
       '<button class="btn" id="dAppsSync">' + gl('refresh', 13) + ' Sync aplikacji</button>' +
@@ -7502,7 +7813,7 @@ function buildSettings(win, tab) {
       render();
       toast('Dane przeniesione do chmury.', { type: 'success' });
     };
-    [['dAuto', 'autoUpload'], ['dCfg', 'configSync'], ['dApps', 'appsSync'], ['dDyn', 'dynamicSync']].forEach(x => {
+    [['dAuto', 'autoUpload'], ['dCfg', 'configSync'], ['dApps', 'appsSync'], ['dDyn', 'dynamicSync'], ['dShut', 'syncOnShutdown']].forEach(x => {
       $('#' + x[0], pane).onchange = e => { d[x[1]] = e.target.checked; save(); };
     });
     $('#dInt', pane).onchange = e => { d.fullInterval = +e.target.value; save(); };
@@ -7524,6 +7835,7 @@ function buildSettings(win, tab) {
       '<option value="system"' + (cur === 'system' ? ' selected' : '') + '>' +
       (ext === 'bat' ? 'Uruchom skrypt' : 'Domyślna systemowa') + '</option>' +
       (ext === 'bat' ? '<option value="batedit"' + (cur === 'batedit' ? ' selected' : '') + '>Edytor skryptów</option>' : '') +
+(ext === 'html' ? '<option value="browser"' + (cur === 'browser' ? ' selected' : '') + '>Przeglądarka systemowa</option>' : '') +
       '<option value="notepad"' + (cur === 'notepad' ? ' selected' : '') + '>Notatnik</option>' +
       '<option value="download"' + (cur === 'download' ? ' selected' : '') + '>Pobierz</option>' +
       Object.keys(state.apps).map(id => {
@@ -7545,7 +7857,7 @@ function buildSettings(win, tab) {
       '<div class="def-add"><input class="inp" id="defExt" placeholder="np. psd" maxlength="16">' +
       '<button class="btn" id="defAdd">' + gl('plus', 13) + ' Dodaj</button></div>' +
       '<div class="set-row" style="margin-top:12px"><button class="btn" id="defReset">Przywróć domyślne</button></div>' +
-      '<div class="hint">Skróty do stron WWW otwierają się zawsze w nowej karcie przeglądarki.</div></div>';
+      '<div class="hint">Skróty do stron WWW otwierają się zawsze w przeglądarce systemowej.</div></div>';
 
     $$('select[data-ext]', pane).forEach(s => {
       s.onchange = () => { state.settings.defaultApps[s.dataset.ext] = s.value; save(); };
@@ -7724,8 +8036,8 @@ function buildSettings(win, tab) {
   }
 
   win.cleanup.push(
-    bus.on('settings', () => { if (['sound', 'drive', 'personal'].indexOf(cur) >= 0) render(); }),
-    bus.on('drive', () => { if (cur === 'drive') render(); }),
+    bus.on('settings', () => { if (['sound', 'drive', 'personal', 'account'].indexOf(cur) >= 0) render(); }),
+    bus.on('drive', () => { if (cur === 'drive' || cur === 'account') render(); }),
     bus.on('apps', () => { if (['apps', 'defaults'].indexOf(cur) >= 0) render(); })
   );
   render();
@@ -7781,8 +8093,8 @@ function renderStart() {
     '<div class="start-search">' + gl('search', 16) +
     '<input id="stSearch" placeholder="Szukaj aplikacji, plików, ustawień…"></div>' +
     '<div class="start-scroll" id="stScroll"></div>' +
-    '<div class="start-foot"><span class="avatar">U</span>' +
-    '<span class="who">Użytkownik' + (cloudOnly() ? '<small>Tryb chmurowy</small>' : '') + '</span>' +
+    '<div class="start-foot">' + avatarHTML(32) +
+'<span class="who">' + esc(userName()) + (cloudOnly() ? '<small>Tryb chmurowy</small>' : '') + '</span>' +
     '<button class="foot-btn" id="stSettings" data-tip="Ustawienia">' + gl('sliders', 18) + '</button>' +
     '<button class="foot-btn" id="stPower" data-tip="Zasilanie">' + gl('power', 18) + '</button></div>';
 
@@ -7875,9 +8187,16 @@ document.addEventListener('pointerdown', e => {
 }, true);
 
 async function shutdownScreen(mode) {
-  const s = $('#shutdown');
-  saveNow();
-  if (cloudOnly() && cloudOk()) await cloudShutdownSync();
+const s = $('#shutdown');
+saveNow();
+if (cloudOk()) {
+s.innerHTML = '<div class="spinner"></div><div class="boot-msg">Synchronizowanie z Dyskiem Google…</div>';
+s.classList.add('on');
+try {
+if (cloudOnly()) await cloudShutdownSync();
+else if (state.settings.drive.syncOnShutdown !== false) await Drive.fullSync(false);
+} catch (e) { toast('Synchronizacja przy zamykaniu: ' + e.message, { type: 'warn' }); }
+}
   if (mode === 'restart') {
     s.innerHTML = '<div class="boot-logo"><i></i><i></i><i></i><i></i></div>' +
       '<div class="boot-msg">Ponowne uruchamianie…</div><div class="spinner"></div>';
@@ -7915,7 +8234,549 @@ async function shutdownScreen(mode) {
 })();
 
 /* ============================================================
-   28. Szablony i dane startowe
+27b. Multimedia (muzyka / wideo / zdjecia) + przegladarka (1.14)
+============================================================ */
+const Media = {
+audio: null, video: null,
+setMuted(m) { [this.audio, this.video].forEach(el => { if (el) el.muted = m; }); },
+list(kind) {
+const re = kind === 'audio' ? /^audio\// : kind === 'video' ? /^video\// : /^image\//;
+return Object.keys(state.nodes).map(k => state.nodes[k])
+.filter(n => !n.trashed && n.type !== 'folder' && re.test(n.mime || mimeOf(n.name)))
+.sort((a, b) => a.name.localeCompare(b.name, 'pl'));
+}
+};
+const thumbCache = new Map();
+function thumbFor(n) {
+const key = n.id + ':' + (n.modified || 0);
+if (thumbCache.has(key)) return Promise.resolve(thumbCache.get(key));
+if (n.inline) { thumbCache.set(key, n.inline); return Promise.resolve(n.inline); }
+return nodeBlob(n).then(b => { const src = b ? mkURL(b) : null; thumbCache.set(key, src); return src; });
+}
+function setWallpaperFromNode(n) {
+return nodeBlob(n).then(b => {
+if (!b) { toast('Brak danych obrazu.', { type: 'warn' }); return; }
+return Blobs.put('wp-custom', b).then(() => {
+state.settings.wallpaper = { type: 'blob', name: n.name, mime: n.mime || mimeOf(n.name) };
+save(); return applyWallpaper();
+}).then(() => {
+if (cloudOk() && state.settings.drive.wallpaperSync !== false) Drive.pushWallpaper();
+toast('Tapeta ustawiona: ' + n.name, { type: 'success' });
+});
+});
+}
+const mmss = s => {
+if (!isFinite(s) || s < 0) s = 0;
+return Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+};
+/* ---- MUZYKA ---- */
+function openMusic(file) {
+const d = appDesc('music');
+return createWindow(Object.assign({
+key: 'music', appId: 'music', kind: 'music', icon: 'music',
+iconHTML: s => descIcon(d, s), title: 'Muzyka',
+onReuse: w => { if (file && w.api) w.api.play(file); },
+build: w => buildMusic(w, file)
+}, winOpts('music', { width: 760, height: 560, minW: 420, minH: 360 })));
+}
+function buildMusic(win, file) {
+let list = Media.list('audio'), idx = -1, shuffle = false, repeat = 0, url = null, q = '';
+const root = h('div', 'mu',
+'<div class="mu-top"><div class="mu-art">' + svgIco('music', 56) + '</div>' +
+'<div class="mu-meta"><b class="t">Nic nie jest odtwarzane</b><i class="a">Wybierz utwór z listy</i>' +
+'<div class="mu-seek"><span class="cur">0:00</span><input type="range" min="0" max="1000" value="0"><span class="dur">0:00</span></div></div></div>' +
+'<div class="mu-ctl">' +
+'<button class="mu-btn sh" data-tip="Losowo">' + gl('shuffle', 17) + '</button>' +
+'<button class="mu-btn pv" data-tip="Poprzedni">' + gl('prev', 18) + '</button>' +
+'<button class="mu-btn big pl" data-tip="Odtwórz / pauza">' + gl('play', 22) + '</button>' +
+'<button class="mu-btn nx" data-tip="Następny">' + gl('next', 18) + '</button>' +
+'<button class="mu-btn rp" data-tip="Powtarzaj">' + gl('repeat', 17) + '</button>' +
+'<span class="mu-vol">' + gl('vol', 15) + '<input type="range" class="vol" min="0" max="100" value="' + (state.settings.volume != null ? state.settings.volume : 70) + '"></span></div>' +
+'<div style="padding:0 14px 8px"><input class="inp sq" placeholder="Szukaj utworów…"></div>' +
+'<div class="mu-list"></div>');
+win.body.append(root);
+const audio = document.createElement('audio');
+audio.muted = !state.settings.sound;
+Media.audio = audio;
+const T = $('.t', root), A = $('.a', root), cur = $('.cur', root), dur = $('.dur', root),
+seek = $('.mu-seek input', root), pl = $('.pl', root), listEl = $('.mu-list', root);
+function paintBtns() {
+$('.sh', root).classList.toggle('on', shuffle);
+$('.rp', root).classList.toggle('on', repeat > 0);
+$('.rp', root).dataset.tip = repeat === 2 ? 'Powtarzaj utwór' : repeat === 1 ? 'Powtarzaj listę' : 'Powtarzanie wyłączone';
+pl.innerHTML = gl(audio.paused ? 'play' : 'pause', 22);
+}
+function renderList() {
+const arr = list.filter(n => !q || n.name.toLowerCase().indexOf(q) >= 0);
+listEl.innerHTML = arr.length ? arr.map(n => {
+const i = list.indexOf(n);
+return '<button class="mu-row' + (i === idx ? ' on' : '') + '" data-i="' + i + '"><span class="n">' + (i + 1) + '</span>' +
+svgIco('audio', 22) + '<span class="t"><b>' + esc(n.name) + '</b><i>' + esc(pathStr(n)) + ' • ' + fmtSize(n.size) + '</i></span></button>';
+}).join('') : '<div class="empty-state">' + svgIco('music', 56) + '<p>Brak plików audio. Prześlij muzykę do folderu C:\\użytkownik\\muzyka.</p>' +
+'<button class="btn primary imp">Prześlij pliki…</button></div>';
+$$('.mu-row', listEl).forEach(b => b.onclick = () => load(+b.dataset.i, true));
+const imp = $('.imp', listEl);
+if (imp) imp.onclick = () => pickFiles(f => importDropped(f, DIRS.music).then(refresh));
+}
+function refresh() { list = Media.list('audio'); if (idx >= list.length) idx = -1; renderList(); }
+function load(i, autoplay) {
+if (i < 0 || i >= list.length) return;
+idx = i; const n = list[i];
+nodeBlob(n).then(b => {
+if (!b) { toast('Brak danych: ' + n.name, { type: 'warn' }); return; }
+if (url) rmURL(url);
+url = mkURL(b); audio.src = url;
+T.textContent = n.name; A.textContent = pathStr(n);
+win.setTitle(n.name + ' — Muzyka');
+recordRecent('node', n.id);
+if (autoplay) audio.play().catch(() => {});
+renderList(); paintBtns();
+});
+}
+function step(dir) {
+if (!list.length) return;
+if (shuffle) { load(Math.floor(Math.random() * list.length), true); return; }
+let i = idx + dir;
+if (i >= list.length) i = 0; if (i < 0) i = list.length - 1;
+load(i, true);
+}
+audio.ontimeupdate = () => {
+cur.textContent = mmss(audio.currentTime);
+dur.textContent = mmss(audio.duration);
+if (audio.duration) seek.value = Math.round(audio.currentTime / audio.duration * 1000);
+};
+audio.onended = () => { if (repeat === 2) { audio.currentTime = 0; audio.play(); } else if (repeat === 1 || idx < list.length - 1 || shuffle) step(1); else paintBtns(); };
+audio.onplay = paintBtns; audio.onpause = paintBtns;
+seek.oninput = () => { if (audio.duration) audio.currentTime = seek.value / 1000 * audio.duration; };
+pl.onclick = () => { if (idx < 0) { load(0, true); return; } audio.paused ? audio.play() : audio.pause(); };
+$('.pv', root).onclick = () => step(-1);
+$('.nx', root).onclick = () => step(1);
+$('.sh', root).onclick = () => { shuffle = !shuffle; paintBtns(); };
+$('.rp', root).onclick = () => { repeat = (repeat + 1) % 3; paintBtns(); };
+$('.vol', root).oninput = e => { audio.volume = e.target.value / 100; };
+audio.volume = (state.settings.volume != null ? state.settings.volume : 70) / 100;
+$('.sq', root).oninput = e => { q = e.target.value.trim().toLowerCase(); renderList(); };
+win.api = { play: n => { refresh(); const i = list.indexOf(n); if (i >= 0) load(i, true); }, refresh };
+win.cleanup.push(() => { audio.pause(); if (url) rmURL(url); if (Media.audio === audio) Media.audio = null; });
+win.cleanup.push(bus.on('fs', refresh));
+renderList(); paintBtns();
+if (file) { const i = list.indexOf(file); if (i >= 0) load(i, true); }
+}
+/* ---- WIDEO ---- */
+function openVideo(file) {
+const d = appDesc('video');
+return createWindow(Object.assign({
+key: 'video', appId: 'video', kind: 'video', icon: 'video',
+iconHTML: s => descIcon(d, s), title: 'Wideo',
+onReuse: w => { if (file && w.api) w.api.play(file); },
+build: w => buildVideo(w, file)
+}, winOpts('video', { width: 880, height: 600, minW: 460, minH: 340 })));
+}
+function buildVideo(win, file) {
+let list = Media.list('video'), idx = -1, url = null;
+const root = h('div', 'vi',
+'<div class="vi-stage"></div>' +
+'<div class="vi-bar">' +
+'<button class="mu-btn pl" style="width:38px;height:38px">' + gl('play', 17) + '</button>' +
+'<span class="vi-time">0:00 / 0:00</span><input type="range" class="sk" min="0" max="1000" value="0">' +
+'<button class="mini-btn fs">' + gl('maximize', 13) + ' Pełny ekran</button>' +
+'<button class="mini-btn pp">' + gl('pip', 13) + ' PiP</button>' +
+'<span class="mu-vol">' + gl('vol', 14) + '<input type="range" class="vol" min="0" max="100" value="' + (state.settings.volume != null ? state.settings.volume : 70) + '" style="width:80px"></span></div>' +
+'<div class="vi-list"></div>');
+win.body.append(root);
+const stage = $('.vi-stage', root), video = document.createElement('video');
+video.muted = !state.settings.sound;
+stage.append(video);
+Media.video = video;
+const pl = $('.pl', root), tm = $('.vi-time', root), sk = $('.sk', root), listEl = $('.vi-list', root);
+function renderList() {
+listEl.innerHTML = list.length ? list.map((n, i) =>
+'<button class="mu-row' + (i === idx ? ' on' : '') + '" data-i="' + i + '"><span class="n">' + (i + 1) + '</span>' +
+svgIco('video', 20) + '<span class="t"><b>' + esc(n.name) + '</b><i>' + fmtSize(n.size) + '</i></span></button>').join('')
+: '<div class="empty-state" style="min-height:110px;padding:18px">' + svgIco('film', 40) + '<p>Brak plików wideo.</p></div>';
+$$('.mu-row', listEl).forEach(b => b.onclick = () => load(+b.dataset.i, true));
+}
+function load(i, autoplay) {
+if (i < 0 || i >= list.length) return;
+idx = i; const n = list[i];
+nodeBlob(n).then(b => {
+if (!b) { toast('Brak danych: ' + n.name, { type: 'warn' }); return; }
+if (url) rmURL(url);
+url = mkURL(b); video.src = url;
+win.setTitle(n.name + ' — Wideo');
+recordRecent('node', n.id);
+if (autoplay) video.play().catch(() => {});
+renderList();
+});
+}
+video.ontimeupdate = () => {
+tm.textContent = mmss(video.currentTime) + ' / ' + mmss(video.duration);
+if (video.duration) sk.value = Math.round(video.currentTime / video.duration * 1000);
+};
+video.onended = () => { if (idx < list.length - 1) load(idx + 1, true); };
+video.onplay = () => pl.innerHTML = gl('pause', 17);
+video.onpause = () => pl.innerHTML = gl('play', 17);
+video.onclick = () => video.paused ? video.play() : video.pause();
+pl.onclick = () => { if (idx < 0) { load(0, true); return; } video.paused ? video.play() : video.pause(); };
+sk.oninput = () => { if (video.duration) video.currentTime = sk.value / 1000 * video.duration; };
+$('.vol', root).oninput = e => video.volume = e.target.value / 100;
+video.volume = (state.settings.volume != null ? state.settings.volume : 70) / 100;
+$('.fs', root).onclick = () => { try { stage.requestFullscreen(); } catch (e) {} };
+$('.pp', root).onclick = async () => { try { if (document.pictureInPictureElement) await document.exitPictureInPicture(); else await video.requestPictureInPicture(); } catch (e) { toast('PiP niedostępny.', { type: 'warn' }); } };
+win.api = { play: n => { list = Media.list('video'); const i = list.indexOf(n); if (i >= 0) load(i, true); } };
+win.cleanup.push(() => { video.pause(); if (url) rmURL(url); if (Media.video === video) Media.video = null; });
+win.cleanup.push(bus.on('fs', () => { list = Media.list('video'); renderList(); }));
+renderList();
+if (file) { const i = list.indexOf(file); if (i >= 0) load(i, true); }
+}
+/* ---- ZDJECIA ---- */
+function openPhotos(file) {
+const d = appDesc('photos');
+return createWindow(Object.assign({
+key: 'photos', appId: 'photos', kind: 'photos', icon: 'photos',
+iconHTML: s => descIcon(d, s), title: 'Zdjęcia',
+onReuse: w => { if (file && w.api) w.api.show(file); },
+build: w => buildPhotos(w, file)
+}, winOpts('photos', { width: 900, height: 640, minW: 460, minH: 380 })));
+}
+function buildPhotos(win, file) {
+let list = Media.list('image'), cur = -1, zoom = 100, rot = 0;
+const root = h('div', 'ph',
+'<div class="ph-tool"><b style="font-size:13px">Galeria</b><span class="hint cnt"></span><span style="flex:1"></span>' +
+'<button class="mini-btn imp">' + gl('upload', 13) + ' Prześlij zdjęcia</button></div>' +
+'<div class="ph-grid"></div>' +
+'<div class="ph-view"><div class="ph-stage"><img alt=""></div>' +
+'<div class="ph-bar"><button class="mini-btn cl">' + gl('x', 13) + ' Zamknij</button>' +
+'<button class="mini-btn pv">' + gl('chevL', 13) + '</button><button class="mini-btn nx">' + gl('chevR', 13) + '</button>' +
+'<span class="nm"></span><input type="range" class="zm" min="20" max="300" value="100" style="width:110px">' +
+'<button class="mini-btn rt">' + gl('refresh', 13) + ' Obróć</button>' +
+'<button class="mini-btn wl">' + gl('image', 13) + ' Tapeta</button>' +
+'<button class="mini-btn dl">' + gl('download', 13) + ' Pobierz</button></div></div>');
+win.body.append(root);
+const grid = $('.ph-grid', root), view = $('.ph-view', root), img = $('.ph-stage img', root);
+function renderGrid() {
+list = Media.list('image');
+$('.cnt', root).textContent = list.length + ' elementów';
+grid.innerHTML = list.length ? list.map((n, i) =>
+'<div class="ph-cell" data-i="' + i + '"><span>' + esc(n.name) + '</span></div>').join('')
+: '<div class="empty-state" style="grid-column:1/-1">' + svgIco('photos', 56) + '<p>Brak obrazów. Prześlij zdjęcia, aby zobaczyć galerię.</p></div>';
+$$('.ph-cell', grid).forEach(cell => {
+const i = +cell.dataset.i, n = list[i];
+cell.onclick = () => show(i);
+thumbFor(n).then(src => {
+if (src && cell.isConnected) cell.insertAdjacentHTML('afterbegin', '<img src="' + esc(src) + '" alt="">');
+});
+});
+}
+function apply() { img.style.transform = 'scale(' + zoom / 100 + ') rotate(' + rot + 'deg)'; }
+function show(i) {
+if (i < 0 || i >= list.length) return;
+cur = i; zoom = 100; rot = 0; $('.zm', root).value = 100;
+const n = list[i];
+$('.nm', root).textContent = n.name;
+thumbFor(n).then(src => { if (src) { img.src = src; apply(); } });
+view.classList.add('on');
+recordRecent('node', n.id);
+}
+$('.cl', root).onclick = () => view.classList.remove('on');
+$('.pv', root).onclick = () => show((cur - 1 + list.length) % list.length);
+$('.nx', root).onclick = () => show((cur + 1) % list.length);
+$('.zm', root).oninput = e => { zoom = +e.target.value; apply(); };
+$('.rt', root).onclick = () => { rot = (rot + 90) % 360; apply(); };
+$('.wl', root).onclick = () => { if (list[cur]) setWallpaperFromNode(list[cur]); };
+$('.dl', root).onclick = () => { if (list[cur]) downloadNode(list[cur]); };
+$('.ph-stage', root).onwheel = e => { e.preventDefault(); zoom = clamp(zoom + (e.deltaY < 0 ? 10 : -10), 20, 300); $('.zm', root).value = zoom; apply(); };
+$('.imp', root).onclick = () => pickFiles(f => importDropped(f, DIRS.pictures).then(renderGrid));
+win.el.addEventListener('keydown', e => {
+if (!view.classList.contains('on')) return;
+if (e.key === 'Escape') view.classList.remove('on');
+if (e.key === 'ArrowLeft') $('.pv', root).click();
+if (e.key === 'ArrowRight') $('.nx', root).click();
+});
+win.api = { show: n => { renderGrid(); const i = list.indexOf(n); if (i >= 0) show(i); }, refresh: renderGrid };
+win.cleanup.push(bus.on('fs', renderGrid));
+renderGrid();
+if (file) { const i = list.indexOf(file); if (i >= 0) show(i); }
+}
+/* ---- PRZEGLADARKA SYSTEMOWA ---- */
+function brState() { return state.browser; }
+function brHistory(url, title) {
+if (!/^https?:/i.test(url)) return;
+const B = brState();
+B.history = (B.history || []).filter(x => x.url !== url);
+B.history.unshift({ url: url, title: title || urlHost(url), ts: Date.now() });
+B.history = B.history.slice(0, 300);
+commit('browser');
+}
+function looksUrl(s) {
+s = String(s || '').trim();
+if (/\s/.test(s)) return false;
+return /^(https?:|mailto:|tel:|ftp:|about:)/i.test(s) ||
+/^[\w.-]+\.[a-z]{2,}(\/|$|\?|#|:)/i.test(s) || /^localhost(:\d+)?/i.test(s);
+}
+function openBrowser(o) {
+o = o || {};
+const d = appDesc('browser');
+return createWindow(Object.assign({
+key: 'browser', appId: 'browser', kind: 'browser', icon: 'browser',
+iconHTML: s => descIcon(d, s), title: 'Przeglądarka',
+onReuse: w => w.api && w.api.open(o),
+build: w => buildBrowser(w, o)
+}, winOpts('browser', { width: 1060, height: 700, minW: 520, minH: 380 })));
+}
+function buildBrowser(win, initial) {
+const B = brState();
+let tabs = [], active = null, seq = 0;
+const root = h('div', 'br',
+'<div class="br-tabs"></div>' +
+'<div class="br-bar">' +
+'<button class="nav-btn bk" data-tip="Wstecz">' + gl('back', 15) + '</button>' +
+'<button class="nav-btn fw" data-tip="Dalej">' + gl('fwd', 15) + '</button>' +
+'<button class="nav-btn rf" data-tip="Odśwież">' + gl('refresh', 15) + '</button>' +
+'<button class="nav-btn hm" data-tip="Strona główna">' + gl('home', 15) + '</button>' +
+'<div class="br-addr">' + gl('search', 13) + '<input spellcheck="false" placeholder="Wpisz adres lub szukaną frazę…"><div class="br-sug"></div></div>' +
+'<button class="nav-btn bm" data-tip="Dodaj / usuń zakładkę">' + gl('star', 15) + '</button>' +
+'<button class="nav-btn ex" data-tip="Otwórz w nowej karcie przeglądarki">' + gl('external', 15) + '</button>' +
+'<button class="nav-btn hs" data-tip="Historia">' + gl('clock', 15) + '</button></div>' +
+'<div class="br-bm"></div>' +
+'<div class="br-stage"></div>' +
+'<div class="br-note">' + gl('info', 12) +
+'<span>Część stron (m.in. logowanie Google) blokuje osadzanie w ramce — użyj „Otwórz zewnętrznie”. Zakładki i historia synchronizują się z Dyskiem Google.</span>' +
+'<span class="sp"></span><button class="mini-btn home-set">Strona główna…</button></div>' +
+'<div class="br-hist"><header>' + gl('clock', 15) + ' Historia<button class="mini-btn clr" style="margin-left:auto">Wyczyść</button><button class="mini-btn hx">' + gl('x', 12) + '</button></header><div class="ls"></div></div>');
+win.body.append(root);
+const strip = $('.br-tabs', root), stage = $('.br-stage', root), addr = $('.br-addr input', root),
+sug = $('.br-sug', root), bmBar = $('.br-bm', root), hist = $('.br-hist', root);
+function startPageHTML() {
+const bm = (B.bookmarks || []).slice(0, 12);
+const tiles = bm.map(b =>
+'<button class="tile" data-u="' + esc(b.url) + '"><b>' + esc(b.name) + '</b><i>' + esc(urlHost(b.url)) + '</i></button>').join('');
+return '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>' +
+'body{margin:0;font-family:Segoe UI,system-ui,sans-serif;background:#0e1626;color:#eef5ff;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:18px}' +
+'h1{font-weight:300;letter-spacing:2px;font-size:26px}h1 b{font-weight:800;color:#4cc2ff}' +
+'.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;max-width:680px;width:92%}' +
+'.tile{background:#182238;border:1px solid #2c3a55;border-radius:12px;padding:14px;text-align:left;color:#eef5ff;cursor:pointer}' +
+'.tile:hover{border-color:#4cc2ff}.tile b{display:block;font-size:13px}.tile i{font-style:normal;font-size:11px;color:#8fa0bd}' +
+'p{color:#8fa0bd;font-size:12px;max-width:560px;text-align:center;line-height:1.6;padding:0 16px}' +
+'</style></head><body><h1>Pulpit<b>OS</b> Browser</h1>' +
+(tiles ? '<div class="g">' + tiles + '</div>' : '<p>Brak zakładek. Dodaj pierwszą gwiazdką przy pasku adresu.</p>') +
+'<p>Wpisz adres w pasku powyżej. Strony, które blokują osadzanie (X-Frame-Options), otworzysz przyciskiem „Otwórz zewnętrznie”. Logowanie w ramce zależy od ustawień ciasteczek stron trzecich w Twojej przeglądarce.</p>' +
+'<script>document.querySelectorAll(".tile").forEach(function(t){t.onclick=function(){parent.postMessage({channel:"pulpitos-browser",action:"navigate",url:t.dataset.u},"*")}});<\/script></body></html>';
+}
+function renderTabs() {
+strip.innerHTML = tabs.map(t =>
+'<button class="br-tab' + (t === active ? ' on' : '') + '" data-id="' + t.id + '"><span class="t">' + esc(t.title || 'Nowa karta') + '</span>' +
+'<span class="x" data-x="' + t.id + '">' + gl('x', 11) + '</span></button>').join('') +
+'<button class="br-new" data-tip="Nowa karta">' + gl('plus', 14) + '</button>';
+$$('.br-tab', strip).forEach(b => {
+b.onclick = e => {
+const id = b.dataset.id;
+if (e.target.closest('[data-x]')) { closeTab(id); return; }
+activate(tabs.find(t => t.id === id));
+};
+});
+$('.br-new', strip).onclick = () => newTab({ home: true });
+}
+function renderBookmarks() {
+const bm = B.bookmarks || [];
+bmBar.innerHTML = bm.length ? bm.map(b =>
+'<button class="br-bmi" data-u="' + esc(b.url) + '" data-id="' + b.id + '">' + gl('bookmark', 11) + esc(b.name) + '</button>').join('')
+: '<span class="hint" style="padding:2px 4px">Pasek zakładek — dodawaj gwiazdką przy pasku adresu.</span>';
+$$('.br-bmi', bmBar).forEach(b => {
+b.onclick = () => navigate(b.dataset.u);
+b.oncontextmenu = e => {
+e.preventDefault();
+openMenu([{ label: 'Usuń zakładkę', icon: 'trash', danger: true, action: () => {
+B.bookmarks = B.bookmarks.filter(x => x.id !== b.dataset.id);
+commit('browser'); renderBookmarks();
+} }], e.clientX, e.clientY);
+};
+});
+}
+function renderHist() {
+$('.ls', hist).innerHTML = (B.history || []).length ? B.history.slice(0, 120).map(x =>
+'<button class="rw" data-u="' + esc(x.url) + '">' + gl('globe', 14) +
+'<span class="t"><b>' + esc(x.title) + '</b><i>' + esc(x.url) + ' • ' + relTime(x.ts) + '</i></span></button>').join('')
+: '<div class="start-empty">Brak historii.</div>';
+$$('.rw', hist).forEach(b => b.onclick = () => { navigate(b.dataset.u); hist.classList.remove('on'); });
+}
+function newTab(o) {
+const t = { id: 't' + (++seq), url: '', nodeId: o.nodeId || null, home: !!o.home, title: 'Nowa karta', hist: [], hi: -1, loaded: false };
+t.frame = document.createElement('iframe');
+t.frame.className = 'br-frame';
+t.frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-downloads allow-modals');
+t.block = h('div', 'br-block',
+'<h3>Ta strona nie może być wyświetlona w ramce</h3>' +
+'<p>Serwis wysyła nagłówek X-Frame-Options / CSP blokujący osadzanie (tak robi m.in. Google, banki i większość stron logowania). To ograniczenie bezpieczeństwa przeglądarki, nie błąd systemu.</p>' +
+'<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">' +
+'<button class="btn primary ext">Otwórz w nowej karcie</button>' +
+'<button class="btn rtry">Spróbuj ponownie</button></div>');
+stage.append(t.frame, t.block);
+$('.ext', t.block).onclick = () => window.open(t.url, '_blank', 'noopener');
+$('.rtry', t.block).onclick = () => loadTab(t, t.url, true);
+t.frame.addEventListener('load', () => {
+t.loaded = true;
+t.block.classList.remove('on');
+if (t.url) { try { brHistory(t.url, t.title); } catch (e) {} }
+});
+tabs.push(t);
+renderTabs();
+if (o.nodeId) loadNode(t, o.nodeId);
+else if (o.url) navigate(o.url, t);
+else { t.home = true; loadHome(t); }
+activate(t);
+return t;
+}
+function closeTab(id) {
+const i = tabs.findIndex(t => t.id === id);
+if (i < 0) return;
+const t = tabs[i];
+clearTimeout(t.blockT);
+t.frame.remove(); t.block.remove();
+tabs.splice(i, 1);
+if (!tabs.length) { newTab({ home: true }); return; }
+if (active === t) activate(tabs[Math.max(0, i - 1)]);
+else renderTabs();
+}
+function activate(t) {
+if (!t) return;
+active = t;
+tabs.forEach(x => { x.frame.classList.toggle('on', x === t); if (x !== t) x.block.classList.remove('on'); });
+addr.value = t.home ? '' : t.nodeId ? (N(t.nodeId) || {}).name || '' : t.url;
+win.setTitle((t.title || 'Przeglądarka') + ' — Przeglądarka');
+$('.bk', root).disabled = t.hi <= 0;
+$('.fw', root).disabled = t.hi >= t.hist.length - 1;
+paintStar();
+renderTabs();
+}
+function paintStar() {
+const on = active && active.url && (B.bookmarks || []).some(b => b.url === active.url);
+$('.bm', root).style.color = on ? 'var(--accent)' : '';
+}
+function loadHome(t) {
+t.home = true; t.nodeId = null; t.url = ''; t.title = 'Strona główna';
+t.frame.removeAttribute('src');
+t.frame.srcdoc = startPageHTML();
+t.block.classList.remove('on');
+activate(t);
+}
+function loadNode(t, nodeId) {
+const n = N(nodeId);
+if (!n) { toast('Plik nie istnieje.', { type: 'warn' }); return; }
+t.nodeId = nodeId; t.home = false; t.url = ''; t.title = n.name;
+nodeText(n).then(txt => {
+t.frame.setAttribute('sandbox', 'allow-scripts allow-modals allow-forms allow-popups allow-downloads');
+t.frame.srcdoc = txt;
+t.block.classList.remove('on');
+recordRecent('node', nodeId);
+activate(t);
+});
+}
+function loadTab(t, url, force) {
+t.home = false; t.nodeId = null; t.url = url; t.title = urlHost(url); t.loaded = false;
+t.frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-downloads allow-modals');
+t.frame.removeAttribute('srcdoc');
+t.frame.src = url;
+t.block.classList.remove('on');
+clearTimeout(t.blockT);
+t.blockT = setTimeout(() => { if (!t.loaded && t === active) t.block.classList.add('on'); }, 3500);
+if (!force) {
+t.hist = t.hist.slice(0, t.hi + 1); t.hist.push(url); t.hi = t.hist.length - 1;
+}
+activate(t);
+}
+function navigate(input, t) {
+t = t || active || newTab({ home: true });
+const raw = String(input || '').trim();
+if (!raw || raw === 'home' || raw === 'start') { loadHome(t); return; }
+if (!looksUrl(raw)) {
+window.open('https://www.google.com/search?q=' + encodeURIComponent(raw), '_blank', 'noopener');
+toast('Wyszukiwanie otwarto zewnętrznie — Google blokuje osadzanie wyników w ramce.', { type: 'info', timeout: 6000 });
+return;
+}
+loadTab(t, normalizeUrl(raw));
+}
+addr.onkeydown = e => {
+e.stopPropagation();
+if (e.key === 'Enter') { sug.classList.remove('on'); navigate(addr.value); }
+if (e.key === 'Escape') sug.classList.remove('on');
+};
+addr.oninput = () => {
+const q = addr.value.trim().toLowerCase();
+if (!q) { sug.classList.remove('on'); return; }
+const hits = []
+.concat((B.bookmarks || []).filter(b => b.name.toLowerCase().indexOf(q) >= 0 || b.url.toLowerCase().indexOf(q) >= 0).map(b => ({ t: b.name, u: b.url, k: 'bookmark' })))
+.concat((B.history || []).filter(x => x.url.toLowerCase().indexOf(q) >= 0 || (x.title || '').toLowerCase().indexOf(q) >= 0).slice(0, 8).map(x => ({ t: x.title, u: x.url, k: 'clock' })))
+.slice(0, 9);
+sug.innerHTML = hits.map(x => '<button data-u="' + esc(x.u) + '">' + gl(x.k, 13) + '<span style="flex:1;min-width:0"><b style="display:block;font-weight:600">' + esc(x.t) + '</b><span class="u">' + esc(x.u) + '</span></span></button>').join('');
+sug.classList.toggle('on', hits.length > 0);
+$$('button', sug).forEach(b => b.onclick = () => { sug.classList.remove('on'); navigate(b.dataset.u); });
+};
+addr.onblur = () => setTimeout(() => sug.classList.remove('on'), 180);
+$('.bk', root).onclick = () => { if (active && active.hi > 0) { active.hi--; loadTab(active, active.hist[active.hi], true); } };
+$('.fw', root).onclick = () => { if (active && active.hi < active.hist.length - 1) { active.hi++; loadTab(active, active.hist[active.hi], true); } };
+$('.rf', root).onclick = () => { if (!active) return; if (active.nodeId) loadNode(active, active.nodeId); else if (active.home) loadHome(active); else loadTab(active, active.url, true); };
+$('.hm', root).onclick = () => { if (B.home) navigate(B.home); else if (active) loadHome(active); };
+$('.ex', root).onclick = () => { if (active && active.url) window.open(active.url, '_blank', 'noopener'); else toast('Ta karta nie ma adresu zewnętrznego.', { type: 'info' }); };
+$('.bm', root).onclick = async () => {
+if (!active || !active.url) { toast('Zakładki można dodawać do stron o adresie http(s).', { type: 'info' }); return; }
+const ex = (B.bookmarks || []).find(b => b.url === active.url);
+if (ex) { B.bookmarks = B.bookmarks.filter(b => b !== ex); commit('browser'); renderBookmarks(); paintStar(); return; }
+const name = await promptDlg('Nowa zakładka', active.title || urlHost(active.url), { label: 'Nazwa zakładki' });
+if (!name) return;
+B.bookmarks = (B.bookmarks || []).concat({ id: uid(), name: name, url: active.url });
+commit('browser'); renderBookmarks(); paintStar();
+};
+$('.hs', root).onclick = () => { renderHist(); hist.classList.toggle('on'); };
+$('.hx', hist).onclick = () => hist.classList.remove('on');
+$('.clr', hist).onclick = async () => {
+if (await confirmDlg('Wyczyścić historię przeglądarki?', { danger: true, okLabel: 'Wyczyść' })) {
+B.history = []; commit('browser'); renderHist();
+}
+};
+$('.home-set', root).onclick = async () => {
+const v = await promptDlg('Strona główna', B.home || 'https://', { label: 'Adres (wpisz „start”, aby przywrócić stronę wbudowaną)' });
+if (v == null) return;
+B.home = (v.trim().toLowerCase() === 'start') ? '' : normalizeUrl(v.trim());
+commit('browser');
+toast('Strona główna zapisana i zsynchronizowana.', { type: 'success' });
+};
+const msg = e => {
+if (!active || e.source !== active.frame.contentWindow) return;
+const d = e.data;
+if (d && d.channel === 'pulpitos-browser' && d.action === 'navigate') navigate(d.url);
+};
+window.addEventListener('message', msg);
+win.cleanup.push(() => {
+window.removeEventListener('message', msg);
+tabs.forEach(t => { clearTimeout(t.blockT); t.frame.remove(); t.block.remove(); });
+});
+win.api = { open: o => { o = o || {}; if (o.nodeId) { const t = newTab({}); loadNode(t, o.nodeId); } else if (o.url) { const t = newTab({}); loadTab(t, normalizeUrl(o.url)); } else newTab({ home: true }); }, navigate };
+renderBookmarks();
+newTab(initial.nodeId ? { nodeId: initial.nodeId } : initial.url ? { url: initial.url } : { home: true });
+}
+/* ---- rejestracja aplikacji systemowych ---- */
+BUILTIN.push(
+{ id: 'music', name: 'Muzyka', icon: 'music', desc: 'Odtwarzacz audio z listą odtwarzania',
+win: { w: 760, h: 560, minW: 420, minH: 360 }, run: f => openMusic(f && f.id ? f : null),
+actions: [{ label: 'Otwórz folder muzyki', icon: 'folder', run: () => openExplorer(DIRS.music) }] },
+{ id: 'video', name: 'Wideo', icon: 'video', desc: 'Odtwarzacz filmów',
+win: { w: 880, h: 600, minW: 460, minH: 340 }, run: f => openVideo(f && f.id ? f : null),
+actions: [{ label: 'Otwórz folder wideo', icon: 'folder', run: () => openExplorer(DIRS.videos) }] },
+{ id: 'photos', name: 'Zdjęcia', icon: 'photos', desc: 'Galeria obrazów',
+win: { w: 900, h: 640, minW: 460, minH: 380 }, run: f => openPhotos(f && f.id ? f : null),
+actions: [{ label: 'Otwórz folder zdjęć', icon: 'folder', run: () => openExplorer(DIRS.pictures) }] },
+{ id: 'browser', name: 'Przeglądarka', icon: 'browser', desc: 'Przeglądarka systemowa z kartami i zakładkami',
+win: { w: 1060, h: 700, minW: 520, minH: 380 }, run: () => openBrowser(),
+actions: [
+{ label: 'Nowa karta', icon: 'plus', run: w => w && w.api && w.api.open({}) },
+{ label: 'Strony WWW', icon: 'folder', run: () => openExplorer(DIRS.web) }
+] }
+);
+
+
+/* ============================================================
+28. Szablony i dane startowe
    ============================================================ */
 const SDK = '<script>\n' +
   'const OS=(function(){let i=0;const p={},ev={};' +
@@ -8036,106 +8897,130 @@ const BAT_CLEAN = [
 ].join('\n');
 
 const DOCS_TXT = [
-  'PulpitOS ' + VER + ' — dokumentacja systemu i API', '',
-  '1. STRUKTURA DYSKU C:',
-  'C:\\aplikacje — pliki .html aplikacji',
-  'C:\\aplikacje\\appdata — stan aplikacji',
-  'C:\\użytkownik\\pulpit, dokumenty, pobrane, strony www',
-  'C:\\system — dokumentacja, logs, config, skrypty', '',
-  '2. PULPIT — SWOBODNE PRZESTAWIANIE IKON',
-  'Chwyć ikonę wskaźnikiem i przeciągnij w dowolne miejsce.',
-  'Domyślnie ikona wyrównuje się do siatki w miejscu upuszczenia.',
-  'Przytrzymaj Shift podczas upuszczania, aby ustawić ją całkowicie',
-  'swobodnie (z dokładnością do piksela). Siatkę można też wyłączyć',
-  'w Ustawienia → Personalizacja → Wyrównaj do siatki.',
-  'Ikony systemowe (Ten komputer, Kosz) również można przestawiać.', '',
-  '3. SKRÓTY DO STRON INTERNETOWYCH',
-  'Tworzenie: PPM pulpitu → Nowy → Skrót do strony WWW…,',
-  'menu Start → Nowy skrót, przycisk Skrót w eksploratorze,',
-  'polecenie konsoli: url Nazwa | https://adres',
-  'Adres bez protokołu dostaje automatycznie https://.',
-  'Obsługiwane są też mailto: oraz tel:.',
-  'PPM skrótu: Edytuj adres i nazwę, Kopiuj adres,',
-  'Otwórz w nowej karcie, Pobierz skrót (.url).',
-  'Upuszczenie pliku .url z komputera tworzy skrót automatycznie.',
-  'Folder C:\\użytkownik\\strony www gromadzi takie skróty.', '',
-  '4. DYSK GOOGLE',
-  'Struktura folderów z prawdziwego Dysku jest odtwarzana 1:1.',
-  'Backup C: trafia do folderu PulpitOS i jest oznaczony jako kopia,',
-  'dzięki czemu nie zaśmieca widoku Z:.', '',
-  'TRYB CHMUROWY',
-  'Włączany przy logowaniu lub w Ustawienia → Dysk Google.',
-  'Dane są wysyłane na Drive i usuwane z pamięci lokalnej przy',
-  'zamknięciu systemu z menu Start oraz przy kolejnym starcie.',
-  'Ekran otacza delikatna obwódka.',
-  'WAŻNE: wejście w tryb chmurowy automatycznie wyłącza flagę',
-  'automatycznego ponownego logowania. Flaga jest zablokowana',
-  'dopóki tryb chmurowy pozostaje włączony — po restarcie logujesz',
-  'się świadomie, zanim dane zostaną odtworzone z chmury.',
-  'Wyłączenie trybu chmurowego odblokowuje przełącznik.', '',
-  '5. SKRYPTY .BAT',
-  'Tworzenie: Nowy → Skrypt wsadowy, batnew, CMD',
-  'Uruchamianie: dwuklik, PPM → Uruchom, run plik.bat, runbg',
-  'Składnia: @echo off, rem, set X=1, set /a N=N+1, %X%,',
-  '  :etykieta, goto, if [not] exist, if "%X%"=="1", call, pause, exit /b', '',
-  '6. SORTOWANIE W EKSPLORATORZE',
-  'Nagłówki kolumn (Nazwa / Data / Typ / Rozmiar) przełączają',
-  'sortowanie i kierunek. Menu Sortuj oraz pasek stanu pokazują',
-  'aktywny tryb. Ustawienie jest zapamiętywane.', '',
-  '7. PRZECIĄGANIE',
-  'Ikony pulpitu i elementy eksploratora przeciągasz wskaźnikiem.',
-  'Upuść na folder, panel boczny, okno eksploratora lub pulpit.',
-  'Etykieta przy kursorze pokazuje, co się stanie.', '',
-  '8. API APLIKACJI HTML', SDK, '',
-  'METODY',
-  'system.info / system.theme / system.icons / system.repair',
-  'fs.list / fs.stat / fs.search / fs.read / fs.readBlob',
-  'fs.write / fs.writeBlob / fs.create / fs.rename / fs.move',
-  'fs.setIcon({id,preset|dataURL}) / fs.delete / fs.restore / fs.purge',
-  'app.state({key[,value]})',
-  'desktop.icons / desktop.appShortcut / desktop.shortcut',
-  'desktop.urlShortcut({url,name?,iconPreset?,iconData?})',
-  'desktop.urlShortcuts() / desktop.wallpaper / desktop.arrange',
-  'drive.status / drive.sync / drive.mirror / drive.appsSync / drive.upload',
-  'apps.list / apps.open / apps.edit / apps.delete / apps.window',
-  'apps.pin / apps.unpin / apps.quickActions / apps.download',
-  'windows.setTitle / getSize / setSize / maximize / minimize / close',
-  'ui.toast / ui.confirm / ui.prompt / ui.pickIcon / ui.shortcutPicker',
-  'bat.run / bat.list / bat.exec', '',
-  'ZDARZENIA',
-  'ready, theme.change, quickAction, file.open, fs.change, drive.change', '',
-  '9. RESET FABRYCZNY',
-  'Ustawienia → System → Przywróć stan fabryczny usuwa wszystkie',
-  'lokalne pliki, aplikacje, konfigurację, tapetę, motyw, skróty',
-  'i przypięcia paska zadań. Pliki na Dysku Google pozostają.'
+'PulpitOS ' + VER + ' — pełna dokumentacja systemu i API', '',
+'1. STRUKTURA DYSKU C:',
+'C:\\aplikacje — pliki .html aplikacji',
+'C:\\aplikacje\\appdata — stan aplikacji (JSON per aplikacja)',
+'C:\\użytkownik — pulpit, dokumenty, pobrane, zdjęcia, muzyka, wideo, strony www',
+'C:\\system — dokumentacja, logs, config, skrypty', '',
+'2. PULPIT — SIATKA KANONICZNA',
+'Układ ikon jest zapisany jako stała liczba kolumn i wierszy',
+'(Ustawienia → Eksplorator plików). Rozmiar komórki i ikony wylicza',
+'się z ekranu, więc po zalogowaniu na innym urządzeniu ikony zajmują',
+'dokładnie te same sloty — kosztem wielkości kafelka, nie układu.',
+'Przeciągnij ikonę, aby ją przestawić. Shift przy upuszczaniu =',
+'ustawienie swobodne (zapisywane jako ułamek ekranu 0–1).',
+'„Dopasuj do tego ekranu” przelicza siatkę pod bieżącą rozdzielczość.',
+'„Układ tylko na tym urządzeniu” wyłącza synchronizację pozycji.', '',
+'3. KONTO UŻYTKOWNIKA',
+'Po zalogowaniu nazwa pobierana jest z konta Google (displayName),',
+'a avatar ze zdjęcia profilowego. Własna nazwa i avatar mają',
+'priorytet, gdy włączysz „Używaj własnej nazwy” (Ustawienia → Konto).',
+'Profil synchronizuje się z konfiguracją na Dysku Google.',
+'Chip konta na pasku zadań pokazuje aktualną nazwę i status.', '',
+'4. EKSPLORATOR PLIKÓW',
+'Foldery ZAWSZE na górze listy, niezależnie od sortowania i kierunku.',
+'Ustawienia → Eksplorator plików: widok, sortowanie, kierunek,',
+'rozmiar kafelka, miniatury obrazów, panel boczny, pasek stanu,',
+'potwierdzanie kosza, otwieranie pojedynczym kliknięciem,',
+'katalog startowy oraz kanoniczna siatka pulpitu.', '',
+'5. DYSK GOOGLE I SYNCHRONIZACJA',
+'• Po zalogowaniu pełna synchronizacja startuje NATYCHMIAST.',
+'• Strukturę folderów odtwarzano 1:1 (bez spłaszczania).',
+'• Backup C: trafia do folderu PulpitOS na Drive (znacznik kopii).',
+'• Dynamiczna sync po operacjach + pełna co N minut (bezczynność).',
+'• ZAMKNIĘCIE SYSTEMU z menu Start wykonuje synchronizację',
+'  (Ustawienia → Dysk Google → „Synchronizuj przy zamykaniu”).',
+'  Zamknięcie karty przeglądarki nie daje czasu na sync — używaj menu Start.',
+'• Tryb chmurowy: dane tylko na Drive, czyszczenie pamięci lokalnej',
+'  przy zamknięciu i przy starcie; auto-logowanie wyłączone i zablokowane.', '',
+'6. MULTIMEDIA',
+'Muzyka: lista odtwarzania z całego systemu, losowość, powtarzanie',
+'(lista/utwór), szukajka, suwak pozycji i głośności.',
+'Wideo: playlista, pełny ekran, picture-in-picture, sterowanie pozycją.',
+'Zdjęcia: galeria miniatur, podgląd z zoomem/obrotem, klawisze ←/→,',
+'„Ustaw jako tapetę” (tapeta synchronizowana z Drive), pobieranie.',
+'Dwuklik pliku audio/wideo/obrazu otwiera właściwą aplikację.',
+'PPM → „Otwórz za pomocą” → „Podgląd systemowy” = stary podgląd.',
+'Głośnik na pasku zadań wycisza także odtwarzacze.', '',
+'7. PRZEGLĄDARKA SYSTEMOWA',
+'Karty, pasek adresu z podpowiedziami (zakładki + historia),',
+'wstecz/dalej/odśwież, pasek zakładek, historia, strona główna.',
+'Zakładki, historia i strona główna SYNCHRONIZUJĄ SIĘ z Drive.',
+'Pliki .html/.htm otwierają się w przeglądarce w izolowanej ramce',
+'(skrypty działają, brak dostępu do systemu i localStorage).',
+'OGRANICZENIA (nie do obejścia w pojedynczym pliku HTML):',
+'• Serwisy z X-Frame-Options/CSP (Google, banki, większość logowań)',
+'  nie wyświetlą się w ramce — system pokaże ekran z przyciskiem',
+'  „Otwórz w nowej karcie”.',
+'• Logowanie w ramce zależy od ciasteczek stron trzecich przeglądarki;',
+'  sesji logowania nie da się zsynchronizować między komputerami.',
+'• Wyszukiwanie (fraza bez adresu) otwiera Google zewnętrznie.', '',
+'8. SKRÓTY DO STRON WWW',
+'Tworzenie: PPM pulpitu → Nowy → Skrót do strony WWW…, menu Start →',
+'Nowy skrót, przycisk Skrót w eksploratorze, konsola: url Nazwa | adres.',
+'Skrót otwiera się w przeglądarce systemowej; PPM → „Otwórz w nowej',
+'karcie” otwiera zewnętrznie. Edycja nazwy/adresu/ikony, kopiowanie',
+'adresu, pobieranie .url. Upuszczenie pliku .url tworzy skrót.', '',
+'9. NOTATNIK',
+'Otwiera się zawsze w widoku tekstowym, z kursorem na początku pliku.',
+'Autosave po 900 ms, Ctrl+S, podgląd Markdown, zapis jako, pobieranie.', '',
+'10. SKRYPTY .BAT',
+'Tworzenie: Nowy → Skrypt wsadowy, batnew, edytor z listą poleceń.',
+'Uruchamianie: dwuklik, PPM → Uruchom, run plik.bat, runbg (log w logs).',
+'Składnia: @echo off, rem, set X=1, set /a N=N+1, %X%, :etykieta,',
+'goto, if [not] exist, if "%X%"=="1" ... else ..., call, pause, exit /b.',
+'Zmienne: %CD% %DATE% %TIME% %USERNAME% (nazwa konta) %VER% %ANSWER%.', '',
+'11. API APLIKACJI HTML', SDK, '',
+'METODY',
+'system.info / system.theme / system.icons / system.repair / system.log',
+'fs.list / fs.stat / fs.search / fs.read / fs.readBlob',
+'fs.write / fs.writeBlob / fs.create / fs.rename / fs.move',
+'fs.setIcon / fs.delete / fs.restore / fs.purge',
+'app.state({key[,value]}) — stan synchronizowany z Drive',
+'bat.run / bat.list / bat.exec',
+'desktop.icons / appShortcut / sysIcon / shortcut / urlShortcut',
+'desktop.urlShortcuts / wallpaper / arrange',
+'drive.status / sync / mirror / appsSync / configSync / upload',
+'apps.list / open / edit / delete / window / pin / unpin',
+'apps.quickActions / download',
+'windows.setTitle / getSize / setSize / maximize / minimize / close',
+'ui.toast / confirm / prompt / pickIcon / shortcutPicker', '',
+'ZDARZENIA',
+'ready, theme.change, quickAction, file.open, fs.change, drive.change', '',
+'12. ROZWIĄZYWANIE PROBLEMÓW',
+'• OAuth wymaga HTTP(S) — przy file:// użyj python -m http.server.',
+'• Okno logowania zablokowane → zezwól na popupy dla witryny.',
+'• Strona nie wyświetla się w przeglądarce → „Otwórz zewnętrznie”.',
+'• Ikony pulpitu rozjechane → Ustawienia → Eksplorator → Przywróć 12×7.',
+'• Uszkodzony stan → Ustawienia → System → Napraw system plików.',
+'• Pełny reset → Ustawienia → System → Przywróć stan fabryczny',
+'  (pliki na Dysku Google pozostają nienaruszone).'
 ].join('\n');
 
 const WELCOME_TXT = [
-  '# Witaj w PulpitOS ' + VER, '',
-  '## Poprawki w tej wersji',
-  '- **Tryb chmurowy wyłącza auto-logowanie.** Zaznaczenie opcji przy',
-  '  logowaniu (lub w Ustawienia → Dysk Google) automatycznie zeruje',
-  '  flagę automatycznego ponownego logowania i blokuje przełącznik.',
-  '  Backup na Drive i czyszczenie pamięci lokalnej przy zamknięciu',
-  '  systemu z menu Start oraz przy kolejnym starcie działają bez zmian.',
-  '- **Ikony pulpitu przestawiają się swobodnie.** Przeciągnij ikonę',
-  '  w dowolne miejsce. Przytrzymaj **Shift** przy upuszczaniu, aby',
-  '  pominąć siatkę i ustawić ją z dokładnością do piksela.',
-  '- **Skróty do stron WWW wróciły.** PPM pulpitu → Nowy →',
-  '  „Skrót do strony WWW…”, menu Start → „Nowy skrót”, przycisk',
-  '  Skrót w eksploratorze oraz polecenie `url Nazwa | adres`.', '',
-  '## Skróty internetowe',
-  'Nowy folder **C:\\użytkownik\\strony www** oraz aplikacja',
-  '**Strony WWW** w menu Start. Skrót można edytować (nazwa, adres,',
-  'ikona), skopiować adres, otworzyć w nowej karcie i pobrać jako .url.',
-  'Upuszczenie pliku .url z komputera tworzy skrót automatycznie.',
-  'Wypróbuj skrypt **Moje strony.bat** w C:\\system\\skrypty.', '',
-  '## Co pozostaje bez zmian',
-  'Struktura folderów Dysku Google 1:1, sortowanie w eksploratorze,',
-  'przeciąganie między oknami, skrypty .bat, konsola CMD,',
-  'aplikacje HTML z API, motywy, tapety i pełny reset fabryczny.', '',
-  'W konsoli wpisz `help`, aby zobaczyć wszystkie polecenia.', '',
-  'Miłej pracy!'
+'# Witaj w PulpitOS ' + VER, '',
+'## Nowości i naprawy',
+'- **Synchronizacja startuje natychmiast po zalogowaniu** (naprawiony',
+'  błąd kolejności stanu połączenia) i **przy zamykaniu systemu**',
+'  z menu Start — z widocznym wskaźnikiem „Synchronizowanie…”.',
+'- **Nazwa użytkownika z konta Google**, własna nazwa z priorytetem',
+'  i avatar — wszystko synchronizowane (Ustawienia → Konto).',
+'- **Pulpit na siatce kanonicznej** — identyczny układ ikon na każdym',
+'  urządzeniu, rozmiar kafelka dopasowuje się do ekranu.',
+'- **Nowe zakładki ustawień:** Konto oraz Eksplorator plików',
+'  (widok, sortowanie, miniatury, kosz, klikanie, siatka pulpitu).',
+'- **Aplikacje systemowe:** Muzyka, Wideo, Zdjęcia oraz Przeglądarka',
+'  z kartami, zakładkami i historią synchronizowanymi z Drive.',
+'  Pliki HTML i skróty WWW otwierają się w przeglądarce systemowej.',
+'- **Notatnik** otwiera się w widoku tekstu z kursorem na początku.',
+'- **Foldery zawsze na górze** listy w eksploratorze.', '',
+'## Przeglądarka — uczciwe ograniczenia',
+'Strony blokujące osadzanie (m.in. logowanie Google) otworzysz',
+'przyciskiem „Otwórz zewnętrznie”. Zakładki i historia synchronizują',
+'się między komputerami; sesje logowania stron — nie (ciasteczki).', '',
+'W konsoli wpisz `help`. Pełna dokumentacja: C:\\system → API i skrypty.', '',
+'Miłej pracy!'
 ].join('\n');
 
 function seedState() {
@@ -8148,15 +9033,20 @@ function seedState() {
       defaultApps: {}, customExts: [], pins: [], hiddenPins: [], hiddenSysIcons: [],
       appLimits: { code: 8, read: 16, blob: 32 },
       expView: 'grid', expSort: 'name', expDir: 1,
-      drive: {
-        mode: 'demo', clientId: DEFAULT_CID, scope: 'drive', autoUpload: true,
-        configSync: true, appsSync: true, wallpaperSync: true, autoLogin: true,
-        autoLoginLock: false, connected: false, lastEmail: '',
-        dynamicSync: true, fullInterval: 5, cloudOnly: false
-      }
+expTile: 98, expSidebar: true, expStatus: true, expConfirmDel: false,
+expSingleClick: false, expThumbs: true, expStart: 'desktop',
+grid: { cols: 12, rows: 7 },
+account: { name: '', override: false, avatar: null, google: { name: '', email: '', picture: '' } },
+drive: {
+mode: 'demo', clientId: DEFAULT_CID, scope: 'drive', autoUpload: true,
+configSync: true, appsSync: true, wallpaperSync: true, autoLogin: true,
+autoLoginLock: false, connected: false, lastEmail: '',
+dynamicSync: true, fullInterval: 5, cloudOnly: false, syncOnShutdown: true
+}
     },
     nodes: {}, apps: {}, appMeta: {}, appTrash: {}, recent: [], cmdHistory: [],
-    tombstones: {}, appTombstones: {}, driveTombstones: {}, cloudPending: false
+    tombstones: {}, appTombstones: {}, driveTombstones: {}, cloudPending: false,
+browser: { home: '', bookmarks: [], history: [] }
   };
   const add = n => { n.seed = true; s.nodes[n.id] = n; return n; };
   const F = (id, name, parent) => add({
@@ -8181,6 +9071,9 @@ function seedState() {
   F(DIRS.downloads, 'pobrane', DIRS.user);
   F(DIRS.documents, 'dokumenty', DIRS.user);
   F(DIRS.web, 'strony www', DIRS.user);
+F(DIRS.music, 'muzyka', DIRS.user);
+F(DIRS.videos, 'wideo', DIRS.user);
+F(DIRS.pictures, 'zdjęcia', DIRS.user);
   F(DIRS.system, 'system', 'C');
   F(DIRS.logs, 'logs', DIRS.system);
   F(DIRS.config, 'config', DIRS.system);
@@ -8320,12 +9213,16 @@ bus.on('pins', () => { if (startOpen) renderStart(); });
         defaultApps: {}, customExts: [], pins: [], hiddenPins: [], hiddenSysIcons: [],
         appLimits: { code: 8, read: 16, blob: 32 },
         expView: 'grid', expSort: 'name', expDir: 1,
-        drive: {
-          mode: 'demo', clientId: DEFAULT_CID, scope: 'drive', autoUpload: true,
-          configSync: true, appsSync: true, wallpaperSync: true, autoLogin: true,
-          autoLoginLock: false, connected: false, lastEmail: '',
-          dynamicSync: true, fullInterval: 5, cloudOnly: false
-        }
+expTile: 98, expSidebar: true, expStatus: true, expConfirmDel: false,
+expSingleClick: false, expThumbs: true, expStart: 'desktop',
+grid: { cols: 12, rows: 7 },
+account: { name: '', override: false, avatar: null, google: { name: '', email: '', picture: '' } },
+drive: {
+mode: 'demo', clientId: DEFAULT_CID, scope: 'drive', autoUpload: true,
+configSync: true, appsSync: true, wallpaperSync: true, autoLogin: true,
+autoLoginLock: false, connected: false, lastEmail: '',
+dynamicSync: true, fullInterval: 5, cloudOnly: false, syncOnShutdown: true
+}
       };
       state.settings = Object.assign({}, defSettings, state.settings || {});
       state.settings.drive = Object.assign({}, defSettings.drive, state.settings.drive || {});
@@ -8339,8 +9236,37 @@ bus.on('pins', () => { if (startOpen) renderStart(); });
       state.recent = state.recent || [];
       state.cmdHistory = state.cmdHistory || [];
       state.tombstones = state.tombstones || {};
-      state.appTombstones = state.appTombstones || {};
-      state.driveTombstones = state.driveTombstones || {};
+state.appTombstones = state.appTombstones || {};
+state.driveTombstones = state.driveTombstones || {};
+/* normalizacja nowych pol (1.14) dla stanow zapisanych przez 1.13 */
+state.settings.account = Object.assign(
+{ name: '', override: false, avatar: null, google: { name: '', email: '', picture: '' } },
+state.settings.account || {});
+state.settings.account.google = Object.assign({ name: '', email: '', picture: '' }, state.settings.account.google || {});
+state.settings.grid = Object.assign({ cols: 12, rows: 7 }, state.settings.grid || {});
+state.browser = Object.assign({ home: '', bookmarks: [], history: [] }, state.browser || {});
+if (state.settings.drive.syncOnShutdown == null) state.settings.drive.syncOnShutdown = true;
+[['expTile', 98], ['expSidebar', true], ['expStatus', true], ['expConfirmDel', false],
+['expSingleClick', false], ['expThumbs', true], ['expStart', 'desktop']].forEach(p => {
+if (state.settings[p[0]] == null) state.settings[p[0]] = p[1];
+});
+/* migracja pozycji 1.13 (piksele / komorki lokalne) -> siatka kanoniczna */
+(function migrateGrid() {
+const old = { s: { w: 78, h: 92 }, m: { w: 94, h: 108 }, l: { w: 114, h: 128 } }[state.settings.gridSize || 'm'];
+const G = state.settings.grid;
+Object.keys(state.nodes).map(k => state.nodes[k]).forEach(n => {
+if (n.parent !== DESK || !n.pos) return;
+const p = n.pos;
+if (p.x != null) {
+n.pos = {
+fx: clamp(p.x / Math.max(1, innerWidth - old.w), 0, 1),
+fy: clamp(p.y / Math.max(1, innerHeight - 50 - old.h), 0, 1)
+};
+} else if (p.c != null) {
+n.pos = { c: clamp(p.c, 0, G.cols - 1), r: clamp(p.r, 0, G.rows - 1) };
+}
+});
+})();
 
       /* Tryb chmurowy pochodzi wyłącznie z klucza lokalnego i zawsze
          wymusza wyłączenie automatycznego ponownego logowania. */
@@ -8414,8 +9340,9 @@ bus.on('pins', () => { if (startOpen) renderStart(); });
       if (state.settings.localLayout) loadLocalLayout();
       saveNow();
       applyAccent();
-      applyTheme();
-      updSndBtn();
+applyTheme();
+updSndBtn();
+updAcctChip();
       updateCloudFrame();
       applyWallpaper().catch(() => {});
       deskEnter = true;

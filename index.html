@@ -1360,6 +1360,26 @@ function setCloudOnly(v) {
   bus.emit('settings', { drive: true });
 }
 const cloudOk = () => Drive.mode === 'google' && Drive.state === 'ok';
+/* ===== ZAKRESY GOOGLE — pełny / ograniczony ===== */
+const GDRIVE = 'https://www.googleapis.com/auth/drive';
+const GFILE  = 'https://www.googleapis.com/auth/drive.file';
+const GSCOPE = { full: [GDRIVE, 'openid', 'email', 'profile'], limited: [GFILE] };
+function scopeMode() {
+const v = String((state.settings.drive.scope || 'drive')).trim();
+return (v === 'drive.file' || v === 'limited') ? 'limited' : 'full';
+}
+function scopeLimited() { return scopeMode() === 'limited'; }
+function scopeString() { return GSCOPE[scopeMode()].join(' '); }
+function scopeNorm(s) {
+s = String(s || '');
+if (s === 'https://www.googleapis.com/auth/userinfo.email') return 'email';
+if (s === 'https://www.googleapis.com/auth/userinfo.profile') return 'profile';
+return s;
+}
+function scopeGranted() {
+return String(Drive.grantedScope || '').split(/\s+/).filter(Boolean).map(scopeNorm);
+}
+function scopeLabel() { return scopeLimited() ? 'ograniczony (drive.file)' : 'pełny (drive + profil)'; }
 /* ---- konto uzytkownika (1.14) ---- */
 function acct() { return state.settings.account; }
 function userName() {
@@ -3998,6 +4018,9 @@ else if (S.cwd === DIRS.videos) banner = '<div class="info-banner">' + gl('film'
 'Pliki wideo. <button class="mini-btn" id="openVi">' + gl('play', 12) + ' Otwórz odtwarzacz</button></div>';
 else if (S.cwd === DIRS.pictures) banner = '<div class="info-banner">' + gl('image', 16) +
 'Obrazy. <button class="mini-btn" id="openPh">' + gl('image', 12) + ' Otwórz galerię</button></div>';
+else if (rootOf(S.cwd) === 'Z' && cloudOk() && scopeLimited()) banner =
+'<div class="info-banner">' + gl('shield', 16) +
+'Tryb ograniczony (drive.file): widoczne są tylko pliki i foldery utworzone przez PulpitOS. Pełną strukturę Dysku zobaczysz po przełączeniu zakresu na pełny.</div>';
 else if (rootOf(S.cwd) === 'Z' && Drive.mode === 'google' && !cloudOk()) banner =
       '<div class="info-banner">' + gl('cloud', 16) + 'Dysk Google nie jest połączony. <button class="mini-btn" id="expConnect">Połącz konto…</button></div>';
 
@@ -6564,7 +6587,15 @@ const Drive = {
   get configFileId() { return state.settings.drive.configFileId || null; },
   set configFileId(v) { state.settings.drive.configFileId = v; },
 
-  setSt(s) {
+  resetAuth(revoke) {
+const t = this.token;
+this.token = null; this.expiry = 0; this.tc = null; this.rootId = null;
+this.grantedScope = ''; this._silentTried = false;
+if (revoke && t && window.google && google.accounts && google.accounts.oauth2) {
+try { google.accounts.oauth2.revoke(t, function () {}); } catch (e) {}
+}
+},
+setSt(s) {
     if (this.state === s) { updSyncChip(); return; }
     this.state = s;
     bus.emit('drive');
@@ -6586,7 +6617,7 @@ const Drive = {
     if (this.tc) return this.tc;
     this.tc = google.accounts.oauth2.initTokenClient({
       client_id: (state.settings.drive.clientId || DEFAULT_CID).trim(),
-      scope: 'https://www.googleapis.com/auth/' + (state.settings.drive.scope || 'drive'),
+      scope: scopeString(),
       callback: r => {
         if (!this.pendingTok) return;
         const p = this.pendingTok;
@@ -6594,8 +6625,19 @@ const Drive = {
         if (r.error) p.rej(new Error('OAuth: ' + r.error));
         else {
           this.token = r.access_token;
-          this.expiry = Date.now() + (+(r.expires_in || 3600) * 1000 - 60000);
-          p.res();
+this.grantedScope = r.scope || '';
+this.expiry = Date.now() + (+(r.expires_in || 3600) * 1000 - 60000);
+const g = scopeGranted();
+if (g.indexOf(GDRIVE) < 0 && g.indexOf(GFILE) < 0) {
+this.token = null; this.expiry = 0;
+p.rej(new Error('Google nie przyznał dostępu do Dysku. Połącz ponownie i zatwierdź uprawnienia.'));
+} else {
+if (scopeLimited() && g.indexOf(GDRIVE) >= 0)
+setTimeout(() => toast('Konto ma nadal szeroki zakres „drive”. Użyj „Zastosuj zakres i połącz ponownie”, aby odwołać stare uprawnienia.', { type: 'warn', timeout: 9000 }), 500);
+if (!scopeLimited() && g.indexOf('profile') < 0)
+setTimeout(() => toast('Tryb pełny: Google nie zwrócił uprawnień profilu — nazwa i avatar mogą być niedostępne.', { type: 'info', timeout: 7000 }), 700);
+p.res();
+}
         }
       },
       error_callback: e => {
@@ -6618,11 +6660,13 @@ const Drive = {
     this.setSt('connecting');
     try {
       await this.ensureGIS();
-      this.tc = null;
-      await new Promise((res, rej) => {
-        this.pendingTok = { res: res, rej: rej };
-        this.tokenClient().requestAccessToken({ prompt: 'select_account' });
-      });
+this.tc = null; this.token = null; this.expiry = 0;
+const pr = this._forceConsent ? 'consent' : 'select_account';
+this._forceConsent = false;
+await new Promise((res, rej) => {
+this.pendingTok = { res: res, rej: rej };
+this.tokenClient().requestAccessToken({ prompt: pr, scope: scopeString() });
+});
       await this.about();
       state.settings.drive.connected = true;
       state.settings.drive.lastEmail = (this.info && this.info.user && this.info.user.emailAddress) || '';
@@ -6651,7 +6695,7 @@ await this.fullSync(true); // pelna synchronizacja natychmiast po zalogowaniu
       this.tc = null;
       await new Promise((res, rej) => {
         this.pendingTok = { res: res, rej: rej };
-        this.tokenClient().requestAccessToken({ prompt: '', hint: state.settings.drive.lastEmail || '' });
+        this.tokenClient().requestAccessToken({ prompt: '', hint: state.settings.drive.lastEmail || '', scope: scopeString() });
       });
       await this.about();
       this.setSt('ok');
@@ -6664,7 +6708,7 @@ await this.fullSync(true); // pelna synchronizacja natychmiast po zalogowaniu
     await this.ensureGIS();
     await new Promise((res, rej) => {
       this.pendingTok = { res: res, rej: rej };
-      this.tokenClient().requestAccessToken({ prompt: '', hint: state.settings.drive.lastEmail || '' });
+      this.tokenClient().requestAccessToken({ prompt: '', hint: state.settings.drive.lastEmail || '', scope: scopeString() });
     });
   },
   async req(url, opt) {
@@ -6682,7 +6726,7 @@ await this.fullSync(true); // pelna synchronizacja natychmiast po zalogowaniu
     return r;
   },
   async about() {
-    this.info = await (await this.req('https://www.googleapis.com/drive/v3/about?fields=user,storageQuota')).json();
+    this.info = await (await this.req('https://www.googleapis.com/drive/v3/about?fields=' + (scopeLimited() ? 'storageQuota' : 'user,storageQuota'))).json();
     if (this.info && this.info.user) {
 const u = this.info.user;
 if (u.emailAddress) state.settings.drive.lastEmail = u.emailAddress;
@@ -6722,8 +6766,52 @@ refreshAccountUI();
   },
 
   /* ---- SYNCHRONIZACJA: pełne odtworzenie struktury folderów ---- */
-  async sync(manual) {
-    if (this.mode !== 'google') {
+  /* Tryb ograniczony: widzimy wyłącznie pliki należące do PulpitOS (drive.file). */
+async syncLimited(manual) {
+updSyncChip(true);
+try {
+const j = await (await this.req('https://www.googleapis.com/drive/v3/files?pageSize=1000' +
+'&q=' + encodeURIComponent('trashed=false') +
+'&fields=files(id,name,mimeType,size,modifiedTime,webViewLink,parents,appProperties)')).json();
+const files = j.files || [], seen = new Set(), mirror = new Set();
+files.forEach(f => {
+const p = f.appProperties || {};
+if (p.pulpitosMirror === '1') {
+mirror.add(f.id);
+const loc = p.pulpitosLocalId && N(p.pulpitosLocalId);
+if (loc) { loc.driveId = f.id; loc.remoteParent = (f.parents || [])[0] || null; }
+return;
+}
+seen.add('gd-' + f.id);
+this.nodeFromJson(f, null);
+});
+files.forEach(f => {
+if (mirror.has(f.id)) return;
+const n = state.nodes['gd-' + f.id];
+if (!n) return;
+let cand = null;
+(f.parents || []).forEach(pid => {
+const pn = state.nodes['gd-' + pid];
+if (pn && pn.type === 'folder' && !mirror.has(pn.driveId)) cand = 'gd-' + pid;
+});
+n.parent = cand || 'Z';
+});
+Object.keys(state.nodes).map(k => state.nodes[k])
+.filter(n => n.origin === 'google' && !seen.has(n.id))
+.forEach(n => { delete state.nodes[n.id]; });
+this.lastSync = Date.now();
+commit('sync');
+this.setSt('ok');
+if (manual) toast('Tryb ograniczony: zsynchronizowano ' + seen.size + ' elementów PulpitOS.', { type: 'success' });
+} catch (e) {
+this.setSt('error');
+if (manual) toast('Synchronizacja: ' + e.message, { type: 'error' });
+}
+updSyncChip();
+},
+async sync(manual) {
+if (this.mode === 'google' && scopeLimited()) return this.syncLimited(manual);
+if (this.mode !== 'google') {
       this.lastSync = Date.now();
       this.setSt('demo');
       return;
@@ -6824,8 +6912,8 @@ refreshAccountUI();
         if (!j.trashed) return this.mirrorRootId;
       } catch (e) {}
     }
-    const root = await this.ensureRoot();
-    const q = "name='PulpitOS' and '" + root + "' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false";
+    const root = scopeLimited() ? 'root' : await this.ensureRoot();
+const q = "name='PulpitOS' and '" + root + "' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false";
     const j = await (await this.req('https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(q) + '&fields=files(id)')).json();
     this.mirrorRootId = (j.files && j.files[0] && j.files[0].id) ||
       (await this.rawCreate({ name: 'PulpitOS', mimeType: 'application/vnd.google-apps.folder', parents: [root] })).id;
@@ -7060,7 +7148,8 @@ refreshAccountUI();
       const keepLocal = s.localLayout, keepGrid = s.gridSize, keepGridCols = s.grid;
       const keepCloud = LS.get(CLOUD_KEY) === '1';
       const keepDriveLocal = {
-        clientId: s.drive.clientId, connected: s.drive.connected,
+scope: s.drive.scope,
+clientId: s.drive.clientId, connected: s.drive.connected,
         lastEmail: s.drive.lastEmail, cloudOnly: keepCloud,
         autoLogin: keepCloud ? false : s.drive.autoLogin,
         autoLoginLock: keepCloud ? true : s.drive.autoLoginLock
@@ -7731,9 +7820,14 @@ function renderDrive() {
       '<label class="radio-row"><input type="radio" name="dMode" value="google" ' + (d.mode === 'google' ? 'checked' : '') + '>Prawdziwy Dysk Google (OAuth 2.0)</label></div>' +
       '<div class="set-card" style="' + disabled + '"><h3>' + gl('link', 15) + 'Połączenie OAuth</h3>' +
       '<div class="field"><label>Client ID</label><input class="inp" id="dCid" value="' + esc(d.clientId || DEFAULT_CID) + '"></div>' +
-      '<div class="field"><label>Zakres dostępu</label><select class="inp" id="dScope">' +
-      '<option value="drive" ' + (d.scope !== 'drive.file' ? 'selected' : '') + '>drive — pełny dostęp</option>' +
-      '<option value="drive.file" ' + (d.scope === 'drive.file' ? 'selected' : '') + '>drive.file — tylko pliki aplikacji</option></select></div>' +
+      '<div class="field"><label>Zakres dostępu do konta Google</label><select class="inp" id="dScope">' +
+'<option value="drive" ' + (!scopeLimited() ? 'selected' : '') + '>Pełny — cały Dysk Google + profil (nazwa, e-mail, avatar)</option>' +
+'<option value="drive.file" ' + (scopeLimited() ? 'selected' : '') + '>Ograniczony — tylko pliki utworzone przez PulpitOS</option></select>' +
+'<div class="hint" style="margin-top:6px">Pełny: <b>drive openid email profile</b> — cała struktura Dysku, backup C:, dane profilu.<br>' +
+'Ograniczony: <b>drive.file</b> — PulpitOS widzi wyłącznie własne pliki i foldery; nie pobiera profilu ani listy Twoich prywatnych plików.</div>' +
+'<div class="set-row"><button class="btn" id="dScopeApply">' + gl('shield', 13) + ' Zastosuj zakres i połącz ponownie</button>' +
+'<span class="hint">Aktywny: <b>' + esc(scopeLabel()) + '</b>' +
+(Drive.grantedScope ? ' • przyznane: <b>' + esc(scopeGranted().join(' ')) + '</b>' : '') + '</span></div></div>' +
       '<div class="set-row"><span class="lbl">Automatyczne logowanie</span>' +
       '<label class="toggle' + (co ? ' off' : '') + '"><input type="checkbox" id="dAutoLogin" ' +
       (d.autoLogin && !co ? 'checked' : '') + ' ' + (co ? 'disabled' : '') + '><span class="tr"></span></label>' +
@@ -7785,7 +7879,24 @@ function renderDrive() {
       };
     });
     $('#dCid', pane).onchange = e => { d.clientId = e.target.value.trim() || DEFAULT_CID; Drive.tc = null; save(); };
-    $('#dScope', pane).onchange = e => { d.scope = e.target.value; Drive.tc = null; save(); };
+    $('#dScope', pane).onchange = e => { d.scope = e.target.value; Drive.resetAuth(false); save(); render(); };
+$('#dScopeApply', pane).onclick = async () => {
+d.scope = $('#dScope', pane).value;
+save();
+const wasOn = cloudOk(), co = cloudOnly();
+Drive.resetAuth(true);
+Drive._forceConsent = true;
+Drive.setSt(d.mode === 'google' ? 'idle' : 'demo');
+render();
+if (!wasOn || !await confirmDlg('Zakres: „' + scopeLabel() + '”. Poprzednie uprawnienia zostały odwołane. Połączyć konto ponownie, aby zatwierdzić nowy zakres?',
+{ okLabel: 'Połącz ponownie', icon: 'drive' })) {
+toast('Zakres zapisany. Kliknij „Połącz z Google”, aby zatwierdzić uprawnienia.', { type: 'info', timeout: 7000 });
+return;
+}
+try { await Drive.connect({ cloudOnly: co }); }
+catch (err) { toast(err.message, { type: 'error', timeout: 9000 }); }
+render();
+};
     $('#dAutoLogin', pane).onchange = e => {
       if (co) { e.target.checked = false; return; }
       d.autoLogin = e.target.checked; save();

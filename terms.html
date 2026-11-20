@@ -2,282 +2,63 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Regulamin korzystania — PulpitOS</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  :root {
-    --window-bg: #1c2230;
-    --titlebar-bg: #151a26;
-    --card-bg: #252c3c;
-    --card-border: #313a52;
-    --accent: #6c5ce7;
-    --accent-soft: rgba(108, 92, 231, 0.18);
-    --warn: #e0a44f;
-    --warn-soft: rgba(224, 164, 79, 0.14);
-    --text: #d5dbe6;
-    --text-muted: #8b95a7;
-    --text-dim: #6b7488;
-    --chip-bg: #1a2030;
-  }
-
-  body {
-    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 32px 16px;
-    background:
-      radial-gradient(circle at 78% 22%, rgba(255,255,240,0.95) 0%, rgba(255,255,240,0.35) 6%, transparent 14%),
-      linear-gradient(160deg, #cfe8d2 0%, #a4d4ae 35%, #7cc091 65%, #5aa877 100%);
-  }
-
-  /* ——— Okno ——— */
-  .window {
-    width: min(880px, 100%);
-    background: var(--window-bg);
-    border-radius: 12px;
-    box-shadow: 0 24px 64px rgba(10, 20, 15, 0.45), 0 2px 8px rgba(0,0,0,0.3);
-    overflow: hidden;
-    border: 1px solid #0d1119;
-  }
-
-  .titlebar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--titlebar-bg);
-    padding: 10px 16px;
-    border-bottom: 1px solid #0b0e15;
-  }
-
-  .titlebar .title {
-    color: var(--text);
-    font-size: 14px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .titlebar .controls { display: flex; gap: 6px; }
-
-  .titlebar .controls span {
-    width: 12px; height: 12px;
-    border-radius: 50%;
-    display: inline-block;
-    background: #3a4258;
-    cursor: default;
-  }
-  .titlebar .controls span.close { background: #e05c5c; }
-  .titlebar .controls span.min  { background: #e0b04f; }
-  .titlebar .controls span.max  { background: #58c470; }
-
-  /* ——— Treść ——— */
-  .content {
-    padding: 36px 44px 28px;
-    max-height: 78vh;
-    overflow-y: auto;
-    color: var(--text);
-    line-height: 1.65;
-  }
-
-  .content::-webkit-scrollbar { width: 10px; }
-  .content::-webkit-scrollbar-track { background: var(--window-bg); }
-  .content::-webkit-scrollbar-thumb { background: #39415a; border-radius: 6px; }
-
-  .badge {
-    display: inline-block;
-    background: var(--accent-soft);
-    color: #a99df2;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    padding: 4px 12px;
-    border-radius: 20px;
-    margin-bottom: 14px;
-  }
-
-  h1 { font-size: 26px; color: #fff; margin-bottom: 6px; }
-  .updated { color: var(--text-dim); font-size: 13px; margin-bottom: 28px; }
-
-  h2 {
-    font-size: 16px;
-    color: #fff;
-    margin: 28px 0 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--card-border);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  h2::before { content: ""; width: 4px; height: 16px; background: var(--accent); border-radius: 2px; }
-
-  p, li { font-size: 14px; color: var(--text-muted); }
-  li { margin: 6px 0 6px 20px; }
-  strong { color: var(--text); }
-
-  .card {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 10px;
-    padding: 16px 20px;
-    margin: 12px 0;
-  }
-
-  .card.warning {
-    background: var(--warn-soft);
-    border-color: rgba(224, 164, 79, 0.4);
-    border-left: 4px solid var(--warn);
-  }
-  .card.warning .head {
-    color: var(--warn);
-    font-weight: 600;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-  }
-
-  code {
-    font-family: "Cascadia Code", Consolas, monospace;
-    font-size: 12.5px;
-    background: var(--chip-bg);
-    color: #9ecbff;
-    padding: 2px 8px;
-    border-radius: 6px;
-    border: 1px solid #2a3145;
-    word-break: break-all;
-  }
-
-  a { color: #8f82f0; text-decoration: none; }
-  a:hover { text-decoration: underline; }
-
-  .footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 14px 44px;
-    background: var(--titlebar-bg);
-    border-top: 1px solid #0b0e15;
-    font-size: 13px;
-    color: var(--text-dim);
-  }
-
-  .btn {
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 8px 18px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: inherit;
-    transition: filter 0.15s;
-  }
-  .btn:hover { filter: brightness(1.15); }
-
-  @media (max-width: 600px) {
-    .content { padding: 24px 20px; }
-    .footer { padding: 12px 20px; flex-direction: column; gap: 10px; }
-  }
-</style>
+<style>*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;background:#070d1a;color:#eef5ff;line-height:1.7;padding:32px 18px}
+main{max-width:860px;margin:0 auto}
+.badge{display:inline-block;font-size:11px;font-weight:800;letter-spacing:2px;color:#4cc2ff;border:1px solid rgba(76,194,255,.4);background:rgba(76,194,255,.1);padding:3px 10px;border-radius:20px}
+h1{font-size:26px;font-weight:700;margin:14px 0 6px}
+.upd{color:#9caac1;font-size:12.5px;margin-bottom:26px}
+section{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:18px 20px;margin-bottom:14px}
+h2{font-size:15.5px;color:#4cc2ff;margin-bottom:10px}
+h3{font-size:13.5px;margin:14px 0 6px}
+p{font-size:13.5px;color:#c9d6ea;margin:8px 0}
+ul{margin:8px 0 8px 20px;font-size:13.5px;color:#c9d6ea}
+li{margin:5px 0}
+code{font-family:Consolas,monospace;font-size:12px;background:rgba(76,194,255,.13);color:#8fd8ff;padding:1px 6px;border-radius:5px;word-break:break-word}
+a{color:#4cc2ff}
+.note{border-left:3px solid #ffc83d;background:rgba(255,200,61,.08);padding:10px 14px;border-radius:8px;margin:10px 0;font-size:13px;color:#e7d9b0}
+footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:#66758e;font-size:12px;padding:18px 4px}
+@media(max-width:600px){body{padding:18px 12px}h1{font-size:21px}}</style>
 </head>
 <body>
-
-<div class="window">
-  <div class="titlebar">
-    <div class="title">📜 Regulamin korzystania — PulpitOS</div>
-    <div class="controls"><span class="min"></span><span class="max"></span><span class="close"></span></div>
-  </div>
-
-  <div class="content">
-    <span class="badge">PULPITOS</span>
-    <h1>Regulamin korzystania z aplikacji</h1>
-    <p class="updated">Ostatnia aktualizacja: 18 listopada 2026 r.</p>
-
-    <h2>§1. Postanowienia ogólne</h2>
-    <ul>
-      <li>Niniejszy Regulamin określa zasady korzystania z aplikacji internetowej <strong>PulpitOS</strong> (dalej: „Aplikacja"), dostępnej pod adresem: <a href="https://wilczur7.github.io/pulpitos/">https://wilczur7.github.io/pulpitos/</a></li>
-      <li>Administratorem i twórcą Aplikacji jest <strong>Paweł Wilczewski</strong>, zwany dalej „Administratorem".</li>
-      <li>Kontakt z Administratorem jest możliwy pod adresem e-mail: <a href="mailto:wilczewski.pw@gmail.com">wilczewski.pw@gmail.com</a>.</li>
-      <li>Korzystanie z Aplikacji jest dobrowolne i nieodpłatne. Akceptacja niniejszego Regulaminu następuje w momencie rozpoczęcia korzystania z Aplikacji.</li>
-    </ul>
-
-    <h2>§2. Charakter Aplikacji i zakres usług</h2>
-    <ul>
-      <li>PulpitOS jest aplikacją typu <em>single-page application</em> (SPA), działającą w całości po stronie klienta (w przeglądarce internetowej Użytkownika).</li>
-      <li>Aplikacja stanowi <strong>symulację</strong> środowiska graficznego systemu operacyjnego. Nie jest ona rzeczywistym systemem operacyjnym ani usługą chmurową oferującą gwarancję ciągłości działania (SLA).</li>
-      <li>Aplikacja oferuje następujące tryby funkcjonowania:</li>
-      <ul>
-        <li><strong>Tryb Demo:</strong> Podstawowa funkcjonalność dostępna bez logowania, z danymi przechowywanymi wyłącznie lokalnie w przeglądarce Użytkownika.</li>
-        <li><strong>Tryb z integracją Google:</strong> Umożliwia synchronizację wybranych danych z Dyskiem Google za pośrednictwem oficjalnego interfejsu API (OAuth 2.0).</li>
-      </ul>
-    </ul>
-
-    <h2>§3. Zasady korzystania z integracji z Google Drive</h2>
-    <ul>
-      <li>W celu skorzystania z funkcji synchronizacji, Użytkownik musi wyrazić zgodę na warunki autoryzacji Google OAuth.</li>
-      <li>Użytkownik ma możliwość skorzystania z domyślnego identyfikatora klienta (Client ID) dostarczonego przez Administratora, lub wprowadzenia <strong>własnego Client ID</strong> utworzonego w konsoli Google Cloud.</li>
-      <li>W przypadku użycia własnego Client ID, Użytkownik ponosi wyłączną odpowiedzialność za jego poprawną konfigurację, bezpieczeństwo oraz zgodność z warunkami usług Google. Administrator nie ma dostępu do danych przesyłanych w ramach takiej konfiguracji i nie ponosi odpowiedzialności za ewentualne błędy działania wynikające z tej konfiguracji.</li>
-      <li>Użytkownik zobowiązuje się do korzystania z funkcji Dysku Google zgodnie z <a href="https://policies.google.com/terms">Warunkami korzystania z usług Google</a>.</li>
-    </ul>
-
-    <div class="card warning">
-      <div class="head">⚠️ Status autoryzacji Aplikacji — ograniczenia połączenia Google</div>
-      <p>Użytkownik zostaje poinformowany, że Aplikacja PulpitOS znajduje się obecnie w fazie <em>development / testing</em> i <strong>nie przeszła jeszcze pełnej weryfikacji przez Google</strong> (status aplikacji: <code>Unverified</code>). Oznacza to, że połączenie z kontem Google może wymagać, aby Użytkownik był wcześniej dodany jako <strong>autoryzowany tester</strong> w konsoli Google Cloud (OAuth consent screen).</p>
-      <p style="margin-top:8px;">W konsekwencji Użytkownicy, którzy nie widnieją na liście testerów, mogą napotkać komunikaty Google takie jak <em>„This app isn't verified"</em> / <em>„untrusted site"</em> i nie będą mogli nawiązać połączenia z Dyskiem Google, dopóki Aplikacja nie uzyska statusu <code>Verified</code> przez Google. Administrator zastrzega sobie prawo do zmiany tego statusu w miarę rozwoju Aplikacji.</p>
-    </div>
-
-    <h2>§4. Dane Użytkownika i ich trwałość</h2>
-    <ul>
-      <li>Dane tworzone w ramach Aplikacji (np. pliki tekstowe, ustawienia pulpitu) są domyślnie zapisywane w pamięci lokalnej przeglądarki (Local Storage / IndexedDB).</li>
-      <li><strong>Administrator nie gwarantuje trwałości danych</strong> przechowywanych lokalnie. Użytkownik przyjmuje do wiadomości, że wyczyszczenie pamięci podręcznej przeglądarki, zmiana urządzenia lub awaria przeglądarki mogą spowodować nieodwracalną utratę tych danych.</li>
-      <li>Zaleca się regularne korzystanie z funkcji eksportu lub synchronizacji z Dyskiem Google w celu zabezpieczenia ważnych danych.</li>
-    </ul>
-
-    <h2>§5. Ograniczenie odpowiedzialności</h2>
-    <ul>
-      <li>Aplikacja jest dostarczana w stanie, w jakim się znajduje („as is"), bez jakichkolwiek gwarancji, wyraźnych lub dorozumianych, w tym gwarancji przydatności handlowej lub przydatności do określonego celu.</li>
-      <li>Administrator dokłada wszelkich starań, aby Aplikacja działała poprawnie, jednak <strong>nie ponosi odpowiedzialności</strong> za:
-        <ul>
-          <li>Chwilowe lub stałe niedostępność Aplikacji (np. z powodu awarii serwisu GitHub Pages).</li>
-          <li>Utratę danych Użytkownika wynikającą z działania Użytkownika, awarii sprzętu lub oprogramowania po stronie Użytkownika.</li>
-          <li>Szkody powstałe w wyniku korzystania z Aplikacji lub niemożności jej korzystania.</li>
-        </ul>
-      </li>
-      <li>Administrator <strong>nie gwarantuje dostępności ani ciągłości działania funkcji integracji z Google</strong> w okresie, gdy Aplikacja nie posiada jeszcze statusu <code>Verified</code> w Google Cloud. Ewentualne błędy autoryzacji, odmowa dostępu lub ograniczenia wynikające z polityki bezpieczeństwa Google nie stanowią wady Aplikacji, za którą Administrator ponosi odpowiedzialność.</li>
-      <li>Aplikacja może zawierać odnośniki do stron internetowych osób trzecich (np. MDN Web Docs). Administrator nie odpowiada za treść, politykę prywatności ani praktyki tych stron.</li>
-    </ul>
-
-    <h2>§6. Własność intelektualna</h2>
-    <ul>
-      <li>Wszelkie prawa autorskie do kodu źródłowego, grafiki, interfejsu i koncepcji Aplikacji PulpitOS przysługują Administratorowi (z zastrzeżeniem praw do ewentualnych bibliotek open-source użytych w projekcie, które podlegają swoim własnym licencjom).</li>
-      <li>Użytkownikowi udziela się nieodpłatnej, niewyłącznej licencji na korzystanie z Aplikacji do celów osobistych, niekomercyjnych.</li>
-    </ul>
-
-    <h2>§7. Zmiany Regulaminu</h2>
-    <ul>
-      <li>Administrator zastrzega sobie prawo do zmiany niniejszego Regulaminu w dowolnym momencie, w szczególności w celu dostosowania go do zmian w przepisach prawa lub funkcjonalności Aplikacji.</li>
-      <li>Zaktualizowana wersja Regulaminu będzie publikowana w ramach Aplikacji, a jej dalsze korzystanie oznacza akceptację nowych warunków.</li>
-    </ul>
-
-    <h2>§8. Postanowienia końcowe</h2>
-    <ul>
-      <li>W sprawach nieuregulowanych niniejszym Regulaminem mają zastosowanie przepisy prawa polskiego, w szczególności Kodeksu cywilnego.</li>
-      <li>Wszelkie ewentualne spory wynikające z korzystania z Aplikacji będą rozstrzygane polubownie, a w razie niepowodzenia – przez właściwy sąd powszechny dla siedziby Administratora.</li>
-    </ul>
-  </div>
-
-  <div class="footer">
-    <span>PulpitOS © 2026 Paweł Wilczewski</span>
-    <button class="btn" onclick="window.location.href='index.html'">← Wróć do pulpitu</button>
-  </div>
-</div>
-
+<main>
+<header><span class="badge">PULPITOS</span><h1>📜 Regulamin korzystania z aplikacji</h1><p class="upd">Ostatnia aktualizacja: 21 listopada 2026 r.</p></header>
+<section><h2>§1. Postanowienia ogólne</h2>
+<p>Regulamin określa zasady korzystania z aplikacji internetowej <b>PulpitOS</b> („Aplikacja”), dostępnej pod adresem <a href="https://wilczur7.github.io/pulpitos/">https://wilczur7.github.io/pulpitos/</a>.</p>
+<ul><li>Administratorem i twórcą Aplikacji jest <b>Paweł Wilczewski</b>.</li><li>Kontakt: <a href="mailto:wilczewski.pw@gmail.com">wilczewski.pw@gmail.com</a>.</li><li>Korzystanie jest dobrowolne i nieodpłatne; akceptacja Regulaminu następuje przez rozpoczęcie korzystania z Aplikacji.</li></ul>
+</section>
+<section><h2>§2. Charakter Aplikacji i zakres usług</h2>
+<ul><li>PulpitOS jest aplikacją SPA działającą w całości po stronie klienta (w przeglądarce).</li><li>Aplikacja <b>symuluje</b> środowisko graficzne systemu operacyjnego — nie jest systemem operacyjnym ani usługą chmurową i nie oferuje gwarancji ciągłości działania (SLA).</li><li><b>Tryb demo</b> — pełna funkcjonalność lokalna bez logowania; dane wyłącznie w przeglądarce.</li><li><b>Tryb z integracją Google</b> — synchronizacja wybranych danych z Dyskiem Google przez oficjalne API (OAuth 2.0).</li></ul>
+</section>
+<section><h2>§3. Integracja z Dyskiem Google i zakresy uprawnień</h2>
+<p>Użytkownik wybiera jeden z dwóch zakresów dostępu. Zmiana zakresu odwołuje dotychczasowe uprawnienia i wymaga ponownego połączenia konta:</p>
+<ul><li><b>Tryb pełny</b> — zakresy <code>https://www.googleapis.com/auth/drive</code> oraz <code>openid email profile</code>. Aplikacja może przeglądać <b>całą strukturę Twojego Dysku Google</b> (folder po folderze), tworzyć, edytować, przenosić i usuwać pliki, a także odczytać podstawowe dane profilu: nazwę wyświetlaną, adres e-mail i zdjęcie profilowe (avatar).</li><li><b>Tryb ograniczony</b> — wyłącznie zakres <code>https://www.googleapis.com/auth/drive.file</code>. Aplikacja widzi <b>tylko te pliki i foldery, które sama utworzyła</b> (własny folder <code>PulpitOS</code>, kopie zapasowe, aplikacje HTML, tapetę). Nie ma dostępu do pozostałych, prywatnych plików na Dysku i nie pobiera danych profilu — odczytuje jedynie limit i zajętość miejsca na Dysku.</li></ul>
+<p>Użytkownik może korzystać z domyślnego Client ID Administratora albo wprowadzić własny Client ID z Google Cloud. Przy własnym Client ID Użytkownik odpowiada za jego konfigurację, bezpieczeństwo i zgodność z warunkami usług Google; Administrator nie ma dostępu do danych przesyłanych w tej konfiguracji.</p>
+<div class="note"><b>Status autoryzacji aplikacji.</b> PulpitOS znajduje się w fazie development / testing i nie przeszedł pełnej weryfikacji Google (status <code>Unverified</code>). Połączenie może wymagać dodania Użytkownika jako autoryzowanego testera w konsoli Google Cloud (OAuth consent screen). Użytkownicy spoza listy testerów mogą zobaczyć komunikaty „This app isn’t verified” / „untrusted site” i nie połączyć się z Dyskiem, dopóki Aplikacja nie uzyska statusu <code>Verified</code>.</div>
+<ul><li>Użytkownik zobowiązuje się korzystać z funkcji Dysku Google zgodnie z <a href="https://policies.google.com/terms">Warunkami korzystania z usług Google</a>.</li><li>Obowiązują limity i quota API Google; ich przekroczenie może czasowo zablokować synchronizację.</li><li>Błędy autoryzacji, odmowa dostępu i ograniczenia wynikające z polityki bezpieczeństwa Google nie stanowią wady Aplikacji.</li></ul>
+</section>
+<section><h2>§4. Dane Użytkownika i ich trwałość</h2>
+<ul><li>Dane tworzone w Aplikacji są domyślnie zapisywane w pamięci lokalnej przeglądarki (localStorage / IndexedDB).</li><li>Administrator nie gwarantuje trwałości danych lokalnych — wyczyszczenie pamięci, zmiana urządzenia lub awaria przeglądarki mogą spowodować ich nieodwracalną utratę.</li><li>Synchronizacja z Dyskiem Google obejmuje folder <code>PulpitOS</code> (konfiguracja, kopia C:, aplikacje, tapeta) i jest zalecanym sposobem zabezpieczenia danych.</li><li><b>Zamknięcie systemu przez menu Start → Zamknij</b> wykonuje synchronizację przed zakończeniem pracy. Zamknięcie samej karty przeglądarki lub awaria sprzętu może uniemożliwić dokończenie zapisu.</li></ul>
+</section>
+<section><h2>§5. Ograniczenia techniczne</h2>
+<ul><li>Autoryzacja Google wymaga strony serwowanej przez HTTPS lub <code>localhost</code>; przy <code>file://</code> logowanie zostanie odrzucone.</li><li>Przeglądarka może blokować okna logowania Google — należy zezwolić na wyskakujące okna dla witryny Aplikacji.</li><li>Przeglądarka systemowa osadza strony w ramce; serwisy wysyłające nagłówki <code>X-Frame-Options</code> / CSP (m.in. Google, banki) nie wyświetlą się wewnątrz okna — Aplikacja udostępnia wtedy otwarcie zewnętrzne. Sesje logowania stron trzecich nie są synchronizowane między urządzeniami.</li><li>Obowiązują limity rozmiaru importowanych plików oraz limity pamięci przeglądarki; w trybie awaryjnym dane mogą istnieć tylko w bieżącej sesji.</li><li>Aplikacja wymaga nowoczesnej przeglądarki z obsługą ES2017+, IndexedDB i Pointer Events.</li></ul>
+</section>
+<section><h2>§6. Ograniczenie odpowiedzialności</h2>
+<p>Aplikacja jest dostarczana w stanie, w jakim się znajduje („as is”), bez gwarancji wyraźnych lub dorozumianych, w tym przydatności handlowej lub do określonego celu.</p>
+<ul><li>Administrator nie odpowiada za chwilową lub stałą niedostępność Aplikacji (np. awarię GitHub Pages) ani za działanie usług Google.</li><li>Administrator nie odpowiada za utratę danych wynikającą z działania Użytkownika, awarii sprzętu lub oprogramowania po stronie Użytkownika.</li><li>Administrator nie odpowiada za szkody powstałe w wyniku korzystania lub niemożności korzystania z Aplikacji, w zakresie dopuszczalnym przez prawo.</li><li>Administrator nie odpowiada za treść, polityki prywatności i praktyki stron osób trzecich otwieranych w Aplikacji.</li></ul>
+</section>
+<section><h2>§7. Własność intelektualna</h2>
+<ul><li>Prawa autorskie do kodu, grafiki, interfejsu i koncepcji PulpitOS przysługują Administratorowi, z zastrzeżeniem praw do bibliotek open-source i zasobów Google, które podlegają własnym licencjom.</li><li>Użytkownik otrzymuje nieodpłatną, niewyłączną licencję na korzystanie z Aplikacji do celów osobistych, niekomercyjnych.</li><li>Znaki towarowe Google, Dysk Google i inne nazwy produktów należą do ich właścicieli i są używane wyłącznie w celu opisania integracji.</li></ul>
+</section>
+<section><h2>§8. Zmiany Regulaminu</h2>
+<p>Administrator może zmienić Regulamin, w szczególności w celu dostosowania go do zmian prawa lub funkcjonalności Aplikacji. Zaktualizowana wersja jest publikowana w Aplikacji; dalsze korzystanie oznacza akceptację nowych warunków.</p>
+</section>
+<section><h2>§9. Postanowienia końcowe</h2>
+<ul><li>W sprawach nieuregulowanych zastosowanie mają przepisy prawa polskiego, w szczególności Kodeksu cywilnego.</li><li>Spory rozstrzygane są polubownie, a w razie niepowodzenia — przez sąd powszechny właściwy dla miejsca zamieszkania Administratora.</li><li>Zasady przetwarzania danych osobowych określa odrębna Polityka Prywatności Aplikacji.</li></ul>
+</section>
+<footer><span>PulpitOS © 2026 Paweł Wilczewski</span><a href="index.html">← Wróć do pulpitu</a></footer>
+</main>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PulpitOS 1.14 — Web Desktop</title>
+<title>PulpitOS 1.15.1 — Web Desktop</title>
 <style>
 /* ============================================================
    PulpitOS — design tokens
@@ -817,7 +817,7 @@ setTimeout(function () {
 /* ============================================================
    1. Stałe i narzędzia
    ============================================================ */
-const VER = '1.14';
+const VER = '1.15.1';
 const LSK = 'pulpitos.v1';
 const LAYOUT_KEY = 'pulpitos.layout.v1';
 const CLOUD_KEY = 'pulpitos.cloudmode';
@@ -3025,7 +3025,8 @@ function nodeMenu(ids, x, y, source, extra) {
       items.push({ label: 'Właściwości aplikacji…', icon: 'edit', action: () => openAppEditor(d.id) });
       items.push({ label: d.custom ? 'Pobierz aplikację (.html)' : 'Pobierz manifest', icon: 'download', action: () => downloadApp(d.id) });
       items.push({ label: isPinnedAny(d.id) ? 'Odepnij od paska' : 'Przypnij do paska', icon: 'pin', action: () => togglePin(d.id) });
-      items.push({ label: 'Usuń aplikację…', icon: 'trash', danger: true, action: () => deleteApp(d.appId || d.id) });
+      if (one.type === 'app') items.push({ label: 'Odinstaluj aplikację…', icon: 'trash', danger: true, action: function(){ deleteApp(d.appId || d.id); } });
+else items.push({ label: 'Usuń skrót', icon: 'trash', danger: true, action: function(){ deleteFlow([one.id]); } });
     }
   }
   if (one && one.type === 'file' && (one.mime || mimeOf(one.name)) === 'text/html') {
@@ -3242,7 +3243,7 @@ function trashNodes(ids) {
 async function deleteFlow(ids) {
 ids = ids.filter(id => N(id) && !N(id).system);
   const appNode = ids.map(N).filter(n => n.type === 'app' && state.apps[n.app])[0];
-  if (appNode && ids.length === 1) { deleteApp(appNode.app); return; }
+  /* Delete nie odinstalowuje aplikacji */
   const real = ids.map(N).filter(n => n.driveId && rootOf(n.id) === 'Z' && n.origin === 'google' && cloudOk());
   const local = ids.filter(id => !real.some(r => r.id === id));
   if (local.length) {
@@ -4192,7 +4193,7 @@ Drag.finish(ev.clientX, ev.clientY);
   $('.b-ref', root).onclick = () => { if (rootOf(S.cwd) === 'Z' && cloudOk()) Drive.sync(true); renderAll(); };
   search.oninput = () => { S.q = search.value.trim().toLowerCase(); renderMain(); };
 
-  main.onclick = e => {
+  main.onclick = e => {if(main.__selGuard&&Date.now()-main.__selGuard<400)return;if(main.__selGuard&&Date.now()-main.__selGuard<400)return;
     if (e.target === main || e.target.classList.contains('grid-view') || e.target.classList.contains('list-view')) {
       S.sel.clear();
       $$('[data-id]', main).forEach(x => x.classList.remove('selected'));
@@ -4260,7 +4261,7 @@ Drag.finish(ev.clientX, ev.clientY);
     };
     const up = () => {
       main.onpointermove = main.onpointerup = main.onpointercancel = null;
-      box.remove();
+      box.remove();if(moved)main.__selGuard=Date.now();if(moved)main.__selGuard=Date.now();
     };
     main.onpointermove = move;
     main.onpointerup = main.onpointercancel = up;
@@ -5781,7 +5782,7 @@ function appDesc(id) {
     };
   }
   const b = BUILTIN.filter(x => x.id === id)[0];
-  if (!b) return null;
+  if (!b) { var _ca = state.apps[String(id).replace(/^custom:/, '')]; return _ca ? appDesc('custom:' + _ca.id) : null; }
   const m = state.appMeta[id] || {};
   return {
     id: id, name: m.name || b.name, builtin: true,
@@ -5891,6 +5892,7 @@ function isSysVisible(id) {
   const n = state.nodes[id];
   return !!n && !n.trashed && n.parent === DESK;
 }
+function cleanAppName(name){return String(name||'').replace(/^.*[\\/]/,'').replace(/~[^~]{1,40}~/g,' ').replace(/\.html?$/i,'').replace(/\s+/g,' ').trim()||'Aplikacja'}
 function addAppDesktopShortcut(appId) {
   const d = appDesc(appId);
   if (!d) { toast('Aplikacja nie istnieje.', { type: 'warn' }); return null; }
@@ -5904,7 +5906,7 @@ function addAppDesktopShortcut(appId) {
     .filter(n => n.type === 'appshortcut' && n.app === key && !n.trashed && n.parent === DESK)[0];
   if (ex) { toast('Skrót tej aplikacji jest już na pulpicie.', { timeout: 2200 }); return ex; }
   const n = {
-    id: uid(), type: 'appshortcut', app: key, name: uniqueName(DESK, d.name), parent: DESK,
+    id: uid(), type: 'appshortcut', app: key, name:uniqueName(DESK,cleanAppName(d.name)), parent: DESK,
     origin: 'local', created: Date.now(), modified: Date.now(), pos: findFreeCell()
   };
   state.nodes[n.id] = n;
@@ -9503,6 +9505,202 @@ updAcctChip();
   })();
 })();
 
+/* === PULPITOS STORE v3 === */
+(function(){
+'use strict';
+var CSS=`
+.shop{display:flex;flex-direction:column;height:100%;background:linear-gradient(165deg,#141d33,#0a1020);color:#eef5ff;font-size:13px}
+.shop-bar{flex:none;display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.1);flex-wrap:wrap}
+.shop-inp{background:rgba(8,13,25,.6);border:1px solid rgba(255,255,255,.2);border-radius:9px;color:#eef5ff;padding:7px 11px;font:inherit;font-size:12.5px;outline:0;width:210px}
+.shop-inp:focus{border-color:#4cc2ff}
+.shop-btn{padding:7px 15px;border-radius:9px;font-size:12.5px;font-weight:700;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.2);color:#eef5ff;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:inherit}
+.shop-btn:hover{background:rgba(255,255,255,.18)}.shop-btn:disabled{opacity:.5}
+.shop-btn.p{background:linear-gradient(135deg,#4cc2ff,#7c5cff);border-color:transparent;color:#06111e}
+.shop-mini{font-size:11.5px;padding:4px 10px;border-radius:7px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#9caac1;cursor:pointer;font-family:inherit}
+.shop-mini:hover{background:rgba(255,255,255,.17);color:#eef5ff}
+.shop-src{font-size:10.5px;padding:2px 9px;border-radius:20px;background:rgba(76,194,255,.16);border:1px solid rgba(76,194,255,.35);color:#4cc2ff}
+.shop-mid{flex:1;display:flex;min-height:0}
+.shop-side{flex:none;width:196px;border-right:1px solid rgba(255,255,255,.1);padding:10px 8px;overflow-y:auto;background:rgba(8,13,25,.22)}
+.shop-cat{display:flex;align-items:center;gap:8px;width:100%;padding:7px 9px;border-radius:9px;font-size:12.3px;text-align:left;color:#c9d6ea;background:none;border:0;cursor:pointer;font-family:inherit}
+.shop-cat:hover{background:rgba(255,255,255,.1)}.shop-cat.on{background:rgba(76,194,255,.22);color:#fff;font-weight:650}
+.shop-cat .n{margin-left:auto;font-size:10px;background:rgba(76,194,255,.25);color:#4cc2ff;padding:1px 7px;border-radius:8px}
+.shop-main{flex:1;overflow-y:auto;padding:14px}
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:12px}
+.shop-card{display:flex;flex-direction:column;gap:9px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:13px;padding:14px}
+.shop-card:hover{border-color:rgba(76,194,255,.45)}
+.shop-h{display:flex;gap:11px;align-items:flex-start}.shop-h .t{flex:1;min-width:0}
+.shop-h b{font-size:13.5px;display:block}.shop-h i{font-style:normal;font-size:11px;color:#9caac1;display:block;margin-top:2px}
+.shop-tags{display:flex;gap:5px;flex-wrap:wrap}
+.shop-tag{font-size:10px;padding:1px 7px;border-radius:6px;background:rgba(124,92,255,.2);color:#b9a6ff}
+.shop-tag.ok{background:rgba(87,217,119,.18);color:#57d977}.shop-tag.up{background:rgba(255,200,61,.18);color:#ffc83d}
+.shop-d{font-size:11.8px;color:#9caac1;line-height:1.5;flex:1}
+.shop-a{display:flex;gap:6px;flex-wrap:wrap}
+.shop-empty{padding:44px 20px;text-align:center;color:#6a798f;line-height:1.7}
+.shop-empty b{display:block;color:#ff5d6c;margin-bottom:8px;font-size:14px}
+@media(max-width:760px){.shop-side{display:none}.shop-inp{width:140px}}`;
+var CFG={owner:'wilczur7',repo:'pulpitos',branch:'main',dir:'store'};
+function urls(){return{
+pages:'https://'+CFG.owner+'.github.io/'+CFG.repo+'/'+CFG.dir+'/',
+raw:'https://raw.githubusercontent.com/'+CFG.owner+'/'+CFG.repo+'/'+CFG.branch+'/'+CFG.dir+'/',
+api:'https://api.github.com/repos/'+CFG.owner+'/'+CFG.repo+'/contents/'+CFG.dir+'?ref='+CFG.branch}}
+function bust(u){return u+(u.indexOf('?')<0?'?t=':'&t=')+Date.now()}
+function slug(s){return String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'app'}
+/* ~Kategoria~ to WYŁĄCZNIE metadana do sortowania — nigdy nie trafia do nazwy */
+function parseName(fn){
+var base=String(fn).replace(/^.*\//,'').replace(/\.html?$/i,''),cats=[],m,re=/~([^~]{1,40})~/g;
+while((m=re.exec(base))){var t=m[1].trim();if(t&&cats.indexOf(t)<0)cats.push(t)}
+var name=base.replace(/~[^~]{1,40}~/g,' ').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim();
+return{name:name||base||'Aplikacja',cats:cats.length?cats:['Bez kategorii'],id:slug(name||base)}}
+function clean(s){return parseName(String(s||'')).name}
+function norm(x,base){
+var fn=String(x.file||x.name||'').replace(/^.*\//,''),p=parseName(fn),
+cats=x.categories||(x.category?[x.category]:null)||p.cats;
+if(typeof cats==='string')cats=[cats];
+var nm=(x.name&&String(x.name)!==fn)?clean(x.name):p.name;
+return{id:String(x.id||p.id),file:fn,name:nm||p.name,cats:cats,
+desc:x.desc||x.description||'',version:String(x.version||(x.sha||'').slice(0,7)||'1.0'),
+size:x.size!=null?+x.size:null,icon:x.icon||null,iconData:x.iconData||null,
+url:x.url||x.download_url||(base+fn),win:x.win||{}}}
+async function fetchList(){
+var u=urls(),errs=[];
+var bases=[u.pages,u.raw];
+for(var i=0;i<bases.length;i++){try{
+var r=await fetch(bust(bases[i]+'index.json'),{cache:'no-store'});
+if(!r.ok)throw new Error('HTTP '+r.status);
+var j=await r.json(),arr=Array.isArray(j)?j:(j.apps||j.items||[]);
+if(!arr.length)throw new Error('pusty manifest');
+return{src:bases[i]===u.pages?'GitHub Pages':'raw.githubusercontent',items:arr.map(function(x){return norm(x,bases[i])})}
+}catch(e){errs.push(e.message)}}
+var r2=await fetch(u.api,{headers:{Accept:'application/vnd.github+json'}});
+if(r2.status===403&&r2.headers.get('x-ratelimit-remaining')==='0')
+throw new Error('Limit GitHub API (60/h) wyczerpany. Spróbuj za chwilę.');
+if(!r2.ok)throw new Error('GitHub HTTP '+r2.status);
+var j2=await r2.json();
+return{src:'GitHub API',items:(Array.isArray(j2)?j2:[])
+.filter(function(f){return f.type==='file'&&/\.html?$/i.test(f.name)})
+.map(function(f){return norm(f,u.raw)})}}
+async function fetchHtml(it){
+var u=urls(),cand=[it.url,u.pages+it.file,u.raw+it.file];
+for(var i=0;i<cand.length;i++){try{
+var r=await fetch(bust(cand[i]),{cache:'no-store'});
+if(r.ok){var t=await r.text();if(t&&t.indexOf('<')>=0)return t}}catch(e){}}
+throw new Error('Nie pobrano pliku '+it.file)}
+function meta(html,it){
+var m=/<!--\s*pulpitos\s*:\s*(\{[\s\S]*?\})\s*-->/.exec(html);
+if(m){try{var j=JSON.parse(m[1]);
+if(j.name)it.name=clean(j.name);if(j.desc)it.desc=j.desc;if(j.version)it.version=String(j.version);
+if(j.icon)it.icon=j.icon;if(j.win)it.win=j.win;
+if(j.category||j.categories){var cc=j.categories||[j.category];it.cats=typeof cc==='string'?[cc]:cc}
+}catch(e){}}return it}
+function installed(it){var A=state.apps;for(var k in A)if(A[k].storeId===it.id)return A[k];return null}
+async function install(it){
+var html=await fetchHtml(it);meta(html,it);
+var nm=clean(it.name),lim=limitBytes('code');
+if(lim&&html.length>lim)throw new Error('Plik za duży (limit '+fmtSize(lim)+').');
+var ex=installed(it);
+if(!await confirmDlg((ex?'Zaktualizować':'Zainstalować')+' „'+nm+'”?\n\nKategorie: '+it.cats.join(', ')+
+'\n\nAplikacja działa w izolowanej ramce, ale otrzymuje dostęp do API PulpitOS (pliki, skróty). Instaluj tylko zaufane aplikacje.',
+{title:'Sklep z aplikacjami',okLabel:ex?'Aktualizuj':'Zainstaluj',icon:'appadd'}))return null;
+var a=ex;
+if(a){a.html=html;a.name=nm;a.storeVersion=it.version;a.storeCats=it.cats;a.modified=Date.now();
+if(it.win&&it.win.w)a.win=Object.assign({},a.win,it.win)}
+else{var id=uid();
+a={id:id,name:nm,html:html,created:Date.now(),modified:Date.now(),icon:null,
+iconPreset:it.icon&&ICO[it.icon]?it.icon:'apphtml',win:Object.assign({w:560,h:620},it.win||{}),
+noSync:false,storeId:it.id,storeVersion:it.version,storeCats:it.cats,storeFile:it.file};
+state.apps[id]=a}
+if(typeof stashAppCode==='function')await stashAppCode(a);
+if(typeof ensureAppNode==='function')ensureAppNode(a.id);
+save();bus.emit('apps');commit('store',a.id);
+if(!ex&&typeof addAppDesktopShortcut==='function')addAppDesktopShortcut('custom:'+a.id);
+return a}
+function open(){return createWindow(Object.assign({key:'store',appId:'store',kind:'store',
+icon:'store',title:'Sklep z aplikacjami',onReuse:function(w){if(w.api)w.api.refresh()},build:build},
+winOpts('store',{width:960,height:660,minW:460,minH:360})))}
+function build(win){
+var items=[],cat='*',q='',src='',err='';
+var root=h('div','shop',
+'<div class="shop-bar"><button class="shop-btn p rf">'+gl('refresh',13)+' Odśwież</button>'+
+'<input class="shop-inp sq" placeholder="Szukaj aplikacji…"><span class="shop-src">…</span></div>'+
+'<div class="shop-mid"><div class="shop-side"></div><div class="shop-main"></div></div>');
+win.body.append(root);
+var side=$('.shop-side',root),main=$('.shop-main',root),
+sq=$('.sq',root),badge=$('.shop-src',root);
+function counts(){var m={};items.forEach(function(x){x.cats.forEach(function(c){m[c]=(m[c]||0)+1})});return m}
+function paintSide(){var m=counts(),ks=Object.keys(m).sort(function(a,b){return a.localeCompare(b,'pl')});
+side.innerHTML='<button class="shop-cat'+(cat==='*'?' on':'')+'" data-c="*">Wszystkie<span class="n">'+items.length+'</span></button>'+
+ks.map(function(k){return '<button class="shop-cat'+(cat===k?' on':'')+'" data-c="'+esc(k)+'">'+
+esc(k)+'<span class="n">'+m[k]+'</span></button>'}).join('');
+$$('.shop-cat',side).forEach(function(b){b.onclick=function(){cat=b.dataset.c;paint()}})}
+function visible(){return items.filter(function(x){
+if(cat!=='*'&&x.cats.indexOf(cat)<0)return false;
+if(q&&(x.name+' '+x.desc+' '+x.cats.join(' ')).toLowerCase().indexOf(q)<0)return false;return true})}
+function card(x){var a=installed(x),up=a&&a.storeVersion!==x.version;
+return '<div class="shop-card"><div class="shop-h">'+
+(x.iconData?'<img src="'+esc(x.iconData)+'" width="38" height="38" style="border-radius:22%">':
+svgIco(x.icon&&ICO[x.icon]?x.icon:'apphtml',38))+
+'<div class="t"><b>'+esc(x.name)+'</b><i>'+esc(x.version)+
+(x.size!=null?' • '+fmtSize(x.size):'')+'</i></div></div>'+
+'<div class="shop-tags">'+x.cats.map(function(c){return '<span class="shop-tag">'+esc(c)+'</span>'}).join('')+
+(a?'<span class="shop-tag '+(up?'up':'ok')+'">'+(up?'aktualizacja':'zainstalowana')+'</span>':'')+'</div>'+
+'<div class="shop-d">'+esc(x.desc||'Aplikacja HTML dla PulpitOS.')+'</div>'+
+'<div class="shop-a"><button class="shop-btn p" data-in="'+esc(x.id)+'">'+
+(a?(up?'Aktualizuj':'Reinstaluj'):'Zainstaluj')+'</button>'+
+(a?'<button class="shop-mini" data-op="'+esc(a.id)+'">Otwórz</button>'+
+'<button class="shop-mini" data-sc="'+esc(a.id)+'">Skrót</button>':'')+
+'<button class="shop-mini" data-dl="'+esc(x.id)+'">Pobierz</button></div></div>'}
+function bind(){
+$$('[data-in]',main).forEach(function(b){b.onclick=async function(){
+var x=items.filter(function(y){return y.id===b.dataset.in})[0];if(!x)return;
+b.disabled=true;b.textContent='Pobieranie…';
+try{var a=await install(x);if(a)toast('Gotowe: '+a.name,{type:'success'})}
+catch(e){toast(e.message,{type:'error',timeout:8000})}paint()}});
+$$('[data-op]',main).forEach(function(b){b.onclick=function(){launchApp(b.dataset.op)}});
+$$('[data-sc]',main).forEach(function(b){b.onclick=function(){
+if(typeof addAppDesktopShortcut==='function')addAppDesktopShortcut('custom:'+b.dataset.sc)}});
+$$('[data-dl]',main).forEach(function(b){b.onclick=async function(){
+var x=items.filter(function(y){return y.id===b.dataset.dl})[0];if(!x)return;
+try{download(new Blob([await fetchHtml(x)],{type:'text/html'}),clean(x.name)+'.html')}
+catch(e){toast(e.message,{type:'error'})}}});
+var rt=$('.rt',main);if(rt)rt.onclick=load}
+function paint(){paintSide();badge.textContent=src||'…';var arr=visible();
+if(err)main.innerHTML='<div class="shop-empty"><b>Nie udało się pobrać katalogu</b>'+esc(err)+
+'<div style="margin-top:14px"><button class="shop-btn p rt">Spróbuj ponownie</button></div></div>';
+else if(!arr.length)main.innerHTML='<div class="shop-empty">'+(items.length?
+'Brak wyników w tej kategorii.':'Brak aplikacji w katalogu.')+'</div>';
+else main.innerHTML='<div class="shop-grid">'+arr.map(card).join('')+'</div>';
+bind()}
+async function load(){err='';src='wczytywanie…';paint();
+try{var r=await fetchList();items=r.items;src=r.src+' • '+items.length}
+catch(e){items=[];err=e.message;src='błąd'}paint()}
+$('.rf',root).onclick=load;
+sq.oninput=function(){q=this.value.trim().toLowerCase();paint()};
+win.api={refresh:load};load()}
+function ready(fn){var t=0;(function w(){
+try{if(state&&state.nodes&&state.apps)return fn()}catch(e){}
+if(t++>240)return;setTimeout(w,50)})()}
+ICO.store='<rect x="5" y="5" width="38" height="38" rx="10" fill="url(#gA)"/><path d="M15 19h18l-2.2 12H17.2z" fill="#06111e" opacity=".82"/><path d="M19.5 19v-3.5a4.5 4.5 0 0 1 9 0V19" stroke="#06111e" stroke-width="2.6" fill="none" stroke-linecap="round"/>';
+(function(){var id='pulpitos-store-css',o=document.getElementById(id);
+if(o){o.textContent=CSS;return}
+var s=document.createElement('style');s.id=id;s.textContent=CSS;document.head.appendChild(s)})();
+(function(){var d={id:'store',name:'Sklep z aplikacjami',icon:'store',
+desc:'Katalog aplikacji PulpitOS',win:{w:960,h:660,minW:460,minH:360},
+run:function(){open()},actions:[{label:'Odśwież katalog',icon:'refresh',run:function(w){if(w&&w.api)w.api.refresh()}}]};
+var A=BUILTIN,hit=false;
+for(var i=0;i<A.length;i++)if(A[i].id==='store'){A[i]=d;hit=true;break}
+if(!hit)A.push(d)})();
+/* jednorazowe oczyszczenie nazw zapisanych przez wcześniejsze wersje */
+ready(function(){
+var ch=0,S=state,C=cleanAppName;
+for(var k in S.apps){var a=S.apps[k],nn=C(a.name);if(nn&&nn!==a.name){a.name=nn;ch++}}
+Object.keys(S.nodes).forEach(function(k){var n=S.nodes[k];
+if(n.type==='appshortcut'){var n2=C(n.name);if(n2&&n2!==n.name){n.name=n2;ch++}}
+else if(n.type==='app'&&S.apps[n.app]){var want=appFileName(S.apps[n.app].name);
+if(n.name!==want){n.name=want;ch++}}});
+try{tbSync();if(ch){save();renderDesktop()}}catch(e){}});
+window.__pulpitosStore={v:3,open:open};
+})();
+/* === /PULPITOS STORE v3 === */
 })();
 </script>
 </body>

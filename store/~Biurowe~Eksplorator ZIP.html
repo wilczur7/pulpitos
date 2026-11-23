@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ZipStation</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root{--bg:#0b1322;--panel:#111c30;--panel2:#0e1828;--border:#1e2f4a;--text:#dbe7f5;--muted:#8aa0bd;--accent:#38bdf8;--accent-dim:rgba(56,189,248,.15);--red:#f87171;--green:#4ade80}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;font-size:13px}
+.bar{display:flex;align-items:center;gap:6px;padding:8px 10px;background:var(--panel);border-bottom:1px solid var(--border);flex-wrap:wrap}
+button{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:6px 11px;cursor:pointer;font-size:12.5px;display:flex;align-items:center;gap:5px;transition:.12s}
+button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+button:disabled{opacity:.35;cursor:default}
+button.primary{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+button.danger:hover:not(:disabled){border-color:var(--red);color:var(--red)}
+.drive{display:flex;border:1px solid var(--border);border-radius:7px;overflow:hidden}
+.drive button{border:none;border-radius:0;background:var(--panel2)}
+.drive button.on{background:var(--accent-dim);color:var(--accent)}
+#crumbs{display:flex;align-items:center;gap:4px;padding:6px 12px;background:var(--panel2);border-bottom:1px solid var(--border);font-size:12px;color:var(--muted);overflow-x:auto;white-space:nowrap}
+#crumbs span{cursor:pointer;padding:3px 8px;border-radius:6px}
+#crumbs span:hover{background:var(--accent-dim);color:var(--accent)}
+#list{flex:1;overflow:auto;padding:6px}
+.row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;border:1px solid transparent}
+.row:hover{background:rgba(255,255,255,.03)}
+.row.sel{background:var(--accent-dim);border-color:rgba(56,189,248,.4)}
+.row .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .meta{color:var(--muted);font-size:11px;display:flex;gap:14px}
+.row input{accent-color:var(--accent);cursor:pointer}
+.tag{font-size:10px;padding:2px 7px;border-radius:10px;background:var(--panel2);border:1px solid var(--border);color:var(--muted)}
+#prog{height:4px;background:var(--panel2);position:relative}
+#prog i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--accent);transition:width .15s}
+#status{padding:6px 12px;background:var(--panel);border-top:1px solid var(--border);color:var(--muted);display:flex;gap:16px;font-size:11.5px;align-items:center}
+#status b{color:var(--green)}
+.empty{color:var(--muted);text-align:center;padding:40px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="bar">
+ <div class="drive"><button id="dC" class="on">💽 C:</button><button id="dZ">☁️ Z:</button></div>
+ <button id="bUp">↑ W górę</button><button id="bRefresh">⟳</button><button id="bMkDir">📁+ Nowy folder</button>
+ <button id="bZip" class="primary" disabled>🗜️ ZIP</button>
+ <button id="bGz" disabled>🧬 GZIP</button>
+ <button id="bEx" disabled>📤 Rozpakuj</button>
+ <button id="bDel" class="danger" disabled>🗑 Usuń</button>
+</div>
+<div id="crumbs"></div>
+<div id="list"><div class="empty">Ładowanie…</div></div>
+<div id="prog"><i id="progBar"></i></div>
+<div id="status"><span id="stInfo">—</span><span id="stSel"></span><span style="margin-left:auto">Limity API: blob 8 MB · archiwum ≤ 7 MB</span></div>
+
+<script>
+const OS=(function(){let i=0;const p={};const ev={};addEventListener("message",function(e){const d=e.data;if(!d||d.channel!=="pulpitos")return;if(d.id!=null&&p[d.id]){const f=p[d.id];delete p[d.id];d.ok?f.res(d.result):f.rej(new Error(d.error));}else if(d.event&&ev[d.event])ev[d.event].forEach(function(f){f(d.data);});});return{call:function(m,params){return new Promise(function(res,rej){const id=++i;p[id]={res:res,rej:rej};parent.postMessage({channel:"pulpitos",id:id,method:m,params:params||{}},"*");});},on:function(name,fn){(ev[name]=ev[name]||[]).push(fn);}};})();
+
+const $=id=>document.getElementById(id);
+const S={drive:'C',parent:'C',path:[],items:[],sel:new Set()};
+const fmt=n=>n==null?'–':n<1024?n+' B':n<1048576?(n/1024).toFixed(1)+' KB':(n/1048576).toFixed(2)+' MB';
+const ext=n=>(n.match(/\.([a-z0-9]+)$/i)||[,''])[1].toLowerCase();
+const icon=it=>it.type==='folder'?'📁':['zip','gz','tar','7z','rar'].includes(ext(it.name))?'🗜️':['png','jpg','jpeg','gif','webp','bmp'].includes(ext(it.name))?'🖼️':['gdoc','gsheet','gslides'].includes(it.type)?'📄☁️':'📄';
+
+function b64ToU8(b){const bin=atob(b),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u;}
+function u8ToB64(u){let s='';const CH=0x8000;for(let i=0;i<u.length;i+=CH)s+=String.fromCharCode.apply(null,u.subarray(i,i+CH));return btoa(s);}
+async function gzip(u8){const cs=new CompressionStream('gzip');const w=cs.writable.getWriter();w.write(u8);w.close();return new Uint8Array(await new Response(cs.readable).arrayBuffer());}
+async function gunzip(u8){const ds=new DecompressionStream('gzip');const w=ds.writable.getWriter();w.write(u8);w.close();return new Uint8Array(await new Response(ds.readable).arrayBuffer());}
+function prog(p,msg){$('progBar').style.width=Math.round(p*100)+'%';if(msg!=null)$('stInfo').textContent=msg;}
+function toast(m,t='success'){OS.call('ui.toast',{message:m,type:t});}
+
+async function refresh(){try{S.items=await OS.call('fs.list',{parent:S.parent});}catch(e){S.items=[];toast('Błąd: '+e.message,'error');}
+ S.sel.clear();render();updBtns();}
+function render(){const L=$('list');L.innerHTML='';
+ $('crumbs').innerHTML='';
+ const root={id:S.drive,name:S.drive==='C'?'Ten komputer › '+S.drive+':':'Dysk Google (Z:)'};
+ [root,...S.path].forEach((p,i,arr)=>{const s=document.createElement('span');s.textContent=p.name;
+  s.onclick=()=>{if(i===0){S.parent=p.id;S.path=[];}else{S.path=S.path.slice(0,i);S.parent=S.path[S.path.length-1].id;}refresh();};
+  $('crumbs').appendChild(s);if(i<arr.length-1){const a=document.createElement('span');a.textContent='›';a.style.cursor='default';$('crumbs').appendChild(a);}});
+ if(!S.items.length){L.innerHTML='<div class="empty">Pusty folder</div>';return;}
+ const sorted=[...S.items].sort((a,b)=>(a.type==='folder'?0:1)-(b.type==='folder'?0:1)||a.name.localeCompare(b.name,'pl'));
+ sorted.forEach(it=>{const r=document.createElement('div');r.className='row'+(S.sel.has(it.id)?' sel':'');
+  r.innerHTML=`<input type="checkbox" ${S.sel.has(it.id)?'checked':''}>
+   <span style="font-size:16px">${icon(it)}</span><span class="nm">${it.name}</span>
+   <span class="meta"><span class="tag">${it.type==='folder'?'folder':ext(it.name)||'plik'}</span><span>${fmt(it.size)}</span></span>`;
+  const tog=()=>{S.sel.has(it.id)?S.sel.delete(it.id):S.sel.add(it.id);r.classList.toggle('sel');r.querySelector('input').checked=!r.querySelector('input').checked;updBtns();};
+  r.onclick=tog;
+  r.ondblclick=async()=>{if(it.type==='folder'){S.path.push({id:it.id,name:it.name});S.parent=it.id;refresh();}
+   else if(['zip','gz'].includes(ext(it.name))){S.sel=new Set([it.id]);updBtns();await extract();}};
+  L.appendChild(r);});
+ $('stSel').textContent=S.sel.size?`zaznaczono: ${S.sel.size}`:'';}
+function updBtns(){const n=S.sel.size,one=n===1?S.items.find(i=>i.id===[...S.sel][0]):null;
+ $('bZip').disabled=!n;$('bGz').disabled=!n;$('bDel').disabled=!n;
+ $('bEx').disabled=!one||!['zip','gz'].includes(ext(one.name));$('stSel').textContent=n?`zaznaczono: ${n}`:'';}
+
+$('dC').onclick=()=>{S.drive='C';S.parent='C';S.path=[];$('dC').classList.add('on');$('dZ').classList.remove('on');refresh();};
+$('dZ').onclick=()=>{S.drive='Z';S.parent='Z';S.path=[];$('dZ').classList.add('on');$('dC').classList.remove('on');refresh();};
+$('bRefresh').onclick=refresh;
+$('bUp').onclick=()=>{if(!S.path.length)return;S.path.pop();S.parent=S.path.length?S.path[S.path.length-1].id:S.drive;refresh();};
+$('bMkDir').onclick=async()=>{const n=await OS.call('ui.prompt',{title:'Nowy folder',label:'Nazwa:',value:'Nowy folder'});
+ if(!n)return;try{await OS.call('fs.create',{parent:S.parent,type:'folder',name:n});toast('Utworzono: '+n);refresh();}catch(e){toast(e.message,'error');}};
+$('bDel').onclick=async()=>{if(!await OS.call('ui.confirm',{title:'Usuń',message:`Usunąć ${S.sel.size} pozycji do Kosza?`}))return;
+ let ok=0;for(const id of S.sel){try{await OS.call('fs.delete',{id});ok++;}catch(e){}}
+ toast(`Usunięto: ${ok}`,ok?'success':'error');refresh();};
+
+async function addFolder(zip,folder,prefix,depth,stat){if(depth>5||stat.files>300)return;
+ const kids=await OS.call('fs.list',{parent:folder.id});
+ for(const k of kids){if(k.type==='folder'){await addFolder(zip,k,prefix+k.name+'/',depth+1,stat);}
+  else{if((k.size||0)>8*1048576){stat.skip++;continue;}
+   const b=await OS.call('fs.readBlob',{id:k.id});
+   zip.file(prefix+k.name,b.dataURL.split(',')[1],{base64:true});stat.bytes+=k.size||0;stat.files++;
+   prog(stat.files/Math.max(1,stat.total),`Dodaję: ${k.name}`);}}
+ return stat;}
+
+$('bZip').onclick=async()=>{$('bZip').disabled=true;prog(0,'Przygotowuję archiwum…');
+ try{const zip=new JSZip();const stat={files:0,skip:0,bytes:0,total:S.sel.size};
+  const chosen=S.items.filter(i=>S.sel.has(i.id));
+  for(const it of chosen){if(it.type==='folder'){stat.total+=100;await addFolder(zip,it,it.name+'/',0,stat);}
+   else{if((it.size||0)>8*1048576){stat.skip++;continue;}
+    const b=await OS.call('fs.readBlob',{id:it.id});zip.file(it.name,b.dataURL.split(',')[1],{base64:true});
+    stat.bytes+=it.size||0;stat.files++;prog(stat.files/chosen.length,'Dodaję: '+it.name);}}
+  if(!stat.files)throw new Error('Brak wspieranych plików.');
+  if(stat.bytes>7*1048576)throw new Error('Zawartość > 7 MB — przekroczono limit zapisu blob (8 MB).');
+  prog(.5,'Kompresowanie…');
+  const b64=await zip.generateAsync({type:'base64',compression:'DEFLATE',compressionOptions:{level:6}},
+   m=>prog(.5+m.percent/200,`Kompresowanie ${m.percent.toFixed(0)}%`));
+  const name='archiwum_'+new Date().toISOString().replace(/[:.]/g,'-').slice(0,16)+'.zip';
+  const node=await OS.call('fs.writeBlob',{parent:S.parent,name,mime:'application/zip',base64:b64});
+  const ratio=stat.bytes?Math.max(0,100-Math.round((node.size||0)/stat.bytes*100)):0;
+  prog(1,`✅ ${name} · ${fmt(stat.bytes)} → ${fmt(node.size)} (−${ratio}%)`);
+  toast(`Utworzono ZIP: ${node.name}`);refresh();}
+ catch(e){prog(0,'❌ '+e.message);toast(e.message,'error');}
+ finally{setTimeout(()=>prog(0,''),2500);updBtns();}};
+
+$('bGz').onclick=async()=>{$('bGz').disabled=true;
+ try{for(const id of S.sel){const it=S.items.find(i=>i.id===id);if(it.type==='folder')continue;
+  if((it.size||0)>8*1048576){toast(it.name+': >8 MB, pominięto','error');continue;}
+  prog(.3,'Kompresja: '+it.name);const b=await OS.call('fs.readBlob',{id});
+  const gz=await gzip(b64ToU8(b.dataURL.split(',')[1]));
+  const node=await OS.call('fs.writeBlob',{parent:S.parent,name:it.name+'.gz',mime:'application/gzip',base64:u8ToB64(gz)});
+  const ratio=it.size?Math.max(0,100-Math.round(gz.length/it.size*100)):0;
+  prog(1,`✅ ${it.name} → ${node.name} (−${ratio}%)`);toast(`GZIP: ${node.name}`);}
+  refresh();}catch(e){prog(0,'❌ '+e.message);toast(e.message,'error');}
+ finally{setTimeout(()=>prog(0,''),2500);updBtns();}};
+
+async function extract(){const it=S.items.find(i=>i.id===[...S.sel][0]);if(!it)return;
+ $('bEx').disabled=true;
+ try{const b=await OS.call('fs.readBlob',{id:it.id});const u8=b64ToU8(b.dataURL.split(',')[1]);
+  if(ext(it.name)==='gz'){prog(.5,'Dekompresja…');const raw=await gunzip(u8);
+   const nm=it.name.replace(/\.gz$/i,'')+'.decompressed';
+   await OS.call('fs.writeBlob',{parent:S.parent,name:nm,mime:'application/octet-stream',base64:u8ToB64(raw)});
+   toast('Rozpakowano: '+nm);prog(1,'✅ Rozpakowano');}
+  else{const zip=await JSZip.loadAsync(u8);const entries=Object.values(zip.files);let done=0,skip=0,made={};
+   for(const f of entries){const full=f.dir?f.name:f.name;
+    if(f.dir){const parts=f.name.split('/').filter(Boolean);let cur=S.parent;
+     for(const p of parts){const key=cur+'/'+p;if(!made[key]){const n=await OS.call('fs.create',{parent:cur,type:'folder',name:p,open:false});made[key]=n.id;}cur=made[key];}}
+    else{const content=await f.async('base64');
+     if(content.length*0.75>8*1048576){skip++;continue;}
+     const parts=f.name.split('/');const name=parts.pop();let cur=S.parent;
+     for(const p of parts){if(!p)continue;const key=cur+'/'+p;
+      if(!made[key]){try{const n=await OS.call('fs.create',{parent:cur,type:'folder',name:p,open:false});made[key]=n.id;}catch(e){made[key]=cur;}}
+      cur=made[key];}
+     await OS.call('fs.writeBlob',{parent:cur,name,mime:'application/octet-stream',base64:content});}
+    prog(++done/entries.length,`Rozpakowuję ${done}/${entries.length}`);}
+   toast(`Rozpakowano ${done} pozycji`+(skip?`, pominięto ${skip} >8 MB`:''));}
+  refresh();}catch(e){prog(0,'❌ '+e.message);toast(e.message,'error');}
+ finally{setTimeout(()=>prog(0,''),2500);updBtns();}}
+$('bEx').onclick=extract;
+
+let deb;OS.on('fs.change',()=>{clearTimeout(deb);deb=setTimeout(refresh,600);});
+OS.on('ready',d=>{if(d.accent)document.documentElement.style.setProperty('--accent',d.accent);
+ OS.call('windows.setTitle',{title:'ZipStation — Kompresor'});refresh();});
+OS.on('theme.change',d=>{if(d.accent)document.documentElement.style.setProperty('--accent',d.accent);});
+OS.on('file.open',f=>{if(['zip','gz'].includes(ext(f.name))){S.sel=new Set([f.id]);updBtns();extract();}});
+</script>
+</body>
+</html>

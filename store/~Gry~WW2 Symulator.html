@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>II WŚ: Sztab Główny — symulator 1939–1945</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#12160f;--p1:#1b2318;--p2:#242e1f;--ln:#3a4630;--tx:#d9d3b8;--dim:#9a9478;--gold:#c9a227;--red:#b04a3a;--blue:#4a7fb5;--olive:#7a8a5a;--paper:#e9dfc6;--ink:#2b2416;--acc:#c9a227}
+html,body{height:100%}
+body{background:var(--bg);color:var(--tx);font:14px/1.45 'Segoe UI',system-ui,sans-serif;overflow:hidden}
+.mil{font-family:'Courier New',monospace;letter-spacing:1px;text-transform:uppercase}
+h2.sec{font:700 15px 'Courier New';letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin:0 0 12px;border-bottom:1px dashed var(--ln);padding-bottom:6px}
+.btn{background:var(--p2);border:1px solid var(--ln);color:var(--tx);padding:6px 12px;cursor:pointer;font:700 11px 'Courier New';letter-spacing:1px;text-transform:uppercase;border-radius:2px}
+.btn:hover{border-color:var(--gold);color:var(--gold)}
+.btn.gold{background:var(--gold);color:#191910;border-color:var(--gold)}
+.btn.gold:hover{filter:brightness(1.1);color:#191910}
+.btn.red{border-color:var(--red);color:#d98a7a}
+.btn.sm{padding:3px 7px;font-size:10px}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.big{padding:10px 20px;font-size:13px}
+input,select{background:#0e130c;border:1px solid var(--ln);color:var(--tx);padding:5px 8px;font:13px 'Courier New';border-radius:2px}
+input[type=range]{padding:0;accent-color:var(--gold)}
+.chip{display:inline-flex;gap:5px;align-items:center;background:var(--p2);border:1px solid var(--ln);padding:3px 9px;border-radius:3px;font:12px 'Courier New';white-space:nowrap}
+.chip b{color:var(--gold)}
+.dim{color:var(--dim)} .gold{color:var(--gold)} .red{color:#d98a7a} .grn{color:#9fbf6f} .blu{color:#8ab4dd}
+.small{font-size:12px} .tiny{font-size:11px}
+.grid{display:grid;gap:10px}
+.g2{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.g3{grid-template-columns:repeat(auto-fill,minmax(215px,1fr))}
+.card{background:var(--p1);border:1px solid var(--ln);padding:12px;border-radius:2px}
+.card h3{font:700 12px 'Courier New';letter-spacing:1px;color:var(--gold);text-transform:uppercase;margin-bottom:8px}
+.bar{height:8px;background:#0d110b;border:1px solid var(--ln);position:relative;border-radius:2px;overflow:hidden}
+.bar i{position:absolute;top:0;left:0;bottom:0;background:var(--olive)}
+.bar i.r{background:var(--red)} .bar i.b{background:var(--blue)} .bar i.g{background:var(--gold)}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl td,.tbl th{padding:5px 8px;border-bottom:1px solid var(--ln);text-align:left;vertical-align:middle}
+.tbl th{font:700 11px 'Courier New';letter-spacing:1px;text-transform:uppercase;color:var(--dim)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sp{justify-content:space-between}
+#game{display:none;height:100%;flex-direction:column}
+#top{display:flex;align-items:center;gap:7px;padding:7px 10px;background:linear-gradient(#212b1c,#171f14);border-bottom:2px solid var(--ln);flex-wrap:wrap}
+#top .flag{font-size:24px}
+#mid{display:flex;flex:1;min-height:0}
+#nav{width:170px;background:var(--p1);border-right:1px solid var(--ln);padding:8px;display:flex;flex-direction:column;gap:3px;overflow-y:auto;flex-shrink:0}
+.nb{background:none;border:1px solid transparent;border-left:3px solid transparent;color:var(--tx);text-align:left;padding:8px 9px;cursor:pointer;font:700 11px 'Courier New';letter-spacing:1px;text-transform:uppercase}
+.nb:hover{background:var(--p2)}
+.nb.on{background:var(--p2);border-left-color:var(--gold);color:var(--gold)}
+#main{flex:1;overflow-y:auto;padding:14px;min-width:0}
+#tick{height:28px;background:#0c100a;border-top:1px solid var(--ln);display:flex;align-items:center;overflow:hidden;font:12px 'Courier New';color:var(--dim);flex-shrink:0}
+#tick .tape{white-space:nowrap;display:inline-block;padding-left:100%;animation:mar 90s linear infinite}
+@keyframes mar{to{transform:translateX(-100%)}}
+#ov{position:fixed;inset:0;background:rgba(4,7,3,.78);display:none;align-items:center;justify-content:center;z-index:50}
+#ov.on{display:flex}
+#modal{background:var(--p1);border:1px solid var(--gold);max-width:760px;width:94%;max-height:90vh;overflow-y:auto;box-shadow:0 24px 70px #000;border-radius:3px}
+.mh{padding:11px 16px;border-bottom:1px solid var(--ln);display:flex;justify-content:space-between;align-items:center;background:var(--p2);position:sticky;top:0;z-index:2}
+.mh b{font:700 13px 'Courier New';letter-spacing:2px;text-transform:uppercase;color:var(--gold)}
+.mb{padding:16px}
+.x{background:none;border:none;color:var(--dim);font-size:20px;cursor:pointer}
+.x:hover{color:var(--red)}
+.stamp{display:inline-block;border:2px solid var(--red);color:var(--red);padding:1px 8px;font:700 10px 'Courier New';transform:rotate(-5deg);letter-spacing:2px;opacity:.85}
+.paper{background:var(--paper);color:var(--ink);font-family:Georgia,'Times New Roman',serif;padding:18px;border:1px solid #b8a878;box-shadow:inset 0 0 70px rgba(120,90,40,.28);border-radius:2px}
+.paper h1{font-size:30px;text-align:center;letter-spacing:4px;border-bottom:3px double var(--ink);padding-bottom:6px;margin-bottom:4px;font-family:Georgia,serif}
+.paper .ph{display:flex;justify-content:space-between;font-size:11px;border-bottom:1px solid var(--ink);padding:3px 0;margin-bottom:10px;font-style:italic}
+.paper h4{font-size:19px;line-height:1.2;margin:8px 0 4px;font-family:Georgia,serif}
+.paper p{font-size:13px;margin-bottom:8px;text-align:justify}
+.paper .q{border:1px solid var(--ink);padding:8px;font-style:italic;font-size:13px;margin-top:10px;background:rgba(255,255,255,.25)}
+.paper .cols{column-count:2;column-gap:18px;column-rule:1px solid #b8a878}
+@media(max-width:640px){.paper .cols{column-count:1}}
+.cty{stroke:#0a0f14;stroke-width:1.4;cursor:pointer;transition:filter .15s}
+.cty:hover{filter:brightness(1.35)}
+.cty.me{stroke:var(--gold);stroke-width:2.6}
+.front{stroke-dasharray:7 5;animation:dash 1.1s linear infinite;pointer-events:none}
+@keyframes dash{to{stroke-dashoffset:-12}}
+#mapwrap{background:#0f1720;border:1px solid var(--ln);border-radius:2px}
+#menu{height:100%;overflow-y:auto;display:flex;flex-direction:column;align-items:center;padding:22px;background:radial-gradient(1100px 560px at 50% -8%,#2b3622,#12160f)}
+.poster{text-align:center;margin-bottom:14px}
+.poster .t1{font:700 13px 'Courier New';letter-spacing:6px;color:var(--dim)}
+.poster .t2{font:900 44px 'Courier New';letter-spacing:4px;color:var(--gold);text-shadow:0 3px 0 #000;line-height:1.05}
+.poster .t3{font:700 12px 'Courier New';letter-spacing:3px;color:var(--tx);margin-top:4px}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:7px;width:100%;max-width:1150px}
+.cb{background:var(--p1);border:1px solid var(--ln);padding:7px 8px;cursor:pointer;text-align:left;color:var(--tx);border-radius:2px;font-size:12px}
+.cb:hover{border-color:var(--dim)}
+.cb.on{border-color:var(--gold);background:var(--p2);box-shadow:0 0 0 1px var(--gold)}
+.cb .fl{font-size:20px}
+.cb .st{color:var(--gold);font-size:10px;letter-spacing:1px}
+#toasts{position:fixed;right:12px;bottom:38px;z-index:99;display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.toast{background:var(--p2);border:1px solid var(--gold);border-left-width:4px;padding:8px 12px;font:12px 'Courier New';max-width:330px;animation:tin .18s;border-radius:2px;box-shadow:0 6px 20px #000}
+@keyframes tin{from{transform:translateX(30px);opacity:0}}
+#load{position:fixed;inset:0;background:#0b0f09;display:none;align-items:center;justify-content:center;flex-direction:column;z-index:100;text-align:center;padding:24px}
+#load .q{max-width:640px;font:italic 18px Georgia;color:var(--paper);margin:18px 0}
+#load .a{font:700 12px 'Courier New';letter-spacing:2px;color:var(--gold)}
+.fbar{height:16px;background:linear-gradient(90deg,var(--blue) 0 50%,var(--red) 50% 100%);border:1px solid var(--ln);position:relative;border-radius:2px}
+.fbar .mk{position:absolute;top:-3px;bottom:-3px;width:4px;background:var(--gold);box-shadow:0 0 6px var(--gold)}
+.fbar .zero{position:absolute;left:50%;top:0;bottom:0;width:1px;background:#000}
+.tag{display:inline-block;padding:1px 7px;border-radius:2px;font:700 10px 'Courier New';letter-spacing:1px;border:1px solid}
+.tag.ali{color:#8ab4dd;border-color:#4a7fb5}.tag.osi{color:#c9c9c9;border-color:#777}.tag.kom{color:#e08a8a;border-color:#b03a3a}.tag.neu{color:#b5c48a;border-color:#7a8a5a}
+.tag.war{color:#ffd27a;border-color:var(--red);background:rgba(176,74,58,.2)}
+hr.d{border:none;border-top:1px dashed var(--ln);margin:10px 0}
+::-webkit-scrollbar{width:9px;height:9px}::-webkit-scrollbar-thumb{background:var(--ln);border-radius:4px}::-webkit-scrollbar-track{background:#0d110b}
+@media(max-width:820px){#nav{width:100%;flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--ln);padding:5px}#mid{flex-direction:column}.nb{white-space:nowrap;border-left:1px solid transparent;border-bottom:3px solid transparent}.nb.on{border-left-color:transparent;border-bottom-color:var(--gold)}}
+</style>
+</head>
+<body>
+<div id="menu"></div>
+<div id="game">
+ <div id="top"></div>
+ <div id="mid"><div id="nav"></div><div id="main"></div></div>
+ <div id="tick"><span class="tape" id="tape"></span></div>
+</div>
+<div id="ov"><div id="modal"></div></div>
+<div id="toasts"></div>
+<div id="load"><div class="mil" style="letter-spacing:5px;color:#7a8a5a">SZTAB GŁÓWNY • ŁĄCZNOŚĆ</div><div class="q" id="loadq"></div><div class="a" id="loada"></div><div class="dim small" style="margin-top:22px">Szyfrowanie kanału… ••• — ••• —</div></div>
+<script>
+"use strict";
+/* ===== MOSTEK PULPITOS (API z dokumentacji 1.15.1) ===== */
+const OS=(function(){let i=0;const p={},ev={};addEventListener("message",function(e){const d=e.data;if(!d||d.channel!=="pulpitos")return;if(d.id!=null&&p[d.id]){const f=p[d.id];delete p[d.id];d.ok?f.res(d.result):f.rej(new Error(d.error))}else if(d.event&&ev[d.event])ev[d.event].forEach(f=>f(d.data))});return{call:function(m,params){return new Promise(function(res,rej){const id=++i;p[id]={res:res,rej:rej};parent.postMessage({channel:"pulpitos",id:id,method:m,params:params||{}},"*")})},on:function(n,f){(ev[n]=ev[n]||[]).push(f)}}})();
+let inOS=false;
+const api={
+ call(m,p){if(!inOS)return Promise.resolve(null);try{return Promise.race([OS.call(m,p),new Promise((_,rj)=>setTimeout(()=>rj(new Error('timeout')),3000))]).catch(()=>null)}catch(e){return Promise.resolve(null)}},
+ async state(k,v){if(inOS){const r=await api.call('app.state',v===undefined?{key:k}:{key:k,value:v});return (r&&typeof r==='object'&&'value' in r)?r.value:r}
+  try{if(v===undefined){const s=localStorage.getItem('iiws_'+k);return s?JSON.parse(s):null}localStorage.setItem('iiws_'+k,JSON.stringify(v));return v}catch(e){return null}},
+ toast(t){if(inOS)api.call('ui.toast',{text:t,message:t});miniToast(t)},
+ title(t){document.title=t;if(inOS)api.call('windows.setTitle',{title:t})}
+};
+function applyTheme(d){try{const a=(d&&(d.accent||d.accentColor||(d.colors&&d.colors.accent)))||null;if(a)document.documentElement.style.setProperty('--acc',a)}catch(e){}}
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const ri=(a,b)=>Math.floor(rnd(a,b+1));
+const fmt=n=>{n=Math.round(n);return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')};
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const MIES=['styczeń','luty','marzec','kwiecień','maj','czerwiec','lipiec','sierpień','wrzesień','październik','listopad','grudzień'];
+const dkey=d=>d.y+'-'+String(d.m).padStart(2,'0');
+const dstr=d=>MIES[d.m-1]+' '+d.y;
+function miniToast(t){const w=$('toasts');if(!w)return;const e=document.createElement('div');e.className='toast';e.textContent=t;w.appendChild(e);setTimeout(()=>{e.style.opacity='0';e.style.transition='opacity .4s';setTimeout(()=>e.remove(),450)},4200)}
+let AC=null;
+function snd(kind){if(!CFG.sound)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const t=AC.currentTime;
+ if(kind==='click'){const o=AC.createOscillator(),g=AC.createGain();o.type='square';o.frequency.value=880;g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(.001,t+.07);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+.08)}
+ if(kind==='boom'){const b=AC.createBuffer(1,AC.sampleRate*.5,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2.2);const s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();f.type='lowpass';f.frequency.value=220;g.gain.value=.5;s.buffer=b;s.connect(f).connect(g).connect(AC.destination);s.start(t)}
+ if(kind==='morse'){[0,.12,.24,.48].forEach((dt,i)=>{const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=660;const len=i<3?.07:.2;g.gain.setValueAtTime(.07,t+dt);g.gain.setValueAtTime(.07,t+dt+len);g.gain.linearRampToValueAtTime(0,t+dt+len+.02);o.connect(g).connect(AC.destination);o.start(t+dt);o.stop(t+dt+len+.03)})}
+ if(kind==='fan'){[523,659,784,1046].forEach((f,i)=>{const o=AC.createOscillator(),g=AC.createGain();o.type='triangle';o.frequency.value=f;g.gain.setValueAtTime(.08,t+i*.13);g.gain.exponentialRampToValueAtTime(.001,t+i*.13+.3);o.connect(g).connect(AC.destination);o.start(t+i*.13);o.stop(t+i*.13+.32)})}
+}catch(e){}}
+/* ===== CYTATY EPOKI ===== */
+const Q=[
+["Nie mam nic do zaoferowania prócz krwi, trudu, łez i potu.","Winston Churchill","1940"],
+["Będziemy walczyć na plażach, będziemy walczyć na polach i ulicach, będziemy walczyć na wzgórzach. Nigdy się nie poddamy.","Winston Churchill","1940"],
+["Nigdy w dziejach wojen tak wielu nie zawdzięczało tak wiele tak nielicznym.","Winston Churchill o pilotach, w tym Dywizjonie 303","1940"],
+["To nie jest koniec. To nawet nie jest początek końca. Ale być może jest to koniec początku.","Winston Churchill po El Alamein","1942"],
+["Od Szczecina nad Bałtykiem po Triest nad Adriatykiem żelazna kurtyna opadła na kontynent.","Winston Churchill, Fulton","1946"],
+["Ni kroku wstecz!","Rozkaz nr 227, Józef Stalin","1942"],
+["Wróg zostanie rozbity. Zwycięstwo będzie nasze!","Józef Stalin, defilada 7 listopada","1941"],
+["Za Wołgą nie ma dla nas ziemi.","przypisywane snajperowi Wasilijowi Zajcewowi, Stalingrad","1942"],
+["Data, która przejdzie do historii jako dzień hańby.","Franklin D. Roosevelt o Pearl Harbor","1941"],
+["Jedyne, czego mamy się bać, to sam strach.","Franklin D. Roosevelt","1933"],
+["Musimy stać się wielkim arsenałem demokracji.","Franklin D. Roosevelt","1940"],
+["Żaden drań nie wygrał wojny, umierając za swój kraj. Wygrywa się ją, sprawiając, że ten drugi drań umiera za swój.","generał George S. Patton","1944"],
+["Dobry plan wykonany dziś jest lepszy niż doskonały plan wykonany jutro.","generał George S. Patton","1944"],
+["Klotzen, nicht kleckern! — Zmasować, nie rozdrabniać!","generał Heinz Guderian o czołgach","1937"],
+["Powrócę.","generał Douglas MacArthur o Filipinach","1942"],
+["Oczy całego świata zwrócone są na was. Nadzieje i modlitwy wszystkich wolnych ludzi idą z wami.","rozkaz generała Dwighta Eisenhowera przed D-Day","1944"],
+["Bzdura! (Nuts!)","generał Anthony McAuliffe w odpowiedzi na żądanie kapitulacji, Bastogne","1944"],
+["Westerplatte broni się nadal.","komunikat radiowy z oblężonej placówki","1939"],
+["Jeszcze Polska nie zginęła, kiedy my żyjemy.","Mazurek Dąbrowskiego — hymn, który niósł rząd na uchodźstwie",""],
+["Żołnierz polski walczy o wolność wszystkich narodów, ale umiera tylko dla Polski.","przypisywane generałowi Stanisławowi Maczkowi",""],
+["Czerwone maki na Monte Cassino zamiast rosy piły polską krew.","„Czerwone maki”, słowa Feliks Konarski","1944"],
+["Paryż znieważony! Paryż złamany! Paryż zamęczony! Ale Paryż wyzwolony!","generał Charles de Gaulle","1944"],
+["Francja przegrała bitwę, lecz nie przegrała wojny!","apel generała Charles'a de Gaulle'a, Londyn","1940"],
+["Pokój jest rzeczą cenną i pożądaną… ale honor jest rzeczą bezcenną.","Józef Beck, przemówienie w Sejmie","1939"],
+["Praktyka.","Simo Häyhä „Biała Śmierć”, gdy zapytano go o sekret skuteczności","1940"],
+["Obawiam się, że jedynie obudziliśmy śpiącego olbrzyma.","przypisywane admirałowi Isoroku Yamamoto (atrybucja niepewna)","1941"],
+["Tora! Tora! Tora!","komunikat komandora Mitsuo Fuchidy — zaskoczenie osiągnięte","1941"],
+["Dziś to my. Jutro będziecie wy.","Haile Selassie I, Liga Narodów","1936"],
+["Każdy wyprodukowany karabin, każdy zwodowany okręt oznacza kradzież tym, którzy są głodni i nie mają dachu nad głową.","Dwight D. Eisenhower","1953"],
+["Morale żołnierza jest najważniejszym pojedynczym czynnikiem w wojnie.","marszałek Bernard Montgomery","1942"],
+["Nigdy nie myśl, że wojna, choćby konieczna i usprawiedliwiona, nie jest zbrodnią.","Ernest Hemingway","1942"],
+["Amatorzy rozmawiają o taktyce. Zawodowcy rozmawiają o logistyce.","przypisywane generałowi Omarowi Bradleyowi",""],
+["Gdzie Żukow, tam zwycięstwo.","powiedzenie żołnierzy frontu o marszałku Gieorgiju Żukowie",""],
+["Obawiam się, że to może być most za daleko.","generał Frederick Browning przed operacją Market Garden (ostrzegał gen. Sosabowski)","1944"],
+["Wojna jest kontynuacją polityki innymi środkami.","Carl von Clausewitz — czytano go w każdym sztabie",""],
+["Bóg, Honor, Ojczyzna.","dewiza żołnierzy Armii Krajowej",""]
+];
+const DT={
+ pie:{n:'Dywizja piechoty',i:'🪖',eq:100,mp:12,atk:10,def:22,fu:0,t:2},
+ pan:{n:'Dywizja pancerna',i:'🛡️',eq:260,mp:6,atk:42,def:18,fu:8,t:3},
+ zme:{n:'Dywizja zmechanizowana',i:'🚚',eq:200,mp:7,atk:26,def:20,fu:5,t:3},
+ gor:{n:'Dywizja górska',i:'⛰️',eq:110,mp:10,atk:14,def:26,fu:0,t:3},
+ spa:{n:'Dywizja spadochronowa',i:'🪂',eq:140,mp:8,atk:20,def:16,fu:2,t:3},
+ kaw:{n:'Brygada kawalerii',i:'🐎',eq:60,mp:6,atk:12,def:12,fu:0,t:2},
+ mar:{n:'Dywizja piechoty morskiej',i:'⚓',eq:150,mp:9,atk:24,def:18,fu:2,t:3},
+ mil:{n:'Dywizja milicji / rezerwy',i:'👥',eq:40,mp:14,atk:5,def:12,fu:0,t:1}
+};
+const SPI={
+blitz:{n:'Blitzkrieg',d:'Zmasowane związki pancerne. +25% ataku (do 1941 r.).',m:{atk:25}},
+ropa:{n:'Niedobór ropy',d:'Paliwo z syntetyki i Rumunii. −30% przychodu paliwa.',m:{fu:-30}},
+czystka:{n:'Wielka Czystka',d:'Korpus oficerski zdziesiątkowany. −20% ataku, −10% obrony (do VI 1941).',m:{atk:-20,def:-10}},
+glebia:{n:'Głębia strategiczna',d:'Przestrzeń pochłania najeźdźcę. +15% obrony.',m:{def:15}},
+ojczyz:{n:'Wielka Wojna Ojczyźniana',d:'Cały naród wstał. +20% obrony.',m:{def:20}},
+kryzys:{n:'Wielki Kryzys',d:'Gospodarka na pokojowych torach. −25% produkcji (do wojny).',m:{prod:-25}},
+arsenal:{n:'Arsenał demokracji',d:'Przemysł kontynentu. +20% produkcji.',m:{prod:20}},
+ocean:{n:'Dwa oceany',d:'Nikt nie wyląduje łatwo w Ameryce. +25% obrony.',m:{def:25}},
+radar:{n:'Chain Home',d:'Łańcuch radarów osłania wyspy. +20% siły lotnictwa, +5% obrony.',m:{air:20,def:5}},
+wyspa:{n:'Twierdza Wyspa',d:'+15% obrony, +10% floty.',m:{def:15,nav:10}},
+imperium:{n:'Imperium',d:'Zasoby z całego świata. +25% paliwa, +10% PP.',m:{fu:25,pp:10}},
+maginot:{n:'Linia Maginota',d:'+30% obrony — dopóki wróg nie obejdzie jej przez Beneluks.',m:{def:30}},
+defetyzm:{n:'Defetyzm',d:'Pamięć okopów Wielkiej Wojny. −10% ataku.',m:{atk:-10}},
+bushido:{n:'Duch Bushido',d:'+15% ataku, +10% obrony.',m:{atk:15,def:10}},
+ropaj:{n:'Embargo naftowe',d:'Amerykańskie embargo dławi flotę. −40% paliwa.',m:{fu:-40}},
+miekkie:{n:'Miękkie podbrzusze',d:'Armia niegotowa do wielkiej wojny. −15% obrony.',m:{def:-15}},
+mare:{n:'Mare Nostrum',d:'+15% floty.',m:{nav:15}},
+dwa:{n:'Wojna na dwa fronty',d:'Nacjonaliści i komuniści patrzą na siebie wilkiem. −20% PP, −10% ataku.',m:{pp:-20,atk:-10}},
+wester:{n:'Duch Westerplatte',d:'+20% obrony w pierwszych miesiącach wielkiej wojny.',m:{def:20}},
+kawaleria:{n:'Tradycja kawalerii',d:'Brygady tanie i ruchliwe. −10% kosztów wyposażenia. (Szarże na czołgi to mit propagandy!)',m:{cost:-10}},
+sisu:{n:'Sisu',d:'Fińska determinacja ponad ludzkie siły. +25% obrony.',m:{def:25}},
+motti:{n:'Taktyka Motti',d:'Dzielenie kolumn w lasach. +10% obrony, +5% ataku.',m:{def:10,atk:5}},
+stal:{n:'Szwedzka stal',d:'Ruda dla obu stron. +15% PP, +5% produkcji.',m:{pp:15,prod:5}},
+fjordy:{n:'Fjordy i góry',d:'+15% obrony.',m:{def:15}},
+plaski:{n:'Płaski kraj',d:'Nie ma się gdzie zaczepić. −10% obrony.',m:{def:-10}},
+kolonie:{n:'Indie Holenderskie',d:'Ropa z kolonii. +30% paliwa.',m:{fu:30}},
+woda:{n:'Holenderska linia wodna',d:'Zalane poldery. +15% obrony.',m:{def:15}},
+twierdze:{n:'Twierdze (Eben-Emael)',d:'+20% obrony.',m:{def:20}},
+twlux:{n:'Twierdza Luksemburg',d:'Kilkuset żołnierzy, jedna szosa i wielka odwaga. +10% obrony.',m:{def:10}},
+alpy:{n:'Reduta alpejska',d:'Góry strzegą przełęczy. +30% obrony.',m:{def:30}},
+banki:{n:'Banki i dyplomacja',d:'+20% PP.',m:{pp:20}},
+odbudowa:{n:'Odbudowa po wojnie domowej',d:'−20% produkcji, −15% ataku (do 1941).',m:{prod:-20,atk:-15}},
+wojdom:{n:'Wojna domowa',d:'Kraj rozdarty. −35% produkcji, −25% ataku (do IV 1939).',m:{prod:-35,atk:-25}},
+wolfram:{n:'Wolfram dla obu stron',d:'+15% PP.',m:{pp:15}},
+ciesniny:{n:'Strażnik cieśnin',d:'+15% obrony, +5% PP.',m:{def:15,pp:5}},
+ploeszti:{n:'Pola naftowe Ploeszti',d:'+60% paliwa (ropa na eksport).',m:{fu:60}},
+trianon:{n:'Duch Trianon',d:'Rewizjonizm napędza armię. +5% ataku.',m:{atk:5}},
+goryy:{n:'Góry Półwyspu',d:'+20% obrony.',m:{def:20}},
+ohi:{n:'OXI! (NIE!)',d:'Duma Hellady. +15% obrony.',m:{def:15}},
+skoda:{n:'Zakłady Škody',d:'+15% produkcji.',m:{prod:15}},
+forty:{n:'Fortyfikacje graniczne',d:'Betonowa linia czechosłowacka. +20% obrony.',m:{def:20}},
+wielprz:{n:'Wielka Przestrzeń',d:'+10% obrony.',m:{def:10}},
+anzac:{n:'Duch ANZAC',d:'+10% ataku, +5% obrony.',m:{atk:10,def:5}},
+maori:{n:'Batalion Maoryski',d:'+10% ataku.',m:{atk:10}},
+niepodl:{n:'Ruch niepodległościowy',d:'Quit India. −10% PP.',m:{pp:-10}},
+ropai:{n:'Ropa Persji',d:'+50% paliwa.',m:{fu:50}},
+ropaq:{n:'Ropa Kirkuku',d:'+40% paliwa.',m:{fu:40}},
+gorya:{n:'Góry Afganistanu',d:'+25% obrony.',m:{def:25}},
+kawm:{n:'Ostatnia wielka kawaleria',d:'−15% kosztów, +5% ataku.',m:{cost:-15,atk:5}},
+levy:{n:'Pospolite ruszenie',d:'Dziurawe karabiny, wielkie serca. −10% obrony, −5% ataku.',m:{def:-10,atk:-5}},
+phoney:{n:'Dziwna wojna',d:'Front zachodni zamarł. −40% ataku (do V 1940).',m:{atk:-40}},
+wojtek:{n:'Niedźwiedź Wojtek',d:'Szeregowy Wojtek nosi pociski pod Monte Cassino! +5% ataku, +morale.',m:{atk:5}},
+enigma:{n:'Złamana Enigma',d:'alianci czytają depesze. +10% ataku i obrony (12 mies.).',m:{atk:10,def:10}},
+kobiety:{n:'Kobiety w przemyśle',d:'Rosie the Riveter. +15% produkcji (8 mies.).',m:{prod:15}},
+kamikaze:{n:'Boski Wiatr',d:'Shimpū Tokkōtai. +20% obrony, +10% ataku — okupione krwią młodych pilotów.',m:{def:20,atk:10}},
+planwoj:{n:'Plan wojenny',d:'Sztab pracuje dzień i noc. +5% ataku (6 mies.).',m:{atk:5}},
+reduta:{n:'Reduta narodowa',d:'Umocnienia polowe. +10% obrony.',m:{def:10}},
+guisan:{n:'Duch Guisana',d:'Cały naród pod bronią. +5% obrony.',m:{def:5}}
+};
+const TECH={
+pie1:{n:'Piechota: wyposażenie wz. 40',c:'Ląd',m:3,d:'+10% obrony piechoty'},
+pie2:{n:'Piechota: broń przeciwpancerna',c:'Ląd',m:4,r:'pie1',d:'+15% obrony wszystkich dywizji'},
+cz1:{n:'Czołgi: nowe wzory (T-34 / Pz V / Sherman)',c:'Ląd',m:4,d:'+20% ataku dywizji pancernych'},
+cz2:{n:'Czołgi ciężkie (IS-2 / Tiger II / Pershing)',c:'Ląd',m:5,r:'cz1',d:'+25% ataku pancernych, +10% obrony'},
+art:{n:'Artyleria korpuśna',c:'Ląd',m:3,d:'+10% ataku wszystkich dywizji'},
+dok1:{n:'Doktryna: zmasowane uderzenie',c:'Ląd',m:4,d:'+10% ataku (Blitzkrieg / głęboka operacja)'},
+dok2:{n:'Doktryna: obrona elastyczna',c:'Ląd',m:4,d:'+10% obrony'},
+mys:{n:'Myśliwce nowej generacji',c:'Lotnictwo',m:3,d:'+20% siły lotnictwa'},
+bomb:{n:'Bombowce strategiczne',c:'Lotnictwo',m:4,d:'Odblokowuje naloty dywanowe na frontach'},
+trans:{n:'Lotnictwo transportowe',c:'Lotnictwo',m:3,d:'−30% kosztu dywizji spadochronowych'},
+sonar:{n:'Sonar i ASDIC',c:'Marynarka',m:3,d:'Ochrona konwojów: +50% importu paliwa'},
+lotn:{n:'Lotniskowce uderzeniowe',c:'Marynarka',m:5,d:'+30% floty na Pacyfiku'},
+narz:{n:'Obrabiarki i standaryzacja',c:'Przemysł',m:3,d:'+15% produkcji'},
+synt:{n:'Paliwo syntetyczne',c:'Przemysł',m:4,d:'+50% wydajności linii paliwa'},
+konw:{n:'Konwoje i statki typu Liberty',c:'Przemysł',m:3,d:'+50% importu paliwa'},
+radarT:{n:'Radar',c:'Elektronika',m:3,d:'+15% siły lotnictwa w obronie'},
+krypto:{n:'Kryptologia (Enigma / Ultra / Purple)',c:'Elektronika',m:4,d:'Odblokowuje deszyfraż; +10% ataku i obrony'},
+manhattan:{n:'Projekt Manhattan',c:'Specjalne',m:8,lock:['usa'],d:'Bomba atomowa. Los Alamos pracuje w tajemnicy.'},
+v2:{n:'Rakiety V-1 / V-2',c:'Specjalne',m:6,lock:['ger'],d:'Odblokowuje ostrzał rakietowy.'},
+jet:{n:'Odrzutowce (Me 262 / Meteor)',c:'Specjalne',m:7,lock:['ger','gbr','usa'],d:'+30% siły lotnictwa'}
+};
+const DEC=[
+{id:'prop',n:'Kampania propagandowa',p:20,d:'+12 poparcia wojny. Plakaty: „Twoje milczenie szkodzi ojczyźnie".',c:s=>true,fx:s=>{pc().ws=clamp(pc().ws+12,0,100)}},
+{id:'bonds',n:'Obligacje wojenne',p:15,d:'+250 wyposażenia, −4 stabilności.',c:s=>true,fx:s=>{pc().eq+=250;pc().st=clamp(pc().st-4,0,100)}},
+{id:'ration',n:'Racje żywnościowe',p:10,d:'+6 stabilności, −4 poparcia wojny. Kartki na chleb.',c:s=>true,fx:s=>{pc().st=clamp(pc().st+6,0,100);pc().ws=clamp(pc().ws-4,0,100)}},
+{id:'women',n:'Kobiety w przemyśle',p:25,d:'+15% produkcji na 8 miesięcy.',c:s=>!pc().sp.kobiety,fx:s=>{addSp(S.player,'kobiety',8)}},
+{id:'blackout',n:'Zaciemnienie miast',p:5,d:'Straty od nalotów wroga zmniejszone o połowę.',c:s=>!pc().blackout,fx:s=>{pc().blackout=true}},
+{id:'warplan',n:'Plan wojenny sztabu',p:20,d:'+5% ataku na 6 miesięcy.',c:s=>!pc().sp.planwoj,fx:s=>{addSp(S.player,'planwoj',6)}},
+{id:'fortdec',n:'Rozbudowa fortyfikacji',p:30,d:'+10% obrony na stałe (duch Reduta).',c:s=>!pc().sp.reduta,fx:s=>{addSp(S.player,'reduta')}},
+{id:'partyz',n:'Zrzuty dla partyzantki',p:25,d:'Ruch oporu w okupowanym kraju wroga: −wyposażenie i −stabilność okupanta.',c:s=>occOf(S.player).length>0&&S.wars.some(w=>occOf(S.player).includes(other(w))),fx:s=>{const t=occOf(S.player)[0];if(t){cc(t).eq=Math.max(0,cc(t).eq-200);cc(t).st=clamp(cc(t).st-5,0,100);news('Partyzanci otrzymują zrzuty','Zrzuty zaopatrzenia nad okupowanym krajem. Nocne niebo rozbłyska.')}}},
+{id:'kawmit',n:'Obal mit kawalerii',p:10,d:'+8 poparcia wojny. „Szarże na czołgi to propaganda — nasza kawaleria walczyła pieszo, z karabinami ppanc."',lock:['pol'],c:s=>!S.done.kawmit,fx:s=>{S.done.kawmit=1;pc().ws=clamp(pc().ws+8,0,100)}},
+{id:'enigtr',n:'Przekaż Enigmę sojusznikom',p:15,d:'Polscy kryptolodzy (Rejewski, Różycki, Zygalski) przekazują wiedzę Londynowi i Paryżowi. +relacje, Alianci zyskują kryptologię.',lock:['pol'],c:s=>!S.done.enigtr,fx:s=>{S.done.enigtr=1;addRel('pol','gbr',25);addRel('pol','fra',25);cc('gbr').tech.krypto=true;cc('fra').tech.krypto=true;news('Polska przekazuje sekret Enigmy','Spotkanie w Pyry pod Warszawą. Polscy matematycy wręczają sojusznikom repliki maszyny szyfrującej.')}},
+{id:'cicho',n:'Cichociemni — zrzuty do kraju',p:20,d:'+10 poparcia wojny, wywiad w okupowanym kraju.',lock:['pol'],c:s=>S.countries.pol.exiled&&!S.done.cicho,fx:s=>{S.done.cicho=1;pc().ws=clamp(pc().ws+10,0,100);const g=cc('ger');g.st=clamp(g.st-3,0,100);news('Cichociemni skaczą w noc','Spadochroniarze z Briggens lądują w okupowanej Polsce.')}},
+{id:'kami',n:'Jednostki specjalne Shimpū',p:30,d:'Kamikaze: +20% obrony, +10% ataku, −60 tys. rezerw.',lock:['jap'],c:s=>S.date.y>=1944&&!pc().sp.kamikaze,fx:s=>{addSp(S.player,'kamikaze');pc().mp=Math.max(0,pc().mp-60)}},
+{id:'v2use',n:'Ostrzał rakietowy V',p:20,d:'V-1 i V-2 spadają na Londyn/Antwerpię: −8 stabilności W. Brytanii.',lock:['ger'],c:s=>pc().tech.v2&&atWar('ger','gbr'),fx:s=>{const g=cc('gbr');g.st=clamp(g.st-(g.blackout?4:8),0,100);news('Rakiety V nad kanałem','Syrena wyje w Londynie. „Doodlebug" gaśnie nagle — a wtedy dopiero jest niebezpiecznie.')}}
+];
+const FAC={ali:{n:'Alianci',c:'#4a7fb5',lead:'gbr'},osi:{n:'Oś',c:'#8a8f96',lead:'ger'},kom:{n:'Komintern',c:'#b03a3a',lead:'sov'},neu:{n:'Neutralni',c:'#7a8a5a',lead:null}};
+/* ===== PAŃSTWA (grywalne wszystkie) ===== */
+const C={
+ger:{n:'Niemcy',f:'🇩🇪',cap:'Berlin',pop:69,civ:30,mil:24,mp:900,eq:2600,pl:3200,nv:25,fu:800,tl:4,sl:4,ideo:'fas',fa:'osi',lead:'Adolf Hitler',col:'#6e7278',sp:['blitz','ropa'],gen:[{n:'E. Rommel „Lis Pustyni"',a:20,d:10},{n:'H. Guderian',a:18,d:6},{n:'E. von Manstein',a:15,d:15},{n:'W. Model',a:8,d:20}],map:'ger',reg:'eur',dif:1,bl:'Wehrmacht u szczytu potęgi. Blitzkrieg pożera sąsiadów — ale ropa się kończy, a świat jednoczy się przeciw tobie.'},
+sov:{n:'ZSRR',f:'🇷🇺',cap:'Moskwa',pop:170,civ:26,mil:20,mp:2200,eq:3000,pl:2600,nv:12,fu:900,tl:3,sl:4,ideo:'kom',fa:'kom',lead:'Józef Stalin',col:'#a5453a',sp:['czystka','glebia'],oil:1,big:1,gen:[{n:'G. Żukow',a:18,d:14},{n:'K. Rokossowski',a:14,d:18},{n:'I. Koniew',a:16,d:10},{n:'A. Wasilewski',a:10,d:14}],map:'sov',reg:'eur',dif:2,bl:'Czystka zdziesiątkowała kadrę, lecz głębia strategiczna i przemysł za Uralem czynią z ciebie olbrzyma, który obudzi się w 1941.'},
+usa:{n:'USA',f:'🇺🇸',cap:'Waszyngton',pop:131,civ:40,mil:8,mp:800,eq:1500,pl:1800,nv:45,fu:2500,tl:4,sl:4,ideo:'dem',fa:'neu',lead:'Franklin D. Roosevelt',col:'#4a7fb5',sp:['kryzys','arsenal','ocean'],oil:1,big:1,gen:[{n:'G. Patton',a:22,d:8},{n:'D. Eisenhower',a:12,d:14},{n:'D. MacArthur',a:16,d:12},{n:'C. Nimitz',a:14,d:16}],map:null,reg:'ame',dif:1,bl:'Śpiący olbrzym za dwoma oceanami. Arsenał demokracji obudzi się po Pearl Harbor — wtedy nic go nie zatrzyma.'},
+gbr:{n:'Wielka Brytania',f:'🇬🇧',cap:'Londyn',pop:47,civ:24,mil:10,mp:500,eq:1400,pl:1900,nv:60,fu:700,tl:4,sl:4,ideo:'dem',fa:'ali',lead:'Neville Chamberlain',col:'#3d6fa3',sp:['radar','wyspa','imperium'],gen:[{n:'B. Montgomery',a:14,d:18},{n:'W. Auchinleck',a:10,d:12},{n:'W. Slim',a:16,d:14}],map:'gbr',reg:'eur',dif:2,bl:'Wyspa z imperium, na którym nie zachodzi słońce. Flota i radar tarczą — Dunkierka, Blitz i El Alamein hartują naród.'},
+fra:{n:'Francja',f:'🇫🇷',cap:'Paryż',pop:42,civ:20,mil:10,mp:600,eq:1600,pl:1500,nv:25,fu:500,tl:3,sl:3,ideo:'dem',fa:'ali',lead:'Édouard Daladier',col:'#5a7fb0',sp:['maginot','defetyzm'],gen:[{n:'Ch. de Gaulle',a:14,d:14},{n:'P. Leclerc',a:18,d:8},{n:'M. Gamelin',a:6,d:10}],map:'fra',reg:'eur',dif:3,bl:'Linia Maginota daje złudne bezpieczeństwo. Ardennes i Beneluks to pięta achillesowa — 1940 nadejdzie jak grom.'},
+jap:{n:'Japonia',f:'🇯🇵',cap:'Tokio',pop:71,civ:18,mil:14,mp:900,eq:1700,pl:1600,nv:50,fu:250,tl:3,sl:3,ideo:'fas',fa:'osi',lead:'Hideki Tōjō',col:'#b58a8a',sp:['bushido','ropaj'],gen:[{n:'I. Yamamoto',a:18,d:12},{n:'T. Yamashita „Tygrys Malajów"',a:20,d:10},{n:'T. Kuribayashi',a:8,d:22}],map:null,reg:'azj',dif:2,bl:'Flota cesarska i duch bushido kontra embargo naftowe. Uderz szybko — albo olbrzym za oceanem cię zmiażdży.'},
+ita:{n:'Włochy',f:'🇮🇹',cap:'Rzym',pop:44,civ:14,mil:8,mp:600,eq:1100,pl:900,nv:22,fu:250,tl:2,sl:3,ideo:'fas',fa:'osi',lead:'Benito Mussolini',col:'#7a9a6a',sp:['miekkie','mare'],gen:[{n:'G. Messe',a:12,d:12},{n:'R. Graziani',a:8,d:8}],map:'ita',reg:'eur',dif:3,bl:'Mare Nostrum w planach, „miękkie podbrzusze" w rzeczywistości. Afryka i Bałkany rozpraszają siły.'},
+chn:{n:'Chiny',f:'🇨🇳',cap:'Chongqing',pop:450,civ:10,mil:4,mp:3000,eq:900,pl:300,nv:3,fu:100,tl:1,sl:3,ideo:'aut',fa:'neu',lead:'Czang Kaj-szek',col:'#c9a227',sp:['dwa'],big:1,gen:[{n:'Xue Yue',a:12,d:16},{n:'Sun Li-jen',a:14,d:12}],map:null,reg:'azj',dif:4,bl:'Od 1937 krwawisz w wojnie z Japonią. Przestrzeń i miliony rezerw twoją bronią — przetrwaj do 1941, a świat przyjdzie z pomocą.'},
+pol:{n:'Polska',f:'🇵🇱',cap:'Warszawa',pop:35,civ:8,mil:6,mp:400,eq:900,pl:420,nv:4,fu:200,tl:2,sl:3,ideo:'dem',fa:'neu',lead:'Rząd RP',col:'#c85a5a',sp:['wester','kawaleria'],gen:[{n:'W. Sikorski',a:10,d:12},{n:'W. Anders',a:12,d:10},{n:'S. Maczek',a:18,d:12},{n:'S. Sosabowski',a:14,d:10}],map:'pol',reg:'eur',dif:5,bl:'Między młotem a kowadłem. Westerplatte, Bzura, potem Anders, Dywizjon 303, Monte Cassino i Godzina W. Najtrudniejsza i najpiękniejsza kampania.'},
+fin:{n:'Finlandia',f:'🇫🇮',cap:'Helsinki',pop:3.7,civ:5,mil:3,mp:150,eq:400,pl:150,nv:2,fu:80,tl:2,sl:2,ideo:'dem',fa:'neu',lead:'Marsz. Mannerheim',col:'#9ab5c9',sp:['sisu','motti'],gen:[{n:'C.G.E. Mannerheim',a:10,d:22},{n:'E. Talvela',a:12,d:14}],map:'fin',reg:'eur',dif:4,bl:'Mała, biała, nieustępliwa. Sisu, motti i Biała Śmierć. Wojna Zimowa pokaże światu, czym jest fińska obrona.'},
+swe:{n:'Szwecja',f:'🇸🇪',cap:'Sztokholm',pop:6.3,civ:8,mil:3,mp:120,eq:450,pl:180,nv:5,fu:120,tl:2,sl:2,ideo:'dem',fa:'neu',lead:'Per Albin Hansson',col:'#c9c96a',sp:['stal'],gen:[{n:'O. Thörnell',a:6,d:10}],map:'swe',reg:'eur',dif:3,bl:'Stal dla obu stron, neutralność za wszelką cenę. Przetrwaj wojnę u boku burzy.'},
+nor:{n:'Norwegia',f:'🇳🇴',cap:'Oslo',pop:2.9,civ:4,mil:2,mp:80,eq:250,pl:80,nv:4,fu:60,tl:2,sl:2,ideo:'dem',fa:'neu',lead:'Król Haakon VII',col:'#7a9ab5',sp:['fjordy'],gen:[{n:'O. Ruge',a:6,d:12}],map:'nor',reg:'eur',dif:4,bl:'Fjordy i ciężka woda. Kwiecień 1940 przyniesie desant — i króla, który powie „nie".'},
+den:{n:'Dania',f:'🇩🇰',cap:'Kopenhaga',pop:3.8,civ:4,mil:1,mp:50,eq:150,pl:50,nv:2,fu:40,tl:2,sl:2,ideo:'dem',fa:'neu',lead:'Król Chrystian X',col:'#c98a8a',sp:['plaski'],gen:[{n:'W. Prior',a:4,d:8}],map:'den',reg:'eur',dif:5,bl:'Płaska, mała, na drodze każdego najeźdźcy. 9 kwietnia 1940 — kilka godzin. Ale morze pamięta duńskie łodzie ratunkowe.'},
+nld:{n:'Holandia',f:'🇳🇱',cap:'Haga',pop:8.6,civ:6,mil:2,mp:90,eq:300,pl:120,nv:5,fu:80,tl:2,sl:2,ideo:'dem',fa:'neu',lead:'Królowa Wilhelmina',col:'#c9a06a',sp:['kolonie','woda'],gen:[{n:'H. Winkelman',a:6,d:12}],map:'nld',reg:'eur',dif:4,bl:'Linia wodna i ropa z Indii. Maj 1940: spadochrony nad Hagą. Królowa odpłynie do Londynu.'},
+bel:{n:'Belgia',f:'🇧🇪',cap:'Bruksela',pop:8.3,civ:6,mil:2,mp:90,eq:300,pl:100,nv:1,fu:70,tl:2,sl:2,ideo:'dem',fa:'neu',lead:'Król Leopold III',col:'#b5a06a',sp:['twierdze'],gen:[{n:'V. van Strydonck',a:6,d:10}],map:'bel',reg:'eur',dif:4,bl:'Eben-Emael miało być nie do zdobycia. Szybowce sprawią, że upadnie w jeden dzień.'},
+lux:{n:'Luksemburg',f:'🇱🇺',cap:'Luksemburg',pop:0.3,civ:2,mil:1,mp:15,eq:60,pl:10,nv:0,fu:10,tl:1,sl:1,ideo:'dem',fa:'neu',lead:'W. ks. Szarlota',col:'#8ab5c9',sp:['twlux'],gen:[{n:'pł. É. Speller',a:2,d:6}],map:'lux',reg:'eur',dif:5,bl:'Kilkuset żołnierzy kontra Wehrmacht. Tryb hardcore dla romantyków. Powodzenia, Twierdzo Luksemburg.'},
+che:{n:'Szwajcaria',f:'🇨🇭',cap:'Berno',pop:4.2,civ:7,mil:2,mp:150,eq:400,pl:150,nv:0,fu:60,tl:2,sl:2,ideo:'dem',fa:'neu',lead:'Gen. Henri Guisan',col:'#c96a6a',sp:['alpy','banki','guisan'],gen:[{n:'H. Guisan',a:6,d:20}],map:'che',reg:'eur',dif:3,bl:'Reduta alpejska, banki i jeże na drogach. Przetrwaj w oku cyklonu.'},
+esp:{n:'Hiszpania',f:'🇪🇸',cap:'Madryt',pop:25,civ:7,mil:3,mp:300,eq:500,pl:200,nv:6,fu:90,tl:2,sl:2,ideo:'aut',fa:'neu',lead:'Gen. Francisco Franco',col:'#c9b06a',sp:['odbudowa'],gen:[{n:'A. Muñoz Grandes',a:10,d:10}],map:'esp',reg:'eur',dif:3,bl:'Świeża blizna wojny domowej. Błękitna Dywizja pojedzie na wschód — ty zdecydujesz, czy warto.'},
+por:{n:'Portugalia',f:'🇵🇹',cap:'Lizbona',pop:7,civ:4,mil:1,mp:80,eq:200,pl:60,nv:3,fu:60,tl:1,sl:2,ideo:'aut',fa:'neu',lead:'António Salazar',col:'#6a9a6a',sp:['wolfram'],gen:[{n:'H. Delgado',a:6,d:8}],map:'por',reg:'eur',dif:2,bl:'Wolfram, szpiedzy w Estoril i najstarszy sojusz świata z Anglią. Dyplomacja twoją bronią.'},
+irl:{n:'Irlandia',f:'🇮🇪',cap:'Dublin',pop:3,civ:3,mil:1,mp:40,eq:100,pl:30,nv:1,fu:30,tl:1,sl:1,ideo:'dem',fa:'neu',lead:'Éamon de Valera',col:'#6a9a7a',sp:[],gen:[{n:'S. Mac Eoin',a:4,d:8}],map:'irl',reg:'eur',dif:2,bl:'Neutralność („The Emergency"). Dublin bombom nie ulegnie, ale morze wokół płonie.'},
+tur:{n:'Turcja',f:'🇹🇷',cap:'Ankara',pop:17,civ:6,mil:3,mp:400,eq:500,pl:200,nv:5,fu:80,tl:2,sl:2,ideo:'aut',fa:'neu',lead:'İsmet İnönü',col:'#b56a5a',sp:['ciesniny'],gen:[{n:'F. Çakmak',a:8,d:12}],map:'tur',reg:'eur',dif:3,bl:'Bosfor i Dardanele — klucze, których pragną wszyscy. Balansuj między mocarstwami do ostatniej chwili.'},
+rom:{n:'Rumunia',f:'🇷🇴',cap:'Bukareszt',pop:19,civ:6,mil:3,mp:350,eq:500,pl:180,nv:2,fu:600,tl:2,sl:2,ideo:'aut',fa:'neu',lead:'Gen. Ion Antonescu',col:'#c9a227',sp:['ploeszti'],oil:1,gen:[{n:'P. Dumitrescu',a:10,d:10}],map:'rom',reg:'eur',dif:4,bl:'Ropa Ploeszti to krew Wehrmachtu — i twój przeklęty skarb.'},
+hun:{n:'Węgry',f:'🇭🇺',cap:'Budapeszt',pop:9,civ:5,mil:3,mp:200,eq:400,pl:140,nv:0,fu:60,tl:2,sl:2,ideo:'aut',fa:'neu',lead:'Adm. Miklós Horthy',col:'#9a7a5a',sp:['trianon'],gen:[{n:'H. Werth',a:8,d:8}],map:'hun',reg:'eur',dif:4,bl:'Trianon wciąż boli. Rewizjonizm ciągnie do Osi — ale Dunaj i Karpaty nie wybaczają.'},
+yug:{n:'Jugosławia',f:'🇷🇸',cap:'Belgrad',pop:15,civ:5,mil:2,mp:250,eq:400,pl:130,nv:2,fu:60,tl:2,sl:2,ideo:'aut',fa:'neu',lead:'Gen. Dušan Simović',col:'#7a8ab5',sp:['goryy'],gen:[{n:'D. Simović',a:8,d:12}],map:'yug',reg:'eur',dif:4,bl:'„Bolje grob nego rob" — lepiej grób niż niewola. Pucz, desant, partyzantka w górach.'},
+bul:{n:'Bułgaria',f:'🇧🇬',cap:'Sofia',pop:6,civ:4,mil:2,mp:150,eq:300,pl:100,nv:1,fu:40,tl:1,sl:2,ideo:'aut',fa:'neu',lead:'Car Borys III',col:'#8a9a6a',sp:[],gen:[{n:'W. Bojdev',a:6,d:8}],map:'bul',reg:'eur',dif:3,bl:'Car lawiruje między mocarstwami. Sofia nie wypowie wojny Moskwie — „naród by nie zrozumiał".'},
+gre:{n:'Grecja',f:'🇬🇷',cap:'Ateny',pop:7,civ:4,mil:2,mp:150,eq:350,pl:120,nv:4,fu:50,tl:2,sl:2,ideo:'aut',fa:'neu',lead:'Ioannis Metaxas',col:'#6a8ac9',sp:['ohi'],gen:[{n:'A. Papagos',a:8,d:14}],map:'gre',reg:'eur',dif:4,bl:'„OXI!" — jedno słowo, które rzuci wyzwanie imperium. Góry Pindosu i morze Egejskie.'},
+est:{n:'Estonia',f:'🇪🇪',cap:'Tallinn',pop:1.1,civ:2,mil:1,mp:40,eq:100,pl:30,nv:1,fu:20,tl:1,sl:1,ideo:'aut',fa:'neu',lead:'Konstantin Päts',col:'#7a9ac9',sp:[],gen:[{n:'J. Laidoner',a:4,d:8}],map:'est',reg:'eur',dif:5,bl:'Mała republika nad Bałtykiem, między dwoma totalitaryzmami. Przetrwanie to zwycięstwo.'},
+lva:{n:'Łotwa',f:'🇱🇻',cap:'Ryga',pop:1.9,civ:2,mil:1,mp:45,eq:100,pl:30,nv:1,fu:20,tl:1,sl:1,ideo:'aut',fa:'neu',lead:'Kārlis Ulmanis',col:'#9a6a6a',sp:[],gen:[{n:'J. Balodis',a:4,d:8}],map:'lva',reg:'eur',dif:5,bl:'Ryga — miasto, które chciało tylko spokoju. Bałtycka tragedia w trzech aktach.'},
+ltu:{n:'Litwa',f:'🇱🇹',cap:'Kowno',pop:2.5,civ:2,mil:1,mp:50,eq:110,pl:30,nv:1,fu:20,tl:1,sl:1,ideo:'aut',fa:'neu',lead:'Antanas Smetona',col:'#c9b06a',sp:[],gen:[{n:'S. Raštikis',a:4,d:8}],map:'ltu',reg:'eur',dif:5,bl:'Wilno utracone, Kowno tymczasową stolicą. Historia nie dała wyboru — ty spróbuj go znaleźć.'},
+aut:{n:'Austria',f:'🇦🇹',cap:'Wiedeń',pop:6.6,civ:5,mil:2,mp:100,eq:250,pl:90,nv:0,fu:50,tl:2,sl:2,ideo:'aut',fa:'neu',lead:'Kurt Schuschnigg',col:'#c98a8a',sp:['alpy'],gen:[{n:'W. Zehner',a:4,d:10}],map:'aut',reg:'eur',dif:5,only36:1,bl:'Alpejska republika w cieniu Anschlussu. Marzec 1938 nadchodzi — powiedz „nie" albo zniknij.'},
+cze:{n:'Czechosłowacja',f:'🇨🇿',cap:'Praga',pop:14,civ:9,mil:5,mp:250,eq:700,pl:250,nv:0,fu:80,tl:3,sl:2,ideo:'dem',fa:'neu',lead:'Edvard Beneš',col:'#8a7ac9',sp:['skoda','forty'],gen:[{n:'L. Svoboda',a:8,d:12}],map:'cze',reg:'eur',dif:4,only36:1,bl:'Škody, fortyfikacje i sojusznicy, którzy zdradzą w Monachium. „O nas, bez nas" — chyba że powiesz: dość.'},
+can:{n:'Kanada',f:'🇨🇦',cap:'Ottawa',pop:11,civ:10,mil:3,mp:150,eq:500,pl:250,nv:8,fu:300,tl:3,sl:3,ideo:'dem',fa:'ali',lead:'W.L. Mackenzie King',col:'#c96a6a',sp:['wielprz'],oil:1,gen:[{n:'H. Crerar',a:10,d:10},{n:'G. Simonds',a:14,d:10}],map:null,reg:'ame',dif:2,bl:'Arsenał nad Atlantykiem. Konwoje, lotnictwo i plaża Juno.'},
+anz:{n:'Australia',f:'🇦🇺',cap:'Canberra',pop:7,civ:7,mil:2,mp:100,eq:350,pl:200,nv:6,fu:150,tl:3,sl:2,ideo:'dem',fa:'ali',lead:'John Curtin',col:'#6a9a9a',sp:['anzac'],gen:[{n:'T. Blamey',a:12,d:10}],map:null,reg:'oce',dif:2,bl:'Duch ANZAC znad Gallipoli. Tobruk, Kokoda i morze Koralowe.'},
+nzl:{n:'Nowa Zelandia',f:'🇳🇿',cap:'Wellington',pop:1.6,civ:4,mil:1,mp:50,eq:150,pl:80,nv:3,fu:60,tl:2,sl:2,ideo:'dem',fa:'ali',lead:'Peter Fraser',col:'#6a7a9a',sp:['maori','anzac'],gen:[{n:'B. Freyberg',a:12,d:12}],map:null,reg:'oce',dif:3,bl:'2. Dywizja NZ i Batalion Maoryski. Daleko od domu, blisko honoru.'},
+rpa:{n:'RPA',f:'🇿🇦',cap:'Pretoria',pop:10,civ:6,mil:2,mp:80,eq:250,pl:120,nv:4,fu:100,tl:2,sl:2,ideo:'dem',fa:'ali',lead:'Jan Smuts',col:'#7a9a5a',sp:[],gen:[{n:'G. Brink',a:8,d:8}],map:null,reg:'afr',dif:2,bl:'Złoto i droga do Kanału. Smuts prowadzi Unię u boku Londynu.'},
+ind:{n:'Indie Brytyjskie',f:'🇮🇳',cap:'Delhi',pop:380,civ:8,mil:2,mp:1500,eq:500,pl:200,nv:4,fu:100,tl:2,sl:2,ideo:'dem',fa:'ali',lead:'Wicekról Linlithgow',col:'#c9a06a',sp:['niepodl'],big:1,gen:[{n:'K. Cariappa',a:8,d:10}],map:null,reg:'azj',dif:3,bl:'Największa armia ochotnicza świata i ruch „Quit India". Birma, Imphal i Kohima.'},
+bra:{n:'Brazylia',f:'🇧🇷',cap:'Rio de Janeiro',pop:41,civ:8,mil:2,mp:300,eq:300,pl:120,nv:5,fu:120,tl:2,sl:2,ideo:'aut',fa:'neu',lead:'Getúlio Vargas',col:'#6a9a4a',sp:[],oil:1,gen:[{n:'Mascarenhas de Morais',a:8,d:8}],map:null,reg:'ame',dif:2,bl:'„Wąż zapali fajkę" — FEB może udowodnić, że tak. Monte Castello we Włoszech czeka.'},
+mex:{n:'Meksyk',f:'🇲🇽',cap:'Meksyk',pop:20,civ:5,mil:1,mp:150,eq:200,pl:60,nv:2,fu:200,tl:1,sl:2,ideo:'aut',fa:'neu',lead:'Manuel Ávila Camacho',col:'#7a9a6a',sp:[],oil:1,gen:[{n:'Eskadra 201 „Azteckie Orły"',a:10,d:6}],map:null,reg:'ame',dif:2,bl:'Ropa i tankowce na celowniku U-Bootów. Eskadra 201 poleci na Pacyfik.'},
+arg:{n:'Argentyna',f:'🇦🇷',cap:'Buenos Aires',pop:14,civ:7,mil:2,mp:200,eq:300,pl:100,nv:4,fu:150,tl:2,sl:2,ideo:'aut',fa:'neu',lead:'Ramón Castillo',col:'#8ab5c9',sp:[],oil:1,gen:[{n:'E. Farrell',a:6,d:8}],map:null,reg:'ame',dif:2,bl:'Neutralność pełna sympatii i kontrabandy. Wołowina płynie do głodnej Europy.'},
+irn:{n:'Iran',f:'🇮🇷',cap:'Teheran',pop:15,civ:3,mil:1,mp:150,eq:150,pl:50,nv:1,fu:400,tl:1,sl:2,ideo:'aut',fa:'neu',lead:'Reza Szah',col:'#9a9a5a',sp:['ropai'],oil:1,gen:[{n:'A. Amir-Ahmadi',a:4,d:8}],map:null,reg:'azj',dif:3,bl:'Ropa i „Korytarz Perski" — tędy popłynie Lend-Lease do ZSRR.'},
+irq:{n:'Irak',f:'🇮🇶',cap:'Bagdad',pop:3.7,civ:3,mil:1,mp:100,eq:120,pl:40,nv:0,fu:300,tl:1,sl:1,ideo:'aut',fa:'neu',lead:'Fajsal II',col:'#b59a6a',sp:['ropaq'],oil:1,gen:[{n:'B. Sidqi',a:4,d:6}],map:null,reg:'azj',dif:3,bl:'Kirkuk i mosulskie pola naftowe. Pucz Raszida Alego 1941 ściągnie RAF z Habbaniyi.'},
+afg:{n:'Afganistan',f:'🇦🇫',cap:'Kabul',pop:10,civ:2,mil:1,mp:150,eq:100,pl:30,nv:0,fu:20,tl:1,sl:1,ideo:'aut',fa:'neu',lead:'Mohammed Zaher Szah',col:'#8a8a6a',sp:['gorya'],big:1,gen:[{n:'M. Daoud',a:6,d:10}],map:null,reg:'azj',dif:2,bl:'Góry, przełęcze i wieczna neutralność. Imperia przychodziły i odchodziły. Ty zostań.'},
+mng:{n:'Mongolia',f:'🇲🇳',cap:'Ułan Bator',pop:0.8,civ:1,mil:1,mp:60,eq:80,pl:20,nv:0,fu:10,tl:1,sl:1,ideo:'kom',fa:'kom',lead:'Ch. Czojbalsan',col:'#c96a4a',sp:['kawm'],gen:[{n:'Ch. Czojbalsan',a:8,d:8}],map:null,reg:'azj',dif:4,bl:'Ostatnia wielka kawaleria świata. Chałchyn Gol 1939: konie kontra czołgi.'},
+eth:{n:'Etiopia',f:'🇪🇹',cap:'Addis Abeba',pop:10,civ:2,mil:1,mp:300,eq:150,pl:30,nv:0,fu:10,tl:1,sl:1,ideo:'aut',fa:'neu',lead:'Haile Selassie I',col:'#c9a227',sp:['levy'],big:1,gen:[{n:'Ras Mulugeta',a:6,d:8}],map:null,reg:'afr',dif:5,only36:1,bl:'Lew Judy walczący z gazem musztardowym i lotnictwem. „Dziś to my. Jutro będziecie wy." Przetrwaj do 1941.'}
+};
+const MAP={
+gbr:'150,90 192,68 216,96 206,140 232,172 226,226 190,256 150,240 166,190 140,150',
+irl:'104,150 136,140 141,190 116,206 94,180',
+fra:'235,300 300,284 345,300 360,345 340,395 300,420 255,410 230,360',
+esp:'180,430 280,424 300,470 260,530 190,540 152,490',
+por:'150,440 178,434 172,530 146,520',
+ger:'360,240 430,234 455,264 450,320 400,335 360,315 350,275',
+pol:'455,234 540,229 560,270 545,315 470,320 450,284',
+sov:'560,120 950,100 960,420 700,430 640,380 580,330 560,270 545,225 560,170',
+fin:'540,60 600,50 620,110 585,160 545,150 530,100',
+swe:'470,60 525,55 535,150 505,205 475,190 460,120',
+nor:'400,55 465,50 470,120 445,185 415,170 395,100',
+den:'405,205 440,200 445,225 410,230',
+nld:'330,255 355,250 358,275 333,278',
+bel:'320,282 355,278 360,300 325,305',
+lux:'352,303 363,302 364,313 353,314',
+che:'345,345 385,340 390,365 350,370',
+aut:'400,340 460,335 465,360 405,365',
+cze:'405,315 470,310 475,332 410,336',
+ita:'390,380 430,375 450,410 490,470 520,520 500,540 470,505 430,450 395,415',
+hun:'470,340 530,335 535,365 475,370',
+rom:'535,335 610,330 620,375 545,380',
+yug:'465,375 530,372 540,420 490,445 460,415',
+bul:'545,385 615,382 618,415 550,418',
+gre:'520,430 570,425 580,470 545,500 515,470',
+tur:'620,420 760,415 780,460 640,470 615,450',
+est:'555,175 605,172 607,193 557,196',
+lva:'550,197 607,194 609,215 552,218',
+ltu:'548,219 606,216 608,233 550,236'
+};
+const CENT={};for(const k in MAP){const pts=MAP[k].split(' ').map(p=>p.split(',').map(Number));CENT[k]=[pts.reduce((a,p)=>a+p[0],0)/pts.length,pts.reduce((a,p)=>a+p[1],0)/pts.length]}
+/* ===== KALENDARIUM HISTORYCZNE ===== */
+const E=[
+{id:'remil',d:'1936-03',s:1,t:'Nadrenia zremilitaryzowana',x:'Wehrmacht wkracza do strefy zdemilitaryzowanej. Francja protestuje, ale nie rusza.',a:[['ten',8],['ws','ger',8]],n:['Wehrmacht w Nadrenii','Alianci nie zareagowali. Historia zapamięta ten brak reakcji.']},
+{id:'espciv',d:'1936-07',s:1,t:'Hiszpańska wojna domowa',x:'Pucz generałów przeciw Republice. Guernica, Brygady Międzynarodowe, „poligon Europy".',a:[['unsp','esp','odbudowa'],['sp','esp','wojdom'],['ten',10]],n:['Hiszpania w ogniu','Republice pomaga ZSRR, powstańcom — Niemcy i Włochy. Próba generalna wojny.']},
+{id:'marco',d:'1937-07',s:1,t:'Most Marco Polo',x:'Strzały pod Pekinem. Japonia rozpoczyna pełną inwazję na Chiny.',a:[['war','jap','chn','Azja'],['ten',12]],n:['Wojna na Dalekim Wschodzie','Incident na moście Marco Polo rozpala wojnę, która pochłonie miliony.']},
+{id:'ansA',d:'1938-03',s:1,c:s=>s.player==='aut',t:'Anschluss — ultimatum',x:'Berlin żąda przyłączenia Austrii. Kanclerz Schuschnigg stoi przed wyborem.',o:[{l:'„Nie oddamy niepodległości!" — broń się',fx:[['war','ger','aut'],['ws','aut',20],['ach','alpy']],q:23},{l:'Ustąp — oszczędź krew',fx:[['annex','ger','aut'],['chron','Austria znika z mapy bez wystrzału. Wiedeń wiwatuje i płacze naraz.']]},]},
+{id:'ansG',d:'1938-03',s:1,c:s=>s.player==='ger',t:'Anschluss',x:'Wiedeń otwiera bramy. Zjednoczenie wszystkich Niemców — czy riskniesz gniew świata?',o:[{l:'Wkrocz do Austrii',fx:[['annex','ger','aut'],['ten',10],['ws','ger',10]]},{l:'Wstrzymaj się (historia alternatywna)',fx:[['ten',-5],['flag','noans',1]]}]},
+{id:'ansW',d:'1938-03',s:1,c:s=>s.player!=='aut'&&s.player!=='ger'&&!s.done.noans,t:'Anschluss',x:'Niemcy wchłaniają Austrię. Świat protestuje papierem.',a:[['annex','ger','aut'],['ten',10]],n:['Anschluss: Austria w Rzeszy','Niemieckie czołgi witane kwiatami w Wiedniu. Europa przełyka i patrzy dalej.']},
+{id:'munC',d:'1938-09',s:1,c:s=>s.player==='cze',t:'Monachium — „o nas, bez nas"',x:'Londyn i Paryż oddają Sudety Hitlerowi, by „ocalić pokój". Praga nie została zaproszona.',o:[{l:'„Bronić się!" — wojna z Niemcami',fx:[['war','ger','cze'],['ws','cze',25],['rel','cze','gbr',-30],['rel','cze','fra',-30],['ach','monachium']],q:23},{l:'Przyjmij dyktat',fx:[['civ','cze',-3],['mil','cze',-2],['eq','cze',-300],['st','cze',-15],['flag','munich',1]]}]},
+{id:'munW',d:'1938-09',s:1,c:s=>s.player!=='cze'&&s.player!=='ger',t:'Układ monachijski',x:'Chamberlain wraca z Monachium: „Przywiozłem pokój dla naszego pokolenia". Czechosłowacja traci Sudety.',a:[['civ','cze',-3],['mil','cze',-2],['eq','cze',-300],['st','cze',-15],['ten',8],['flag','munich',1]],n:['Monachium: pokój za cudzą ziemię','Czechosłowacja oddaje fortyfikacje i przemysł. „O nas, bez nas".']},
+{id:'cze39',d:'1939-03',s:1,c:s=>alive('cze')&&s.player!=='cze'&&!atWar('ger','cze'),t:'Praga zajęta',x:'Wehrmacht wkracza do reszty Czech. Protektorat. Koniec złudzeń o ustępstwach.',a:[['annex','ger','cze'],['ten',12],['guar','gbr','pol'],['guar','fra','pol']],n:['Koniec Czechosłowacji','Hitler na Hradczanach. Londyn i Paryż dają wreszcie gwarancje Polsce.']},
+{id:'espend',d:'1939-04',s:1,t:'Koniec wojny domowej',x:'Madryt i Barcelona upadły. Franco zwycięża — Hiszpania wyniszczona.',a:[['unsp','esp','wojdom'],['sp','esp','odbudowa']],n:['Hiszpania: koniec wojny domowej','Milion ofiar, pół miliona uchodźców. Kraj w ruinach — i oficjalnie neutralny.']},
+{id:'mrp',d:'1939-08',s:0,t:'Pakt Ribbentrop–Mołotow',x:'Berlin i Moskwa podpisują pakt o nieagresji. Tajny protokół dzieli Europę Środkową.',a:[['pact','ger','sov'],['rel','ger','sov',40],['ten',10]],n:['Pakt Ribbentrop–Mołotow','Świat wstrzymuje oddech. Tajne protokoły nie ujrzą światła dziennego przez 50 lat.']},
+{id:'chal',d:'1939-05',s:2,t:'Chałchyn Gol',x:'Mongolska kawaleria i japońska piechota ścierają się nad rzeką. Żukow dowodzi odwodem.',a:[['war','mng','jap','Azja']],n:['Bitwa nad Chałchyn Gol','Konie, czołgi i monsun. Japończycy uczą się, że step ma właściciela.']},
+{id:'chal2',d:'1939-09',s:2,c:s=>atWar('mng','jap'),t:'Rozejm nad Chałchyn Gol',x:'Tokio i Moskwa dogadują się. Mongolia zostaje. Japonia skręca na południe.',a:[['peace','mng','jap'],['rel','mng','jap',10]],n:['Rozejm na stepie','Chałchyn Gol kończy się remisem z wskazaniem. Japonia już myśli o Pacyfiku.']},
+{id:'fwG',d:'1939-09',s:2,c:s=>s.player==='ger'&&alive('pol')&&!atWar('ger','pol'),t:'Fall Weiss — rozkaz',x:'Sierpień minął. Prowokacja gliwicka gotowa. Westerplatte czeka.',o:[{l:'„Rozpocząć o 4:45!"',fx:[['war','ger','pol'],['ws','ger',10],['ten',20]],q:13},{l:'Odwołaj inwazję (historia alternatywna)',fx:[['flag','nowar39',1],['rel','ger','pol',20],['ten',-10]]}]},
+{id:'fwP',d:'1939-09',s:2,c:s=>s.player==='pol'&&!atWar('ger','pol'),t:'1 września 1939 — 4:45',x:'Pancernik Schleswig-Holstein otwiera ogień na Westerplatte. „Westerplatte broni się nadal."',o:[{l:'Broń Wybrzeża do ostatniego naboju',fx:[['war','ger','pol'],['ws','pol',25],['sp','pol','wester'],['ach','westerplatte']],q:17},{l:'Pełna mobilizacja i odwrót na przedmoście rumuńskie',fx:[['war','ger','pol'],['ws','pol',15],['mp','pol',100],['eq','pol',-100]],q:18}]},
+{id:'fwA',d:'1939-09',s:2,c:s=>s.player!=='ger'&&s.player!=='pol'&&s.player!=='sov'&&!atWar('ger','pol')&&alive('pol')&&!s.done.nowar39,t:'Fall Weiss',x:'Niemcy napadają na Polskę. II wojna światowa rozpoczęta.',a:[['war','ger','pol'],['ten',25]],n:['WOJNA! Niemcy napadły na Polskę','O 4:45 Schleswig-Holstein otworzył ogień na Westerplatte. „Westerplatte broni się nadal" — brzmi depesza.'],q:17},
+{id:'guarGB',d:'1939-09',s:2,c:s=>(s.player==='gbr'||s.player==='fra')&&atWar('ger','pol')&&!atWar(s.player,'ger'),t:'Gwarancje dla Polski',x:'Podpisaliśmy sojusz. „Daliśmy słowo" — czy dotrzymamy?',o:[{l:'Dotrzymaj słowa — wojna z Niemcami',fx:[['war','gbr','ger'],['war','fra','ger'],['ws','gbr',15],['ws','fra',10],['rel','gbr','pol',30]],q:1},{l:'Zdradź gwarancje (Monachium 2.0)',fx:[['rel','gbr','pol',-60],['ws','gbr',-20],['ws','fra',-20],['st','gbr',-10],['flag','betray',1],['chron','Gwarancje okazały się papierem. Historia zapamięta ten wybór.']]}]},
+{id:'guarA',d:'1939-09',s:2,c:s=>s.player!=='gbr'&&s.player!=='fra'&&s.player!=='ger'&&atWar('ger','pol')&&!atWar('gbr','ger')&&!s.done.betray,t:'Alianci wypowiadają wojnę',x:'Londyn i Paryż dotrzymują gwarancji. Dziwna wojna na Zachodzie rozpoczęta.',a:[['war','gbr','ger'],['war','fra','ger'],['sp','gbr','phoney'],['sp','fra','phoney']],n:['Wielka Brytania i Francja w stanie wojny z Niemcami','Ultimatum wygasło o 11:00. Na Zachodzie — cisza. Na Wschodzie — piekło.']},
+{id:'sep17S',d:'1939-09',s:2,c:s=>s.player==='sov'&&alive('pol')&&atWar('ger','pol')&&!atWar('sov','pol'),t:'17 września — tajny protokół',x:'Pakt zobowiązuje. Polska armia walczy już z Niemcami — trzeci front byłby ciosem w plecy.',o:[{l:'Wkrocz — wypełnij protokół',fx:[['war','sov','pol'],['rel','sov','pol',-50],['ten',5]],q:6},{l:'Wstrzymaj Armię Czerwoną (historia alternatywna)',fx:[['rel','sov','pol',20],['rel','sov','ger',-20],['flag','nosep17',1]]}]},
+{id:'sep17P',d:'1939-09',s:2,c:s=>s.player==='pol'&&atWar('ger','pol')&&!atWar('sov','pol')&&!s.done.nosep17,t:'17 września — cios w plecy',x:'Armia Czerwona przekracza granicę. „Nie ma już dwóch frontów — jest oblężenie."',o:[{l:'Walcz na obu frontach',fx:[['war','sov','pol'],['ws','pol',10]],q:18},{l:'Ewakuuj rząd przez Rumunię — walka trwa na Zachodzie',fx:[['war','sov','pol'],['mp','pol',-50],['flag','evac',1]],q:18}]},
+{id:'sep17A',d:'1939-09',s:2,c:s=>!['sov','pol','ger'].includes(s.player)&&atWar('ger','pol')&&alive('pol')&&!atWar('sov','pol')&&!s.done.nosep17,t:'17 września',x:'ZSRR wkracza do Polski zgodnie z tajnym protokołem.',a:[['war','sov','pol']],n:['Armia Czerwona przekroczyła granicę','„Ochrona braci ukraińskich i białoruskich" — brzmi komunikat Moskwy. Polska walczy na dwóch frontach.']},
+{id:'wwS',d:'1939-11',s:0,c:s=>s.player==='sov'&&alive('fin')&&!atWar('sov','fin'),t:'Incydent mainilski',x:'Granica fińska „ostrzelała" Mainilę. Leningrad jest za blisko. Uderzyć?',o:[{l:'Wojna zimowa — uderz',fx:[['war','sov','fin'],['ten',8],['rel','sov','fin',-50]]},{l:'Nie prowokuj (historia alternatywna)',fx:[['flag','noww',1],['rel','sov','fin',15]]}]},
+{id:'wwF',d:'1939-11',s:0,c:s=>s.player==='fin'&&!atWar('sov','fin')&&!s.done.noww,t:'Wojna zimowa',x:'Sto tysięcy przeciw milionom. Lasy, mrozy i białe śmierci. „Sisu!"',o:[{l:'Motti! — podziel kolumny w lasach',fx:[['war','sov','fin'],['ws','fin',25],['sp','fin','motti',6],['ach','sisu']],q:24},{l:'Umocnij Linię Mannerheima',fx:[['war','sov','fin'],['ws','fin',15],['sp','fin','reduta',6]],q:24}]},
+{id:'wwA',d:'1939-11',s:0,c:s=>!['sov','fin'].includes(s.player)&&alive('fin')&&!atWar('sov','fin')&&!s.done.noww,t:'Wojna zimowa',x:'ZSRR napada na Finlandię. Świat stawia na Moskwę — Finlandia stawia na sisu.',a:[['war','sov','fin'],['ten',6],['rel','fin','gbr',20]],n:['ZSRR napadł na Finlandię','Mannerheim mobilizuje. Biała Śmierć poluje w lasach.'],q:24},
+{id:'wwP',d:'1940-03',s:0,c:s=>atWar('sov','fin')&&s.player!=='fin'&&s.player!=='sov',t:'Pokój moskiewski',x:'Finlandia oddaje Przesmyk, ale zachowuje niepodległość. ZSRR uczy się drogiej lekcji.',a:[['peace','sov','fin'],['mp','fin',-30],['eq','sov',-400],['ws','fin',15]],n:['Pokój moskiewski','Finlandia traci 10% ziemi, nie traci duszy. Hitler notuje: „ZSRR jest kolosem na glinianych nogach".']},
+{id:'wwFp',d:'1940-03',s:0,c:s=>atWar('sov','fin')&&s.player==='fin',t:'Pokój moskiewski — propozycja',x:'Moskwa proponuje pokój: Przesmyk Karelski za niepodległość. Amunicja się kończy.',o:[{l:'Podpisz — Finlandia żyje',fx:[['peace','sov','fin'],['mp','fin',-30],['ws','fin',15],['ach','sisu']],q:24},{l:'Walcz dalej — „ani piędzi!"',fx:[['ws','fin',10],['mp','fin',-40]]}]},
+{id:'dnG',d:'1940-04',s:0,c:s=>s.player==='ger'&&!atWar('ger','den')&&alive('den'),t:'Weserübung',x:'Dania i Norwegia: droga szwedzkiej rudy i fiordy dla U-Bootów. Zaskoczenie musi być totalne.',o:[{l:'Zajmij oba kraje',fx:[['war','ger','den'],['war','ger','nor'],['ten',6]]},{l:'Szanuj neutralność (historia alternatywna)',fx:[['flag','nowes',1]]}]},
+{id:'dnD',d:'1940-04',s:0,c:s=>(s.player==='den'||s.player==='nor')&&!atWar('ger',s.player)&&!s.done.nowes,t:'9 kwietnia — desant',x:'Niemieckie okręty w portach o świcie. Dania: kilka godzin. Norwegia: fiordy i król, który powie „nie".',o:[{l:'Broń się!',fx:[['war','ger',null],['ws',null,20]],q:1},{l:'Kapituluj — oszczędź miasta',fx:[['annex','ger',null],['chron','Okupacja bez walki. Ale flaga wróci.']]},]},
+{id:'dnA',d:'1940-04',s:0,c:s=>!['ger','den','nor'].includes(s.player)&&!s.done.nowes&&alive('den'),t:'Weserübung',x:'Niemcy zajmują Danię i Norwegię. Flota aliancka spóźniona.',a:[['war','ger','den'],['war','ger','nor'],['ten',6]],n:['Dania i Norwegia zaatakowane','Kopenhaga skapitulowała po godzinach. Narvik płonie. Król Haakon odmawia.']},
+{id:'fgN',d:'1940-05',s:0,c:s=>s.player==='lux'&&!atWar('ger','lux'),t:'Twierdza Luksemburg',x:'Wehrmacht na granicy. Macie kilkuset żołnierzy, jedną szosę i wielką odwagę.',o:[{l:'Zablokuj szosy! Niech płacą za każdy metr',fx:[['war','ger','lux'],['ws','lux',30],['ach','twlux']],q:1},{l:'Protestuj notą dyplomatyczną',fx:[['annex','ger','lux']]},]},
+{id:'fgG',d:'1940-05',s:0,c:s=>s.player==='ger'&&!atWar('ger','fra')&&alive('fra'),t:'Fall Gelb — przez Ardenny',x:'Plan Mansteina: czołgi przez „nieprzebyte" Ardenny, Beneluks jako wabik. Maginot obejdziemy.',o:[{l:'Sichelschnitt — uderz!',fx:[['war','ger','nld'],['war','ger','bel'],['war','ger','lux'],['war','ger','fra'],['unsp','fra','maginot'],['ten',8]],q:13},{l:'Wstrzymaj ofensywę (historia alternatywna)',fx:[['flag','nogelb',1]]}]},
+{id:'fgB',d:'1940-05',s:0,c:s=>(s.player==='nld'||s.player==='bel')&&!atWar('ger',s.player)&&!s.done.nogelb,t:'Maj 1940 — spadochrony nad Hagą',x:'Szybowce na dachu Eben-Emael, spadochroniarze nad mostami. Neutralność skończyła się o świcie.',o:[{l:'Broń linii wodnej / twierdz',fx:[['war','ger',null],['ws',null,20]],q:1},{l:'Otwórz śluzy i walcz w podziemiach',fx:[['war','ger',null],['ws',null,15],['sp',null,'reduta',4]]}]},
+{id:'fgA',d:'1940-05',s:0,c:s=>!['ger','nld','bel','lux','fra'].includes(s.player)&&!s.done.nogelb&&alive('fra'),t:'Fall Gelb',x:'Niemcy uderzają przez Beneluks i Ardenny. Linia Maginota zostaje obejdena.',a:[['war','ger','nld'],['war','ger','bel'],['war','ger','lux'],['war','ger','fra'],['unsp','fra','maginot'],['unsp','gbr','phoney'],['unsp','fra','phoney'],['ten',10]],n:['Niemcy uderzają na Zachodzie','Szybowce na Eben-Emael, czołgi w Ardennach. Sedan przełamany. „Dziwna wojna" skończona.'],q:13},
+{id:'dunk',d:'1940-06',s:0,c:s=>s.player==='gbr'&&atWar('gbr','ger'),t:'Dunkierka — cud małych statków',x:'BEF przyparty do morza. Rybackie łodzie, jachty, promy — „Armada małych statków" płynie po swoich.',o:[{l:'Operacja Dynamo — ewakuuj!',fx:[['mp','gbr',120],['ws','gbr',15],['eq','gbr',-200],['sp','gbr','wyspa']],q:1},{l:'Zostaw sprzęt, ratuj ludzi',fx:[['mp','gbr',150],['eq','gbr',-350],['ws','gbr',10]],q:1}]},
+{id:'dunkA',d:'1940-06',s:0,c:s=>s.player!=='gbr'&&atWar('gbr','ger'),t:'Dunkierka',x:'338 tysięcy żołnierzy ewakuowanych przez kanał. Sprzęt został na plaży.',a:[['mp','gbr',120],['ws','gbr',12]],n:['Cud Dunkierki','Małe statki przypłynęły po swoich. „Będziemy walczyć na plażach…" — mówił Churchill.'],q:1},
+{id:'itaJ',d:'1940-06',s:0,c:s=>s.player==='ita'&&!atWar('ita','fra')&&alive('fra'),t:'„Kilka tysięcy trupów"',x:'Mussolini chce miejsca przy stole zwycięzców. Francja krwawi — uderzyć?',o:[{l:'Wypowiedz wojnę Aliantom',fx:[['war','ita','fra'],['war','ita','gbr','Afryka'],['ten',5]]},{l:'Niech Włochy czekają (historia alternatywna)',fx:[['flag','noita',1]]}]},
+{id:'itaA',d:'1940-06',s:0,c:s=>s.player!=='ita'&&!s.done.noita&&alive('fra')&&atWar('ger','fra'),t:'Włochy dołączają do wojny',x:'Mussolini wypowiada wojnę Francji i Wielkiej Brytanii.',a:[['war','ita','fra'],['war','ita','gbr','Afryka'],['ten',5]],n:['Włochy w wojnie','Alpy i Afryka Płn. nowymi frontami. Roosevelt: „ręka z sztyletem wbiła się w plecy sąsiada".']},
+{id:'bob',d:'1940-07',s:0,c:s=>atWar('gbr','ger'),t:'Bitwa o Anglię',x:'Luftwaffe nad kanałem. Radar Chain Home, Hurricane\'y i Spitfire\'y — oraz polscy piloci, którzy nie mają dokąd wracać.',a:[['pl','ger',-350],['ws','gbr',10],['pl','gbr',-150]],n:['Bitwa o Anglię','„Nigdy tak wielu nie zawdzięczało tak wiele tak nielicznym". Wśród „nielicznych" — Dywizjon 303.'],q:2},
+{id:'e303',d:'1940-08',s:0,c:s=>s.player==='pol'&&s.countries.pol.exiled,t:'Dywizjon 303',x:'Polscy piloci w Northolt. Najwyższa skuteczność w RAF. „Nie mam dokąd wracać — więc walczę podwójnie."',a:[['ws','pol',15],['pl','gbr',60],['rel','pol','gbr',15],['ach','dyw303']],n:['Dywizjon 303 walczy','Kosynierzy Kościuszkowskie na skrzydłach Hurricane\'ów.'],q:2},
+{id:'blitz',d:'1940-09',s:0,c:s=>atWar('gbr','ger'),t:'Blitz nad Londynem',x:'57 nocy z rzędu bomby na Londyn. Metro schronem, katedra św. Pawła wśród dymów.',a:[['st','gbr',-6],['ws','gbr',8]],n:['Blitz: Londyn nie klęka','„Keep Calm and Carry On" — hasło z szuflady trafia na ulice.']},
+{id:'ohiG',d:'1940-10',s:0,c:s=>s.player==='gre'&&!atWar('ita','gre'),t:'OXI!',x:'Ultimatum Mussoliniego o 3:00 nad ranem. Metaxas odpowiada jednym słowem: „Nie!".',o:[{l:'OXI! — wypchnij Włochów w góry',fx:[['war','ita','gre'],['ws','gre',25],['sp','gre','ohi'],['ach','oxi']],q:1},{l:'Ustąp — oszczędź kraj',fx:[['annex','ita','gre']]},]},
+{id:'ohiA',d:'1940-10',s:0,c:s=>s.player!=='gre'&&alive('gre')&&!atWar('ita','gre'),t:'OXI!',x:'Grecja odrzuca ultimatum i wypycha Włochów w góry Pindosu.',a:[['war','ita','gre'],['ws','gre',20]],n:['Grecja mówi NIE','Włosi cofają się w Albanii. Pierwsza aliancka ofensywa lądowa.']},
+{id:'romJ',d:'1940-11',s:0,c:s=>s.player!=='rom'&&alive('rom'),t:'Rumunia i Węgry przy Osi',x:'Ploeszti nie może wpaść w inne ręce. Antonescu podpisuje pakt.',a:[['join','rom','osi'],['join','hun','osi']],n:['Rumunia i Węgry w Pakcie','Ropa Ploeszti płynie do Rzeszy.']},
+{id:'yugC',d:'1941-03',s:0,c:s=>s.player==='yug'&&!atWar('ger','yug'),t:'Pakt albo pucz',x:'Berlin żąda przystąpienia. Ulicowe hasło: „Bolje grob nego rob" — lepiej grób niż niewola.',o:[{l:'Pucz! „Nie" dla Osi',fx:[['war','ger','yug'],['ws','yug',25],['sp','yug','goryy']],q:1},{l:'Podpisz pakt',fx:[['join','yug','osi'],['rel','yug','gbr',-30]]}]},
+{id:'yugA',d:'1941-04',s:0,c:s=>s.player!=='yug'&&alive('yug')&&!atWar('ger','yug'),t:'Kara za pucz',x:'Belgrad bombowany, Jugosławia zaatakowana z trzech stron. Góry odpowiedzą partyzantką.',a:[['war','ger','yug'],['war','ger','gre'],['ten',5]],n:['Jugosławia i Grecja zaatakowane','Belgrad w gruzach. W górach rodzi się ruch oporu, który zwiąże całe dywizje.']},
+{id:'afk',d:'1941-02',s:0,c:s=>atWar('ita','gbr'),t:'Afrika Korps',x:'Rommel ląduje w Trypolisie. „Lis Pustyni" zamienia włoską porażkę w szachownicę.',a:[['eq','ita',200],['ws','ita',8]],n:['Rommel w Afryce','Afrika Korps i włoskie dywizje kontra Ósma Armia. Tobruk, Bir Hakeim — pustynna wojna bez linii frontu.']},
+{id:'barG',d:'1941-06',s:0,c:s=>s.player==='ger'&&alive('sov')&&!atWar('ger','sov'),t:'Barbarossa — złamać pakt?',x:'3 miliony żołnierzy na granicy. Pakt z Moskwą to papier. Wschód to „przestrzeń życiowa".',o:[{l:'22 czerwca — uderz!',fx:[['unpact','ger','sov'],['war','ger','sov'],['war','rom','sov'],['war','hun','sov'],['unsp','sov','czystka'],['sp','sov','ojczyz'],['ten',15]],q:13},{l:'Dotrzymaj paktu (historia alternatywna)',fx:[['flag','nobarb',1],['rel','ger','sov',20]]}]},
+{id:'barS',d:'1941-06',s:0,c:s=>s.player==='sov'&&!atWar('ger','sov')&&!s.done.nobarb,t:'22 czerwca — zdrada',x:'Pakt złamany o świcie. Trzy Grupy Armii suną na wschód. „Nasza sprawa jest słuszna!"',o:[{l:'Wielka Wojna Ojczyźniana — cały naród!',fx:[['war','ger','sov'],['war','rom','sov'],['war','hun','sov'],['unsp','sov','czystka'],['sp','sov','ojczyz'],['ws','sov',25]],q:6},{l:'Ewakuuj przemysł za Ural',fx:[['war','ger','sov'],['war','rom','sov'],['unsp','sov','czystka'],['sp','sov','ojczyz'],['civ','sov',-6],['flag','ural',1],['ws','sov',15]],q:6}]},
+{id:'barA',d:'1941-06',s:0,c:s=>!['ger','sov'].includes(s.player)&&!s.done.nobarb&&alive('sov')&&!atWar('ger','sov'),t:'Barbarossa',x:'Niemcy łamią pakt i uderzają na ZSRR. Największa inwazja w dziejach.',a:[['unpact','ger','sov'],['war','ger','sov'],['war','rom','sov'],['war','hun','sov'],['unsp','sov','czystka'],['sp','sov','ojczyz'],['ten',15]],n:['BARBAROSSA: Niemcy napadły na ZSRR','Trzy miliony żołnierzy, trzy Grupy Armii. Moskwa milczy dobę, potem Stalin przemawia: „Bracia i siostry…".'],q:6},
+{id:'finC',d:'1941-06',s:0,c:s=>s.player==='fin'&&atWar('ger','sov')&&!atWar('fin','sov'),t:'Wojna kontynuacyjna',x:'Karelia czeka. Wehrmacht idzie na Leningrad — dołączyć, by odzyskać Przesmyk?',o:[{l:'Odzyskaj Karelię — dołącz',fx:[['war','fin','sov'],['ws','fin',10],['rel','fin','gbr',-20]]},{l:'Zostań neutralny — honor czysty',fx:[['rel','fin','gbr',15],['ws','fin',5]]}]},
+{id:'ll',d:'1941-03',s:0,t:'Lend-Lease Act',x:'Ameryka pożycza broń „sąsiadowi, któremu pali się dom". Konwoje ruszają przez Atlantyk i Persję.',a:[['eq','gbr',300],['fu','gbr',150],['rel','usa','gbr',20],['flag','ll',1]],n:['Lend-Lease uchwalony','„Niech sąsiad weźmie wąż ogrodowy" — tłumaczył Roosevelt.'],q:10},
+{id:'atl',d:'1941-08',s:0,t:'Karta Atlantycka',x:'Churchill i Roosevelt na pokładzie HMS Prince of Wales. Osiem punktów powojennego świata.',a:[['rel','usa','gbr',30],['ws','usa',8]],n:['Karta Atlantycka','Wolność mórz, samostanowienie narodów, rozbrojenie agresorów. Świat jeszcze płonie, ale ktoś już pisze pokój.']},
+{id:'pearlJ',d:'1941-12',s:0,c:s=>s.player==='jap'&&!atWar('jap','usa'),t:'Tora! Tora! Tora!',x:'Sześć lotniskowców na północ od Hawajów. Embargo naftowe dusi flotę — uderzyć teraz albo nigdy.',o:[{l:'Uderz na Pearl Harbor',fx:[['war','jap','usa','Pacyfik'],['war','jap','gbr','Pacyfik'],['war','jap','nld','Pacyfik'],['join','usa','ali'],['nv','usa',-8],['pl','usa',-150],['ws','usa',30],['ach','tora']],q:26},{l:'Zaniechaj — negocjuj ropę (historia alternatywna)',fx:[['flag','nopearl',1],['fu','jap',200],['rel','jap','usa',15]]}]},
+{id:'pearlU',d:'1941-12',s:0,c:s=>s.player==='usa'&&atWar('jap','usa'),t:'Dzień hańby',x:'7 grudnia. Arizona płonie, Oklahoma przewrócona. „Wczorajsza data przejdzie do historii…"',o:[{l:'„Wypowiadamy wojnę!" — obudź olbrzyma',fx:[['join','usa','ali'],['unsp','usa','kryzys'],['ws','usa',30],['mil','usa',10]],q:8},{l:'Najpierw odbuduj flotę',fx:[['join','usa','ali'],['unsp','usa','kryzys'],['ws','usa',20],['nv','usa',10]],q:9}]},
+{id:'pearlA',d:'1941-12',s:0,c:s=>!['jap','usa'].includes(s.player)&&!s.done.nopearl&&!atWar('jap','usa'),t:'Pearl Harbor',x:'Japonia atakuje Pearl Harbor. USA i Wielka Brytania w wojnie na Pacyfiku. Olbrzym się budzi.',a:[['war','jap','usa','Pacyfik'],['war','jap','gbr','Pacyfik'],['war','jap','nld','Pacyfik'],['join','usa','ali'],['nv','usa',-8],['pl','usa',-150],['ws','usa',30]],n:['PEARL HARBOR — „dzień hańby"','Arizona płonie. Roosevelt przed Kongresem: wojna. „Obudziliśmy śpiącego olbrzyma" — miał powiedzieć Yamamoto.'],q:25},
+{id:'gerUSA',d:'1941-12',s:0,c:s=>s.player==='ger'&&atWar('jap','usa')&&!atWar('ger','usa'),t:'Wojna z Ameryką?',x:'Pakt zobowiązuje Japonię, nie ciebie. Ale U-Booty i tak strzelają do amerykańskich konwojów.',o:[{l:'Wypowiedz wojnę USA',fx:[['war','ger','usa'],['war','ita','usa'],['ten',5]]},{l:'Nie prowokuj olbrzyma (historia alternatywna)',fx:[['flag','nogerusa',1]]}]},
+{id:'gerUSAa',d:'1941-12',s:0,c:s=>s.player!=='ger'&&!s.done.nogerusa&&atWar('jap','usa')&&!atWar('ger','usa'),t:'Niemcy wypowiadają wojnę USA',x:'Hitler wyprzedza Roosevelta. Wielki sojusz trzech kontynentów domknięty.',a:[['war','ger','usa'],['war','ita','usa']],n:['Niemcy i Włochy w wojnie z USA','„Arsenał demokracji" ma teraz adresatów. Trzy mocarstwa, jedna wojna, cały świat.']},
+{id:'r227S',d:'1942-07',s:0,c:s=>s.player==='sov'&&atWar('sov','ger'),t:'Rozkaz nr 227',x:'„Ni kroku wstecz!" Oddziały zaporowe, karne bataliony. Wołga za plecami.',o:[{l:'Podpisz — ani kroku wstecz!',fx:[['sp','sov','reduta'],['ws','sov',10],['mp','sov',-80]],q:5},{l:'Odrzuć — żołnierz to nie niewolnik',fx:[['ws','sov',5],['st','sov',5],['flag','no227',1]]}]},
+{id:'r227A',d:'1942-07',s:0,c:s=>s.player!=='sov'&&atWar('sov','ger'),t:'Rozkaz nr 227',x:'„Ni kroku wstecz!" — Stalin zaciska pięść na froncie.',a:[['sp','sov','reduta'],['ws','sov',8]],n:['„Ni kroku wstecz!"','Rozkaz 227 wstrząsa armią. Za Wołgą nie ma ziemi — mówią żołnierze.'],q:5},
+{id:'mid',d:'1942-06',s:0,c:s=>atWar('jap','usa'),t:'Midway — złamane kody',x:'Amerykańscy kryptolodzy czytają „AF". Cztery japońskie lotniskowce na dnie w pięć minut.',a:[['nv','jap',-12],['pl','jap',-200],['ws','usa',12]],n:['Midway: punkt zwrotny Pacyfiku','„AF" to Midway — potwierdzili kryptolodzy fałszywą depeszą o awarii destylarni.'],q:26},
+{id:'stal',d:'1943-02',s:0,c:s=>atWar('ger','sov'),t:'Stalingrad — kocioł zamknięty',x:'6. Armia Paulusa skapitulowała. Świat usłyszał: za Wołgą nie ma dla nich ziemi.',a:[['army','ger',{pie:-4,pan:-1}],['ws','sov',20],['ws','ger',-10],['tl','sov',1]],n:['STALINGRAD: 6. Armia w niewoli','91 tysięcy jeńców, w tym feldmarszałek. Dzwony Moskwy biły na alarm — i na chwałę.'],q:7},
+{id:'ala',d:'1942-10',s:0,c:s=>atWar('gbr','ita')||atWar('gbr','ger'),t:'El Alamein',x:'Montgomery i Ósma Armia przełamują front pod El Alamein. „To koniec początku."',a:[['ws','gbr',12],['eq','ita',-200]],n:['El Alamein: pustynia należy do Ósmej Armii','„To nie jest koniec… ale być może koniec początku" — mówił Churchill.'],q:3},
+{id:'torch',d:'1942-11',s:0,c:s=>atWar('usa','ger')||atWar('usa','ita'),t:'Operacja Torch',x:'Amerykańskie i brytyjskie desanty w Maroku i Algierze. Afryka Płn. w kleszczach.',a:[['ws','usa',8],['eq','usa',-150]],n:['Torch: Alianci w Afryce Płn.','Kasserine będzie bolesną lekcją. Ale Tunis — maj 1943 — zamknie afrykański rozdział.']},
+{id:'casa',d:'1943-01',s:0,t:'Konferencja w Casablance',x:'Roosevelt ogłasza: tylko bezwarunkowa kapitulacja. Nie będzie drugiego 1918.',a:[['ws','usa',5],['ws','gbr',5]],n:['Casablanka: bezwarunkowa kapitulacja','Żadnych negocjacji z Osią.']},
+{id:'katyn',d:'1943-04',s:0,t:'Kwiecień 1943 — kronika',x:'Świat dowiaduje się o Katyniu. W Warszawie płonie getto.',a:[['chron','Katyń: odkryto masowe groby polskich oficerów. Kronika zapisuje prawdę i milczenie świata.'],['chron','Getto warszawskie walczy. Kronika odnotowuje bohaterski opór — i pamięć, która nie zgaśnie.']],n:['Kronika kwietnia 1943','Katyń i getto warszawskie. Są daty, przy których sztabowe mapy milkną.']},
+{id:'kursk',d:'1943-07',s:0,c:s=>atWar('ger','sov'),t:'Kursk — stalowe pole',x:'Największa bitwa pancerna w dziejach. Prochorowka: czołgi taranują czołgi.',a:[['army','ger',{pan:-2}],['tl','sov',1],['ws','sov',10]],n:['Kursk: Cytadela złamana','„Tygrysy" i „Pantery" kontra T-34. Po Kursku inicjatywa na Wschodzie już nigdy nie wróci do Rzeszy.']},
+{id:'itaCap',d:'1943-09',s:0,c:s=>alive('ita')&&s.countries.ita.owner==='ita'&&(atWar('ita','gbr')||atWar('ita','usa'))&&(warP('gbr','ita')>40||warP('usa','ita')>40||s.date.y>1943||(s.date.y===1943&&s.date.m>=9)),t:'Włochy kapitulują',x:'Mussolini obalony, Badoglio podpisuje rozejm. „Miękkie podbrzusze" pękło.',a:[['annex','gbr','ita'],['ws','gbr',10],['ws','usa',8]],n:['Włochy skapitulowały','Rzym ogłasza rozejm. Niemcy zajmują północ. Monte Cassino stanie na drodze do Wiecznego Miasta.']},
+{id:'wojtek',d:'1942-08',s:0,c:s=>s.player==='pol'&&s.countries.pol.exiled,t:'Szeregowy Wojtek',x:'Irańscy chłopcy sprzedają sierotę niedźwiedzia żołnierzom Andersa. Wojtek wstępuje do 22. Kompanii Zaopatrywania Artylerii.',a:[['sp','pol','wojtek'],['ws','pol',12],['ach','wojtek']],n:['Niedźwiedź w polskim mundurze','Wojtek nosi skrzynie z pociskami i salutuje. Pod Monte Cassino będzie nosił amunicję jak żołnierz — bo nim jest.'],q:19},
+{id:'anders',d:'1942-03',s:0,c:s=>s.player==='pol'&&s.countries.pol.exiled&&alive('sov'),t:'Armia Andersa wychodzi z ZSRR',x:'„Wyprowadzę stąd moich ludzi". Ewakuacja przez Persję — 2. Korpus Polski rusza na Zachód.',a:[['army','pol',{pie:3,pan:1}],['mp','pol',60],['ws','pol',10]],n:['Armia Andersa opuszcza ZSRR','Kołuż, gułag, głód — a potem Persja i słońce. „Polska będzie walczyć dalej".']},
+{id:'cassino',d:'1944-05',s:0,c:s=>s.player==='pol'&&s.countries.pol.exiled,t:'Monte Cassino — czerwone maki',x:'2. Korpus Andersa szturmuje klasztorne wzgórze. Cztery razy. Za czwartym — biało-czerwona flaga.',a:[['ws','pol',20],['mp','pol',-25],['rel','pol','gbr',15],['ach','cassino']],n:['Polska flaga nad Monte Cassino','„Czerwone maki na Monte Cassino zamiast rosy piły polską krew". Droga do Rzymu otwarta.'],q:20},
+{id:'dday',d:'1944-06',s:0,c:s=>atWar('ger','usa')&&atWar('ger','gbr'),t:'D-Day — Overlord',x:'6 czerwca. Pięć plaż, 156 tysięcy ludzi, sztuczny sztorm Fortitude. „Oczy całego świata zwrócone są na was."',a:[['flag','dday',1],['ws','usa',12],['ws','gbr',12],['eq','ger',-200]],n:['OVERLORD: Alianci we Francji','Omaha, Utah, Gold, Juno, Sword. Drugi front otwarty.'],q:15},
+{id:'godzW',d:'1944-08',s:0,c:s=>s.player==='pol'&&s.countries.pol.exiled&&s.countries.pol.owner==='ger',t:'Godzina W',x:'1 sierpnia, 17:00. Warszawa powstaje. AK walczy o stolicę — czy wesprzesz zrzutami?',o:[{l:'Wspieraj! Zrzuty dla Warszawy',fx:[['ws','pol',20],['eq','pol',-150],['pl','pol',-20],['st','ger',-6],['ach','godzinaw']],q:35},{l:'„Most za daleko" — wstrzymaj loty',fx:[['ws','pol',-10],['chron','Zrzuty wstrzymane. Warszawa walczy sama 63 dni. Kronika zapisze ten ból.']],q:33}]},
+{id:'godzWa',d:'1944-10',s:0,c:s=>s.countries.pol.owner==='ger',t:'Warszawa upadła — ale nie zginęła',x:'Po 63 dniach powstanie skapitulowało. Miasto zrównane z ziemią. Ludność wypędzona.',a:[['chron','Powstanie warszawskie upadło po 63 dniach. Miasto zburzono. „Jeszcze Polska nie zginęła, kiedy my żyjemy".'],['ws','pol',10]],n:['Warszawa: 63 dni chwały','Stolica walczyła sama między dwoma totalitaryzmami. Ruiny milczą — ale świat usłyszał.'],q:18},
+{id:'arden',d:'1944-12',s:0,c:s=>atWar('ger','usa')&&s.countries.ger.mil>8,t:'Ardeny — ostatnia ofensywa',x:'Model uderza przez lasy. Bastogne otoczone. McAuliffe odpowiada jednym słowem: „Nuts!".',a:[['ws','ger',8],['army','usa',{pie:-1}],['eq','ger',-250]],n:['Ardeny: „Bzdura!"','Niemiecka ofensywa zamarła pod Bastogne. Patton skręcił armię o 90 stopni w 48 godzin.'],q:16},
+{id:'yalta',d:'1945-02',s:0,t:'Jałta',x:'Wielka Trójka dzieli powojenny świat przy kominku w Liwadii.',a:[['rel','sov','usa',10],['rel','sov','gbr',10]],n:['Jałta: pokój pisany ołówkiem','Strefy okupacyjne, ONZ, wolne wybory — na papierze.']},
+{id:'fdr',d:'1945-04',s:0,t:'Śmierć Roosevelta',x:'12 kwietnia. Truman obejmuje urząd.',a:[['lead','usa','Harry S. Truman'],['ws','usa',-5]],n:['Roosevelt nie żyje','Człowiek, który poprowadził Amerykę przez kryzys i wojnę, odchodzi w przededniu zwycięstwa.']},
+{id:'trinity',d:'1945-07',s:0,c:s=>s.player==='usa'&&s.countries.usa.tech.manhattan,t:'Trinity — „Stałem się Śmiercią"',x:'16 lipca, Alamogordo. Oppenheimer cytuje Bhagawadgitę. Słońce wzeszło dwa razy.',o:[{l:'Kontynuuj projekt — Japonia musi skapitulować',fx:[['flag','bomb',1],['ws','usa',10]],q:30},{l:'Zaproponuj demonstrację mocarstwom',fx:[['flag','bomb',1],['flag','demo',1],['rel','usa','sov',-10]]}]},
+{id:'hiro',d:'1945-08',s:0,c:s=>s.player==='usa'&&s.done.bomb&&atWar('usa','jap'),t:'Decyzja o bombie',x:'Enola Gay na Tinian. Cel: Hiroszima. Alternatywa: inwazja i milion ofiar — po obu stronach.',o:[{l:'Użyj bomby — zakończ wojnę',fx:[['flag','usedbomb',1],['ws','jap',-30],['st','jap',-20],['ach','manhattan'],['chron','Hiroszima i Nagasaki. Kronika zapisuje grozę atomowego świtu i nadzieję, że nigdy się nie powtórzy.']],q:28},{l:'Demonstracja nad pustynią — daj szansę rozejmowi',fx:[['flag','demo',1],['ws','jap',-10],['rel','usa','jap',10]]}]},
+{id:'hiroA',d:'1945-08',s:0,c:s=>s.player!=='usa'&&s.countries.usa.tech.manhattan&&atWar('usa','jap'),t:'Hiroszima',x:'Atomowy świt nad Japonią. Świat wstrzymuje oddech.',a:[['ws','jap',-25],['st','jap',-15],['chron','Hiroszima i Nagasaki. Kronika zapisuje grozę atomowego świtu i nadzieję, że nigdy się nie powtórzy.']],n:['Atomowy świt nad Japonią','Wojna kończy się inaczej niż wszystkie wojny.']},
+{id:'sovJap',d:'1945-08',s:0,c:s=>alive('sov')&&alive('jap')&&atWar('usa','jap')&&!atWar('sov','jap'),t:'ZSRR wypowiada wojnę Japonii',x:'Jałta zobowiązuje. Milion weteranów frontu wschodniego sunie przez Mandżurię.',a:[['war','sov','jap','Azja']],n:['Armia Czerwona uderza na Kwantuńską','Mandżuria w tydzień. Tokio liczy dni — i bomby.']},
+{id:'feb',d:'1944-07',s:0,c:s=>s.player==='bra'&&!atWar('bra','ger'),t:'„Wąż zapali fajkę"',x:'Brazylijski Korpus Ekspedycyjny gotowy do Włoch. Mówiono, że prędzej wąż zapali fajkę niż Brazylia wyśle wojsko.',o:[{l:'Wyślij FEB — niech wąż pali!',fx:[['war','bra','ger'],['war','bra','ita'],['ws','bra',15],['ach','waz']],q:11},{l:'Zostań neutralny',fx:[['rel','bra','usa',-10]]}]},
+{id:'ethq',d:'1936-06',s:1,t:'Lew Judy w Lidze Narodów',x:'Haile Selassie przemawia w Genewie. Sala milczy. „Dziś to my. Jutro będziecie wy."',a:[['ws','eth',15],['rel','eth','gbr',10]],n:['„Dziś to my. Jutro będziecie wy"','Cesarz Etiopii ostrzega Ligę Narodów. Liga bije brawo — i nie robi nic.'],q:27},
+{id:'ethfall',d:'1936-05',s:1,c:s=>s.player!=='eth'&&alive('eth')&&atWar('ita','eth'),t:'Addis Abeba upadła',x:'Włoskie kolumny w stolicy. Cesarz odpływa do Jerozolimy. Ale góry pamiętają.',a:[['annex','ita','eth']],n:['Etiopia okupowana','Gaz musztardowy przeciw włóczniom. Liga Narodów notuje protest. Partyzantka w górach trwa.']},
+{id:'bluediv',d:'1941-07',s:0,c:s=>s.player==='esp'&&atWar('ger','sov'),t:'Błękitna Dywizja',x:'Franco chce spłacić dług wobec Osi — ale nie wojną z Aliantami. Ochotnicy na front wschodni?',o:[{l:'Wyślij Błękitną Dywizję',fx:[['army','ger',{pie:1}],['rel','esp','ger',20],['rel','esp','gbr',-15]]},{l:'Neutralność absolutna',fx:[['rel','esp','gbr',10],['pp','esp',10]]}]},
+{id:'quitindia',d:'1942-08',s:0,c:s=>alive('ind'),t:'Quit India',x:'Gandhi: „Opuśćcie Indie". Kongres aresztowany, kraj wrze — a Birma czeka na japońskie kolumny.',a:[['sp','ind','niepodl'],['st','ind',-10],['ws','ind',8]],n:['Quit India','„Zwycięstwo albo śmierć" — mówił Gandhi. Imperium walczy z Japonią i z własnym sumieniem.']},
+{id:'persja',d:'1941-08',s:0,c:s=>alive('irn')&&atWar('ger','sov'),t:'Korytarz Perski',x:'Alianci wkraczają do Iranu — tędy popłynie Lend-Lease do ZSRR. Szach abdykuje.',a:[['join','irn','ali'],['fu','sov',100],['eq','sov',200],['flag','pers',1]],n:['Iran: Korytarz Perski otwarty','Amerykańskie ciężarówki przez Teheran do Kaukazu. „Most Zwycięstwa".']},
+{id:'iraq41',d:'1941-05',s:0,c:s=>alive('irq')&&atWar('gbr','ger'),t:'Pucz w Bagdadzie',x:'Raszid Ali i proniemiecki rząd. RAF Habbaniya broni się sam — Irak na zakręcie.',a:[['st','irq',-8],['rel','irq','gbr',-20]],n:['Bagdad: pucz i RAF Habbaniya','Stare dwupłatowce bombardują irackie kolumny. „Wszystko, co lata" — rozkaz dowódcy.']},
+{id:'enigma43',d:'1943-03',s:0,c:s=>s.countries.gbr.tech.krypto&&atWar('gbr','ger'),t:'Ultra czyta Enigmę',x:'Bletchley Park łamie klucze U-Bootów. Konwoje omijają wilcze stada.',a:[['sp','gbr','enigma',12],['nv','ger',-5],['fu','gbr',100]],n:['Ultra: Atlantycki szach-mat','Turing, bombe i polska podstawa z Pyr. Wilcze stada tracą oczy. Konwoje płyną.'],q:31}
+];
+const RP=[
+{c:s=>s.date.y>=1941,w:3,n:'„Lili Marleen" nadaje Belgrad',x:'Nocna audycja żołnierskiego radia. Po obu stronach frontu żołnierze gaszą papierosy i słuchają tej samej piosenki.',fx:[['ws','ger',3],['ws','gbr',3]]},
+{w:2,n:'Listy z frontu',x:'Cenzura wojskowa pracuje dzień i noc. „U mnie wszystko dobrze" — pisze żołnierz w błocie po kolana.',fx:[['st',null,3]]},
+{w:2,n:'Gołębie pocztowe',x:'Gdy radio milczy, gołąb leci. Dickin Medal czeka na bohaterów w piórach.',fx:[['pp',null,5]]},
+{w:2,n:'Psy sanitarne',x:'Czworonogi niosą morfę i kable przez ostrzał. Sztab notuje: morale w górę.',fx:[['ws',null,3]]},
+{w:2,n:'Korespondent wojenny',x:'Ernie Pyle pisze o żołnierzach, nie o generałach. Cały naród czyta przy śniadaniu.',fx:[['ws','usa',4]]},
+{c:s=>s.date.y>=1940,w:2,n:'Zima stulecia',x:'Mrozy skuwały broń i silniki. Generał Mróz walczy po swojej stronie.',fx:[['eq',null,-60]]},
+{w:2,n:'Szmugiel i czarny rynek',x:'Nylon, kawa, benzyna — wszystko ma drugą cenę. Żandarmeria łapie, kolejka rośnie.',fx:[['st',null,-3],['fu',null,30]]},
+{w:2,n:'Koncert dla wojska',x:'Orkiestra gra pod plandeką, deszcz wybija rytm. Jutro front, dziś — walce.',fx:[['ws',null,4]]},
+{c:s=>s.date.y>=1943,w:2,n:'Falsyfikaty i paszporty',x:'Dyplomaci i drukarze fałszują dokumenty, by ratować ludzi z piekła. Cicha wojna sumień.',fx:[['pp',null,8],['chron','Kronika odnotowuje cichych bohaterów: fałszerzy paszportów ratujących istnienie.']]},
+{w:2,n:'Radiostacja żołnierska',x:'„Tu mówi front" — audycja z okopu. Piosenka, żart, pozdrowienia dla rodziny.',fx:[['ws',null,3]]},
+{c:s=>s.wars.length>0,w:2,n:'Aliancka poczta lotnicza',x:'V-mail: list sfotografowany na mikrofilm, leci przez ocean. Tysiąc listów waży kilogram.',fx:[['ws',null,3]]},
+{w:1,n:'Awaria linii produkcyjnej',x:'Sabotaż czy zmęczenie metalu? Śledztwo trwa, taśma stoi.',fx:[['eq',null,-80],['st',null,-2]]},
+{c:s=>s.date.y>=1944,w:2,n:'Dezerterzy i zmęczenie wojną',x:'Lata strat zbierają żniwo. Szpitale polowe pełne, listy gończe też.',fx:[['mp',null,-30],['ws',null,-3]]},
+{w:2,n:'Wizyta gwiazdy estrady',x:'Vera Lynn śpiewa „We\'ll Meet Again". Żołnierze milczą — i ściskają talizmany.',fx:[['ws','gbr',4]]}
+];
+/* ===== STAN I SILNIK ===== */
+let S=null,CFG={sound:true,auto:true,anim:true},ACH={},AUTO=null,EQ=[],TAB='map',BUSY=false,SEL=null,SCEN=2,MODE='hist',FILTER='all',SEARCH='';
+const ADJ={ger:['pol','fra','nld','bel','lux','den','che','aut','cze'],pol:['ger','sov','cze','ltu'],sov:['pol','fin','est','lva','ltu','rom','tur','irn','mng','jap'],fra:['ger','bel','che','ita','esp'],gbr:['fra','nld','nor','den','irl'],ita:['fra','che','aut','yug','gre'],fin:['sov','swe','nor'],swe:['nor','fin','den'],nor:['swe','fin'],den:['ger','swe'],nld:['ger','bel'],bel:['ger','nld','fra','lux'],lux:['ger','bel','fra'],che:['fra','ger','ita','aut'],aut:['ger','che','ita','hun','cze','yug'],cze:['ger','pol','aut','hun'],esp:['fra','por'],por:['esp'],irl:['gbr'],tur:['sov','gre','bul','irn','irq'],rom:['sov','hun','yug','bul'],hun:['aut','cze','rom','yug'],yug:['ita','aut','hun','rom','bul','gre'],bul:['rom','yug','gre','tur'],gre:['ita','yug','bul','tur'],est:['sov','lva'],lva:['sov','est','ltu'],ltu:['sov','lva','pol']};
+function cc(id){return S.countries[id]}
+function pc(){return S.countries[S.player]}
+function alive(id){const c=S.countries[id];return c&&c.owner===id&&!c.exiled}
+function atWar(a,b){return S.wars.find(w=>(w.x===a&&w.y===b)||(w.x===b&&w.y===a))}
+function warP(a,b){const w=atWar(a,b);if(!w)return 0;return w.x===a?w.p:-w.p}
+function other(w){return w.x===S.player?w.y:w.x}
+function occOf(id){return Object.keys(S.countries).filter(k=>S.countries[k].owner===id&&k!==id)}
+function relKey(a,b){return [a,b].sort().join('|')}
+function rel(a,b){return S.rel[relKey(a,b)]||0}
+function addRel(a,b,v){S.rel[relKey(a,b)]=clamp(rel(a,b)+v,-100,100)}
+function hasPact(a,b){return S.pacts.some(p=>(p[0]===a&&p[1]===b)||(p[0]===b&&p[1]===a))}
+function spMod(c,key){let m=0;for(const s in c.sp){const d=SPI[s];if(d&&d.m&&d.m[key])m+=d.m[key]}return m}
+function addSp(id,sp,months){const c=cc(id);if(!c)return;c.sp[sp]=months||0}
+function rmSp(id,sp){const c=cc(id);if(c)delete c.sp[sp]}
+function news(h,s){S.news.push({d:dkey(S.date),h:h,s:s||''});if(S.news.length>90)S.news.shift()}
+function log(t){S.log.push({d:dkey(S.date),t:t});if(S.log.length>60)S.log.shift()}
+function unlock(id){if(ACH[id])return;ACH[id]=dkey(S.date);api.state('ach',ACH);api.toast('🏅 Osiągnięcie: '+ACHN[id]);news('Osiągnięcie: '+ACHN[id],'Sztab odnotowuje szczególne wyróżnienie.');snd('fan')}
+const ACHN={westerplatte:'Westerplatte broni się nadal',sisu:'Sisu — Finlandia żyje',twlux:'Twierdza Luksemburg',dyw303:'Dywizjon 303',wojtek:'Szeregowy Wojtek',cassino:'Czerwone maki',godzinaw:'Godzina W',manhattan:'Projekt Manhattan',tora:'Tora! Tora! Tora!',oxi:'OXI!',monachium:'O nas, bez nas — ale z bronią',alpy:'Reduta alpejska mówi NIE',waz:'Wąż zapalił fajkę',blitz:'Blitzkrieg — Paryż w 4 miesiące',berlin:'Szturm Berlina',weteran:'Weteran 1939–1945',niezw:'Niezwyciężeni',restaur:'Jeszcze Polska nie zginęła',techno:'Biuro Konstrukcyjne',armia50:'Wielka Armia'};
+function autoTh(a,b){const A=C[a],B=C[b];if(A.map&&B.map)return 'Europa';if((a==='ita'&&b==='gbr')||(a==='gbr'&&b==='ita'))return 'Afryka';const pac=['jap','usa','anz','nzl','chn','ind','mng'];if(pac.includes(a)||pac.includes(b))return 'Pacyfik';return 'Świat'}
+function startWar(a,b,th,force,noPull){if(a===b)return;if(!alive(a)||!alive(b))return;if(atWar(a,b))return;if(hasPact(a,b)&&!force)return;
+ S.pacts=S.pacts.filter(p=>!((p[0]===a&&p[1]===b)||(p[0]===b&&p[1]===a)));
+ const w={x:a,y:b,p:0,th:th||autoTh(a,b),air:{x:60,y:60},bomb:{x:false,y:false},raid:{x:false,y:false},gen:{x:null,y:null},pa:null,ent:{x:0,y:0},since:dkey(S.date),ld:0};
+ if(a===S.player||b===S.player)w.pa={div:{},air:60,gen:null,bomb:false,raid:false};
+ S.wars.push(w);S.tension=clamp(S.tension+5,0,100);
+ cc(a).ws=clamp(cc(a).ws+8,0,100);cc(b).ws=clamp(cc(b).ws+15,0,100);
+ addRel(a,b,-60);
+ const major=['ger','sov','usa','gbr','fra','jap','ita','pol'];
+ if(major.includes(a)||major.includes(b))news(C[a].n+' wypowiada wojnę: '+C[b].n,'Front: '+w.th+'. '+dstr(S.date)+'.');
+ log('⚔️ '+C[a].f+' '+C[a].n+' → '+C[b].f+' '+C[b].n);
+ if(a===S.player||b===S.player){api.toast('⚔️ Wojna z '+C[other(w)].n+'!');snd('boom')}
+ if(!noPull){
+  S.guar.forEach(g=>{if(g[1]===b&&g[0]!==a&&g[0]!==S.player&&alive(g[0])&&!atWar(g[0],a))startWar(g[0],a,null,true,true)});
+  const fb=cc(b).fa;if(fb!=='neu')Object.keys(S.countries).forEach(k=>{const m=cc(k);if(k!==b&&k!==a&&m.fa===fb&&alive(k)&&!atWar(k,a))startWar(k,a,null,true,true)});
+  const fa=cc(a).fa;if(fa!=='neu'&&FAC[fa].lead===a)Object.keys(S.countries).forEach(k=>{const m=cc(k);if(k!==a&&k!==b&&m.fa===fa&&alive(k)&&!atWar(k,b))startWar(k,b,null,true,true)});
+ }
+}
+function endWar(w,reason){S.wars=S.wars.filter(x=>x!==w);addRel(w.x,w.y,15);news('Pokój: '+C[w.x].n+' — '+C[w.y].n,reason||'Działa milkną.');log('🕊️ Pokój '+C[w.x].f+'–'+C[w.y].f)}
+function restore(c){c.owner=c.id;c.exiled=false;c.civ=Math.max(2,Math.round(c.base.civ*0.6));c.mil=Math.max(1,Math.round(c.base.mil*0.5));c.mp+=100;c.ws=clamp(c.ws+20,0,100);c.army.pie=(c.army.pie||0)+2;
+ news('Wyzwolenie: '+C[c.id].n+' wraca na mapę!','Flaga znów nad stolicą. '+dstr(S.date)+'.');log('🎉 '+C[c.id].f+' wyzwolony');
+ if(c.id===S.player){S.exile=false;EQ.push({t:'rest'});unlock('restaur');snd('morse')}}
+function capitulate(x,y){const yc=cc(y),xc=cc(x);if(!alive(y))return;
+ yc.owner=x;yc.exiled=true;
+ xc.civ+=Math.round(yc.base.civ*0.25);xc.mil+=Math.round(yc.base.mil*0.25);
+ yc.civ=Math.max(1,Math.round(yc.civ*0.15));yc.mil=Math.max(0,Math.round(yc.mil*0.1));yc.eq=Math.round(yc.eq*0.15);yc.pl=Math.round(yc.pl*0.1);yc.nv=Math.round(yc.nv*0.1);
+ for(const t in yc.army)yc.army[t]=Math.floor(yc.army[t]*0.15);
+ S.wars=S.wars.filter(w=>w.x!==y&&w.y!==y);
+ news('KAPITULACJA: '+C[y].n,'Stolica '+C[y].cap+' zajęta przez '+C[x].n+'. '+dstr(S.date)+'.');log('🏳️ '+C[y].f+' kapitulował przed '+C[x].f);
+ Object.keys(S.countries).forEach(k=>{const c=cc(k);if(c.owner===y&&k!==y){if(c.fa===xc.fa&&c.fa!=='neu')restore(c);else c.owner=x}});
+ const f=yc.fa;if(f!=='neu'&&FAC[f].lead===y){const mem=Object.keys(S.countries).filter(k=>cc(k).fa===f&&alive(k));FAC[f].lead=mem.sort((a,b)=>cc(b).mil-cc(a).mil)[0]||null}
+ if(y===S.player){EQ.push({t:'exile',occ:x})}
+ if(x===S.player){EQ.push({t:'cap',y:y})}
+ snd(x===S.player?'fan':'boom');
+}
+function armyVal(c){let v=0;for(const t in c.army)v+=c.army[t]*(DT[t].atk+DT[t].def);return v}
+function assignedCount(w){if(!w.pa)return 0;let n=0;for(const t in w.pa.div)n+=w.pa.div[t];return n}
+function reserve(c){const r={};for(const t in c.army)r[t]=c.army[t];S.wars.forEach(w=>{if(w.pa&&(w.x===c.id||w.y===c.id)){for(const t in w.pa.div)r[t]=(r[t]||0)-w.pa.div[t]}});for(const t in r)r[t]=Math.max(0,r[t]);return r}
+function wKey(w){return w.x+'>'+w.y}
+function aiSplit(c){const ws=S.wars.filter(w=>w.x===c.id||w.y===c.id);const out={};if(!ws.length)return out;
+ let tot=0;const wts=ws.map(w=>{const against=w.x===c.id?-w.p:w.p;const wt=Math.max(2,10+Math.max(0,against));tot+=wt;return wt});
+ ws.forEach((w,i)=>{const f=wts[i]/tot;const d={};for(const t in c.army)d[t]=Math.floor(c.army[t]*f);out[wKey(w)]=d});return out}
+function sideData(c,w){if(c.id===S.player&&w.pa)return{div:w.pa.div,air:w.pa.air,gen:w.pa.gen,bomb:w.pa.bomb,raid:w.pa.raid};
+ const sp=aiSplit(c);const d=sp[wKey(w)]||{};const nw=S.wars.filter(x=>x.x===c.id||x.y===c.id).length||1;
+ const g=c.gen.slice().sort((a,b)=>(b.a+b.d)-(a.a+a.d))[0]||null;
+ return{div:d,air:Math.round(100/nw),gen:g?g.n:null,bomb:c.tech.bomb&&c.pl>800,raid:c.nv>20}}
+function airPower(c,pct){let a=c.pl*(pct/100);a*=1+spMod(c,'air')/100;if(c.tech.mys)a*=1.2;if(c.tech.jet)a*=1.3;if(c.tech.radarT)a*=1.15;if(c.fu<=0)a*=0.4;return a}
+function power(c,sd,att,w,foe){let base=0,tanks=0;
+ for(const t in sd.div){const n=sd.div[t];if(!n)continue;const d=DT[t];let v=n*(att?d.atk:d.def);
+  if(att){if(t==='pan'&&c.tech.cz1)v*=1.2;if(t==='pan'&&c.tech.cz2)v*=1.25;if(c.tech.art)v*=1.1;if(c.tech.dok1)v*=1.1}
+  else{if(t==='pie'&&c.tech.pie1)v*=1.1;if(c.tech.pie2)v*=1.15;if(t==='pan'&&c.tech.cz2)v*=1.1;if(c.tech.dok2)v*=1.1}
+  base+=v;tanks+=n*d.fu}
+ if(w.th==='Pacyfik'){base=base*0.35+c.nv*14*(c.tech.lotn?1.3:1)+(sd.div.mar||0)*18}
+ let m=1+c.tl*0.05;m*=0.55+c.ws/100*0.55;
+ m*=1+spMod(c,att?'atk':'def')/100;
+ if(c.tech.krypto)m*=1.1;
+ if(c.forts)m*=1+c.forts*0.08*(att?0.3:1);
+ if(!att)m*=1+Math.min(w.ent[w.x===c.id?'x':'y'],5)*0.04;
+ const g=c.gen.find(x=>x.n===sd.gen);if(g)m*=1+(att?g.a:g.d)/100;
+ if(c.fu<=0&&tanks>0)m*=0.6;
+ const myAir=airPower(c,sd.air),foeSd=sideData(foe,w),foeAir=airPower(foe,foeSd.air);
+ m*=1+clamp((myAir-foeAir)/(foeAir+250),-0.25,0.3);
+ if(S.exile&&c.fa===pc().fa&&c.fa!=='neu'&&foe.id===S.occ){for(const t in pc().army)base+=pc().army[t]*(att?DT[t].atk:DT[t].def)*0.9}
+ return base*m*rnd(0.85,1.18)}
+function battle(w){const xc=cc(w.x),yc=cc(w.y);const sx=sideData(xc,w),sy=sideData(yc,w);
+ const px=power(xc,sx,true,w,yc),dy=power(yc,sy,false,w,xc),py=power(yc,sy,true,w,xc),dx=power(xc,sx,false,w,yc);
+ const bigY=C[w.y].big?0.6:(C[w.y].pop<5?1.25:1),bigX=C[w.x].big?0.6:(C[w.x].pop<5?1.25:1);
+ const sc=45;
+ let dxx=(px-dy)/sc*bigY,dyy=(py-dx)/sc*bigX;
+ const capX=px>dy*1.8?16:10,capY=py>dx*1.8?16:10;
+ dxx=clamp(dxx,-6,capX);dyy=clamp(dyy,-6,capY);
+ let delta=clamp(Math.round(dxx-dyy),-16,16);
+ if(Math.abs(delta)<1)delta=ri(-1,1);
+ w.p=clamp(w.p+delta,-100,100);w.ld=delta;
+ if(Math.abs(delta)<2){w.ent.x=Math.min(5,w.ent.x+1);w.ent.y=Math.min(5,w.ent.y+1)}else{w.ent.x=0;w.ent.y=0}
+ const inten=(px+py)/300;
+ const xLoss=Math.round(inten*rnd(1.2,2.6)*(delta<0?1.3:1)),yLoss=Math.round(inten*rnd(1.2,2.6)*(delta>0?1.3:1));
+ xc.mp=Math.max(0,xc.mp-xLoss);yc.mp=Math.max(0,yc.mp-yLoss);
+ xc.eq=Math.max(0,xc.eq-Math.round(inten*rnd(3,7)));yc.eq=Math.max(0,yc.eq-Math.round(inten*rnd(3,7)));
+ if(w.x===S.player||w.y===S.player){const my=w.x===S.player;S.stats.kills+=my?yLoss:xLoss;S.stats.losses+=my?xLoss:yLoss}
+ if(Math.abs(delta)>7){const loser=delta>0?yc:xc;const types=Object.keys(loser.army).filter(t=>loser.army[t]>0);if(types.length&&Math.random()<0.5){const t=types[ri(0,types.length-1)];loser.army[t]--;if(loser.id===S.player&&w.pa&&w.pa.div[t]>0)w.pa.div[t]--}}
+ const fuUse=(sd,cc2)=>{let f=cc2.nv*0.4+cc2.pl*(sd.air/100)*0.02;for(const t in sd.div)f+=sd.div[t]*DT[t].fu*0.7;return f};
+ xc.fu=Math.max(0,xc.fu-fuUse(sx,xc));yc.fu=Math.max(0,yc.fu-fuUse(sy,yc));
+ if(sx.bomb&&xc.tech.bomb&&airPower(xc,sx.air)>airPower(yc,sy.air)){const dmg=yc.blackout?0.5:1;yc.st=clamp(yc.st-1.5*dmg,0,100);if(Math.random()<0.3)yc.civ=Math.max(1,yc.civ-1)}
+ if(sy.bomb&&yc.tech.bomb&&airPower(yc,sy.air)>airPower(xc,sx.air)){const dmg=xc.blackout?0.5:1;xc.st=clamp(xc.st-1.5*dmg,0,100);if(Math.random()<0.3)xc.civ=Math.max(1,xc.civ-1)}
+ if(sx.raid&&xc.nv>yc.nv){yc.fu=Math.max(0,yc.fu-40);yc.eq=Math.max(0,yc.eq-40)}
+ if(sy.raid&&yc.nv>xc.nv){xc.fu=Math.max(0,xc.fu-40);xc.eq=Math.max(0,xc.eq-40)}
+ if(w.p>=100){capitulate(w.x,w.y);return{w:w,txt:'🏳️ '+C[w.y].n+' skapitulował!',d:delta}}
+ if(w.p<=-100){capitulate(w.y,w.x);return{w:w,txt:'🏳️ '+C[w.x].n+' skapitulował!',d:delta}}
+ return{w:w,txt:(delta>0?'▲ +':delta<0?'▼ ':'■ ')+delta+' — front '+w.th,d:delta}}
+/* ===== ARMY STARTOWE ===== */
+const ARMY0={ger:{pie:24,pan:6,zme:4,gor:2,spa:1},sov:{pie:50,pan:6,kaw:8},usa:{pie:8,pan:1,mar:2},gbr:{pie:12,pan:2,mar:2,gor:1},fra:{pie:26,pan:3},jap:{pie:24,mar:4},ita:{pie:20,pan:2,gor:3},chn:{pie:30,mil:25},pol:{pie:16,kaw:4,gor:2},fin:{pie:8,gor:1},swe:{pie:6},nor:{pie:5},den:{pie:3},nld:{pie:6},bel:{pie:7},lux:{pie:1},che:{pie:8,gor:3},esp:{pie:10},por:{pie:4},irl:{pie:3},tur:{pie:12},rom:{pie:10},hun:{pie:8},yug:{pie:9,gor:2},bul:{pie:7},gre:{pie:8,gor:2},est:{pie:2},lva:{pie:2},ltu:{pie:3},aut:{pie:6},cze:{pie:12},can:{pie:4},anz:{pie:4},nzl:{pie:2},rpa:{pie:3},ind:{pie:10},bra:{pie:5},mex:{pie:3},arg:{pie:5},irn:{pie:4},irq:{pie:3},afg:{pie:4},mng:{kaw:4},eth:{pie:6,mil:4}};
+function cloneC(id){const b=C[id];const ws0={dem:30,fas:55,kom:50,aut:40}[b.ideo];
+ const c={id:id,owner:id,exiled:false,base:{civ:b.civ,mil:b.mil},civ:b.civ,mil:b.mil,mp:b.mp,eq:b.eq,pl:b.pl,nv:b.nv,fu:b.fu,pp:50,ws:ws0,st:60,tl:b.tl,sl:b.sl,army:Object.assign({},ARMY0[id]||{pie:3}),train:[],tech:{},res:[],sp:{},gen:b.gen.map(g=>Object.assign({},g)),lawM:0,lawC:1,alloc:{eq:0,air:0,nav:0,fu:0},build:[],forts:0,blackout:false,intel:{},ideo:b.ideo,fa:b.fa,lead:b.lead};
+ b.sp.forEach(s=>c.sp[s]=0);
+ const M=c.mil;c.alloc={eq:Math.round(M*0.55),air:Math.round(M*0.2),nav:Math.round(M*0.1),fu:Math.round(M*0.15)};
+ return c}
+function setFaction(id,f){const c=cc(id);if(!c)return;c.fa=f;const L=FAC[f].lead;if(L&&L!==id)addRel(id,L,25);news(C[id].n+' dołącza do: '+FAC[f].n,' '+dstr(S.date)+'.')}
+function tweak(id,key,v){const c=id?cc(id):pc();if(!c)return;const lo=(key==='ws'||key==='st')?0:(key==='tl'?1:0);const hi=(key==='ws'||key==='st')?100:1e9;c[key]=clamp((c[key]||0)+v,lo,hi)}
+function fx(list){for(const o of list||[]){const k=o[0];
+ if(k==='war')startWar(o[1],o[2]||S.player,o[3],true);
+ else if(k==='peace'){const w=atWar(o[1],o[2]||S.player);if(w)endWar(w,'Traktat pokojowy.')}
+ else if(k==='annex')capitulate(o[1],o[2]||S.player);
+ else if(k==='join')setFaction(o[1]||S.player,o[2]);
+ else if(k==='rel')addRel(o[1],o[2]||S.player,o[3]);
+ else if(['ws','st','pp','eq','pl','fu','mp','nv','civ','mil','tl'].includes(k))tweak(o[1],k,o[2]);
+ else if(k==='sp')addSp(o[1]||S.player,o[2],o[3]);
+ else if(k==='unsp')rmSp(o[1]||S.player,o[2]);
+ else if(k==='tech')cc(o[1]||S.player).tech[o[2]]=true;
+ else if(k==='ten')S.tension=clamp(S.tension+o[1],0,100);
+ else if(k==='news')news(o[1],o[2]);
+ else if(k==='lead')cc(o[1]||S.player).lead=o[2];
+ else if(k==='army'){const c=cc(o[1]||S.player);for(const t in o[2])c.army[t]=Math.max(0,(c.army[t]||0)+o[2][t])}
+ else if(k==='guar')S.guar.push([o[1],o[2]]);
+ else if(k==='pact')S.pacts.push([o[1],o[2]]);
+ else if(k==='unpact')S.pacts=S.pacts.filter(p=>!((p[0]===o[1]&&p[1]===o[2])||(p[0]===o[2]&&p[1]===o[1])));
+ else if(k==='ach')unlock(o[1]);
+ else if(k==='chron')log('🕯️ '+o[1]);
+ else if(k==='flag')S.done[o[1]]=o[2];
+ else if(k==='bomb')S.done.bomb=1;
+}}
+function blockaded(c){return S.wars.some(w=>{const f=w.x===c.id?cc(w.y):cc(w.x);return (w.x===c.id||w.y===c.id)&&f.nv>c.nv*1.4})}
+function prodMult(c){let m=[0.8,1,1.2,1.4][c.lawM];m*=1+spMod(c,'prod')/100;if(c.tech.narz)m*=1.15;m*=1+c.tl*0.04;return m}
+function researchTick(c){c.res=c.res.filter(r=>{r.left--;if(r.left<=0){c.tech[r.id]=true;if(c.id===S.player){api.toast('🔬 Badanie ukończone: '+TECH[r.id].n);news('Badanie: '+TECH[r.id].n,TECH[r.id].d)}return false}return true})}
+function trainTick(c){c.train=c.train.filter(t=>{t.left--;if(t.left<=0){c.army[t.type]=(c.army[t.type]||0)+1;if(c.id===S.player)api.toast('🪖 Gotowa: '+DT[t.type].n);return false}return true})}
+function buildTick(c){c.build=c.build.filter(b=>{b.left--;if(b.left<=0){if(b.k==='civ')c.civ++;else if(b.k==='mil')c.mil++;else if(b.k==='fort')c.forts=Math.min(3,c.forts+1);else if(b.k==='radar')c.radar=true;if(c.id===S.player)api.toast('🏗️ Ukończono budowę: '+b.k);return false}return true})}
+function autoTech(c){const y=S.date.y;if(c.tl>=3&&!c.tech.pie1)c.tech.pie1=true;if(c.tl>=4){c.tech.cz1=true;c.tech.art=true}if(c.tl>=5){c.tech.mys=true;c.tech.narz=true}if(y>=1942)c.tech.bomb=true;if(y>=1943&&c.tl>=5)c.tech.cz2=true;if(c.id==='usa'&&y>=1945&&S.date.m>=7)c.tech.manhattan=true;if(c.id==='ger'&&y>=1944)c.tech.v2=true;if(c.id==='gbr'&&y>=1943)c.tech.krypto=true}
+function monthly(c){
+ if(c.exiled){c.pp+=1.5;c.mp+=5;c.eq+=(S.exile&&c.id===S.player)?30:8;c.ws=clamp(c.ws+0.5,0,100);researchTick(c);trainTick(c);return}
+ const pm=prodMult(c);
+ c.pp+=1+c.civ*0.04+spMod(c,'pp')/100*2;
+ c.mp+=Math.round(C[c.id].pop*[0.8,1.5,2.5,4][c.lawC]);
+ let al=c.alloc;if(c.id!==S.player){const M=c.mil;al={eq:Math.round(M*0.55),air:Math.round(M*0.2),nav:Math.round(M*0.1),fu:Math.round(M*0.15)}}
+ c.eq+=al.eq*13*pm;
+ c.pl+=al.air*4.5*pm*(c.tech.mys?1.1:1);
+ c.nv+=al.nav*0.7*(['usa','gbr','jap'].includes(c.id)?1.6:1);
+ let fuIn=al.fu*8*(c.tech.synt?1.5:1);
+ if(C[c.id].oil)fuIn+=Math.min(200,C[c.id].pop*1.2);
+ else{let imp=Math.min(c.nv,20)*3*(c.tech.konw?1.5:1)*(c.tech.sonar?1.3:1);if(blockaded(c))imp*=0.4;fuIn+=imp}
+ fuIn*=1+spMod(c,'fu')/100;c.fu+=fuIn;c.fu=Math.max(0,c.fu-c.nv*0.3);
+ const wars=S.wars.filter(w=>w.x===c.id||w.y===c.id).length;
+ c.ws=clamp(c.ws+(wars?1.2:-0.8),0,100);
+ c.st=clamp(c.st+0.4-wars*0.4-occOf(c.id).length*0.5,0,100);
+ researchTick(c);trainTick(c);buildTick(c);
+ for(const s in c.sp){if(c.sp[s]>0){c.sp[s]--;if(c.sp[s]===0)delete c.sp[s]}}
+ if(c.id!==S.player){c.tl=Math.min(8,c.tl+0.035);autoTech(c)}
+}
+function aiTurn(c){
+ const mix=c.ideo==='fas'?['pie','pan','pan','zme','gor']:c.ideo==='kom'?['pie','pie','pan']:c.ideo==='dem'?['pie','pie','pan','mar']:['pie','pie','gor'];
+ const cap=Math.max(1,Math.floor(c.mil/3));
+ if(c.train.length<cap){const t=mix[ri(0,mix.length-1)];const d=DT[t];if(c.eq>d.eq*1.4&&c.mp>d.mp){c.eq-=d.eq;c.mp-=d.mp;c.train.push({type:t,left:d.t})}}
+ const wars=S.wars.filter(w=>w.x===c.id||w.y===c.id).length;
+ if(wars&&c.lawM<3&&Math.random()<0.3){c.lawM++;c.mil++;c.civ=Math.max(1,c.civ-1)}
+ if(wars&&c.lawC<3&&Math.random()<0.25)c.lawC++;
+ if(c.ws<50&&c.pp>25){c.ws=clamp(c.ws+10,0,100);c.pp-=20}
+ if(S.mode==='free'&&(c.ideo==='fas'||c.ideo==='kom')&&S.tension>55&&!wars&&Math.random()<0.06){
+  const nb=(ADJ[c.id]||Object.keys(S.countries)).filter(k=>alive(k)&&k!==c.id&&!hasPact(c.id,k)&&rel(c.id,k)<10&&armyVal(c)>armyVal(cc(k))*1.6);
+  if(nb.length)startWar(c.id,nb[ri(0,nb.length-1)])}
+}
+function processEvents(){const dk=dkey(S.date);
+ if(dk==='1939-09'&&S.scen===2&&S.player==='sov'&&alive('pol')&&!atWar('ger','pol')&&!S.done.nowar39&&!S.done.fwS){S.done.fwS=1;startWar('ger','pol');news('WOJNA! Niemcy napadły na Polskę','Westerplatte broni się nadal.')}
+ for(const e of E){if(S.done[e.id]||e.d!==dk)continue;if(e.s&&e.s!==S.scen)continue;if(e.c&&!e.c(S))continue;S.done[e.id]=1;
+  if(e.o)EQ.push({t:'ev',e:e});
+  else{if(e.a)fx(e.a);if(e.n)news(e.n[0],e.n[1]);if(e.q!=null&&Math.random()<0.6)api.toast('💬 „'+Q[e.q][0]+'" — '+Q[e.q][1])}}
+}
+function fireRandom(){if(Math.random()>0.3)return;const pool=RP.filter(r=>(!r.c||r.c(S))&&S.rpLast!==r.n);if(!pool.length)return;
+ let tot=pool.reduce((a,r)=>a+r.w,0),x=Math.random()*tot,pick=pool[0];for(const r of pool){x-=r.w;if(x<=0){pick=r;break}}
+ S.rpLast=pick.n;fx(pick.fx);news(pick.n,pick.x);if(pick.q!=null)api.toast('💬 „'+Q[pick.q][0]+'" — '+Q[pick.q][1])}
+function checkAch(){const p=pc();
+ if(Object.keys(p.tech).length>=10)unlock('techno');
+ let tot=0;for(const t in p.army)tot+=p.army[t];if(tot>=50)unlock('armia50');
+ if(S.player==='ger'&&cc('fra').owner==='ger'&&S.date.y<=1940)unlock('blitz');
+ if(S.player==='sov'&&cc('ger').owner==='sov')unlock('berlin');
+ if(S.player==='fin'&&alive('fin')&&S.done.wwP)unlock('sisu');
+ if(!S.exile&&alive(S.player)&&S.stats.losses<50&&S.stats.wins>=1)unlock('niezw');
+ if(S.date.y>=1945&&S.date.m>=9)unlock('weteran');
+}
+function updateExile(){const allies=Object.keys(S.countries).filter(k=>k!==S.player&&cc(k).fa===pc().fa&&alive(k));
+ if(!allies.length){gameOver('defeat');return}
+ if(!S.host||!alive(S.host)||cc(S.host).fa!==pc().fa)S.host=allies.sort((a,b)=>armyVal(cc(b))-armyVal(cc(a)))[0];
+}
+function checkEnd(){if(S.over)return;
+ if(S.exile){updateExile();return}
+ if(S.date.y>1948){gameOver('time');return}
+ const myWars=S.wars.filter(w=>w.x===S.player||w.y===S.player).length;
+ const fac=pc().fa;
+ if(fac!=='neu'){const enemies=Object.keys(FAC).filter(f=>f!=='neu'&&f!==fac);const allDead=enemies.every(f=>{const L=FAC[f].lead;return !L||!alive(L)});if(allDead&&enemies.length){gameOver('total');return}}
+ if(!myWars&&S.date.y>=1945&&S.date.m>=9){gameOver(fac!=='neu'?'victory':'peace')}
+}
+function gameOver(kind){if(S.over)return;S.over=true;S.stats.wins=S.stats.wins||0;EQ.push({t:'end',kind:kind});snd(kind==='defeat'?'boom':'fan')}
+function score(){const p=pc();let s=p.civ*3+p.mil*4+Object.keys(p.tech).length*6+p.tl*10+Math.round(S.stats.kills/5)-Math.round(S.stats.losses/8)+occOf(S.player).length*25+Object.keys(ACH).length*20;return Math.max(0,Math.round(s))}
+/* ===== AKCJE GRACZA ===== */
+function train(type){const c=pc(),d=DT[type];let cost=d.eq*(1+spMod(c,'cost')/100);if(type==='spa'&&c.tech.trans)cost*=0.7;
+ if(c.eq<cost||c.mp<d.mp){api.toast('Brak zasobów na szkolenie');return}
+ if(c.train.length>=Math.max(2,Math.floor(c.mil/2))){api.toast('Zbyt dużo równoległych szkoleń');return}
+ c.eq-=cost;c.mp-=d.mp;c.train.push({type:type,left:d.t});snd('click');render()}
+function cancelTrain(i){const c=pc(),t=c.train[i];if(!t)return;const d=DT[t.type];c.eq+=d.eq*0.6;c.mp+=Math.round(d.mp*0.6);c.train.splice(i,1);render()}
+function build(k){const c=pc();const costs={civ:120,mil:150,fort:80,radar:100};const times={civ:3,mil:3,fort:2,radar:3};
+ if(k==='radar'&&!c.tech.radarT){api.toast('Wymaga technologii Radar');return}
+ if(k==='fort'&&c.forts>=3){api.toast('Maksymalny poziom fortyfikacji');return}
+ if(c.eq<costs[k]){api.toast('Brak wyposażenia');return}
+ if(c.build.length>=3){api.toast('Plac budowy pełny');return}
+ c.eq-=costs[k];c.build.push({k:k,left:times[k]});snd('click');render()}
+function setAlloc(line,v){const c=pc();v=parseInt(v)||0;const others=c.alloc.eq+c.alloc.air+c.alloc.nav+c.alloc.fu-c.alloc[line];
+ if(others+v>c.mil)v=c.mil-others;c.alloc[line]=Math.max(0,v);render()}
+function setLaw(kind,lvl){const c=pc();lvl=parseInt(lvl);if(kind==='M'){const diff=lvl-c.lawM;if(diff>0){c.mil+=diff;c.civ=Math.max(1,c.civ-diff)}else{c.civ-=diff;c.mil=Math.max(0,c.mil+diff)}c.lawM=lvl}else c.lawC=lvl;snd('click');render()}
+function startResearch(id){const c=pc(),t=TECH[id];if(c.tech[id]||c.res.some(r=>r.id===id))return;if(c.res.length>=c.sl){api.toast('Brak wolnych slotów badawczych');return}
+ if(t.r&&!c.tech[t.r]){api.toast('Wymaga: '+TECH[t.r].n);return}if(t.lock&&!t.lock.includes(S.player)){api.toast('Technologia niedostępna dla tego państwa');return}
+ c.res.push({id:id,left:t.m});snd('click');closeModal();render()}
+function allocDiv(wi,type,dir){const w=S.wars[wi];if(!w||!w.pa)return;const c=pc();
+ const cur=w.pa.div[type]||0;let usedOther=0;
+ S.wars.forEach((x,i)=>{if(i!==wi&&x.pa)usedOther+=x.pa.div[type]||0});
+ const maxHere=(c.army[type]||0)-usedOther;
+ w.pa.div[type]=clamp(cur+dir,0,Math.max(0,maxHere));
+ render()}
+function setAir(wi,v){const w=S.wars[wi];if(w&&w.pa){w.pa.air=parseInt(v);render()}}
+function setGen(wi,n){const w=S.wars[wi];if(w&&w.pa){w.pa.gen=n||null;render()}}
+function toggleBomb(wi){const w=S.wars[wi];if(w&&w.pa){if(!pc().tech.bomb){api.toast('Wymaga: Bombowce strategiczne');return}w.pa.bomb=!w.pa.bomb;render()}}
+function toggleRaid(wi){const w=S.wars[wi];if(w&&w.pa){w.pa.raid=!w.pa.raid;render()}}
+function dipAction(t,act){const c=pc(),o=cc(t);if(!o)return;
+ if(act==='rel'){if(c.pp<10){api.toast('Brak PP');return}c.pp-=10;addRel(S.player,t,15);api.toast('🤝 Relacje z '+C[t].n+' +15')}
+ else if(act==='pact'){if(c.pp<25){api.toast('Brak PP');return}if(rel(S.player,t)<40){api.toast('Za niskie relacje (wymagane 40)');return}if(hasPact(S.player,t)){api.toast('Pakt już istnieje');return}c.pp-=25;S.pacts.push([S.player,t]);addRel(S.player,t,15);news('Pakt o nieagresji: '+C[S.player].n+' — '+C[t].n,'Podpisano w '+dstr(S.date)+'.')}
+ else if(act==='guar'){if(c.pp<20){api.toast('Brak PP');return}c.pp-=20;S.guar.push([S.player,t]);addRel(S.player,t,15);api.toast('🛡️ Gwarancja dla '+C[t].n)}
+ else if(act==='join'){const f=o.fa;if(f==='neu'){api.toast('To państwo jest neutralne');return}if(c.fa===f){api.toast('Już w tej frakcji');return}if(rel(S.player,FAC[f].lead||t)<30&&c.ideo!==o.ideo){api.toast('Odmowa — niskie relacje / inna ideologia');return}if(atWar(S.player,FAC[f].lead||t)){api.toast('Nie można — wojna z przywódcą frakcji');return}setFaction(S.player,f);api.toast('Dołączono do: '+FAC[f].n)}
+ else if(act==='war'){if(c.pp<30){api.toast('Brak PP');return}if(hasPact(S.player,t)){api.toast('Obowiązuje pakt o nieagresji');return}if(c.ideo==='dem'&&c.ws<50&&S.tension<60&&!atWar(t,S.player)){api.toast('Demokracja nie może pierwsza wypowiedzieć wojny (poparcie <50, napięcie <60)');return}c.pp-=30;startWar(S.player,t)}
+ else if(act==='ll'){if(c.fa!==o.fa||c.fa==='neu'){api.toast('Lend-Lease tylko dla sojuszników');return}if(c.eq<150){api.toast('Brak wyposażenia');return}c.eq-=150;o.eq+=150;o.fu+=60;addRel(S.player,t,12);api.toast('📦 Lend-Lease wysłany do '+C[t].n)}
+ else if(act==='peace'){const w=atWar(S.player,t);if(!w){api.toast('Brak wojny');return}if(c.pp<30){api.toast('Brak PP');return}if(Math.abs(w.p)>30){api.toast('Wróg nie zgodzi się — front zbyt gorący');return}c.pp-=30;if(o.ws<55||Math.random()<0.5){endWar(w,'Pokój biały.');api.toast('🕊️ Pokój z '+C[t].n)}else api.toast('Wróg odrzuca propozycję')}
+ render()}
+function spyOp(op,t){const c=pc(),o=cc(t);if(!o)return;const costs={intel:15,sab:25,decode:30,part:25};
+ if(c.pp<costs[op]){api.toast('Brak PP');return}
+ if(op==='decode'&&!c.tech.krypto){api.toast('Wymaga: Kryptologia');return}
+ if(c.intel['cd_'+op]>S.turn){api.toast('Operacja w toku / cooldown');return}
+ c.pp-=costs[op];c.intel['cd_'+op]=S.turn+3;const ok=Math.random()<0.7;
+ if(op==='intel'){c.intel[t]=S.turn+6;api.toast(ok?'🕵️ Wywiad: dane '+C[t].n+' odsłonięte':'🕵️ Agent wpadł — brak danych')}
+ else if(op==='sab'){if(ok){o.eq=Math.max(0,o.eq-250);o.fu=Math.max(0,o.fu-100);api.toast('💥 Sabotaż udany w '+C[t].n)}else api.toast('💥 Sabotaż nieudany')}
+ else if(op==='decode'){if(ok){addSp(S.player,'enigma',6);api.toast('🔐 Deszyfraż udany — czytamy depesze!')}else api.toast('🔐 Deszyfraż nieudany')}
+ else if(op==='part'){if(ok){o.st=clamp(o.st-8,0,100);o.eq=Math.max(0,o.eq-150);api.toast('🌲 Partyzantka działa w '+C[t].n)}else api.toast('🌲 Zrzuty przechwycone')}
+ render()}
+function decision(id){const d=DEC.find(x=>x.id===id);if(!d)return;const c=pc();if(c.pp<d.p){api.toast('Brak PP');return}if(d.c&&!d.c(S)){api.toast('Niedostępne');return}c.pp-=d.p;d.fx(S);api.toast('📜 Decyzja: '+d.n);snd('click');render()}
+/* ===== TURA ===== */
+function endTurn(){if(BUSY||!S||S.over)return;if(EQ.length){showNext();return}
+ BUSY=true;snd('click');
+ S.date.m++;if(S.date.m>12){S.date.m=1;S.date.y++}S.turn++;
+ Object.keys(S.countries).forEach(k=>monthly(cc(k)));
+ processEvents();
+ Object.keys(S.countries).forEach(k=>{if(k!==S.player&&alive(k))aiTurn(cc(k))});
+ const reports=[];S.wars.slice().forEach(w=>{if(alive(w.x)&&alive(w.y))reports.push(battle(w))});
+ fireRandom();
+ const p=pc();S.hist.eq.push(Math.round(p.eq));S.hist.pl.push(Math.round(p.pl));S.hist.fu.push(Math.round(p.fu));
+ if(S.hist.eq.length>30){S.hist.eq.shift();S.hist.pl.shift();S.hist.fu.shift()}
+ checkAch();if(S.exile)updateExile();checkEnd();
+ if(CFG.auto)saveAuto();
+ api.title('II WŚ — '+dstr(S.date)+' ('+C[S.player].n+(S.exile?' • uchodźstwo':'')+')');
+ BUSY=false;render();
+ if(!S.over){if(EQ.length)showNext();else showReport(reports)}
+}
+/* ===== ZAPIS ===== */
+function saveAuto(){api.state('auto',S)}
+function saveSlot(i){api.state('slot'+i,{meta:{p:S.player,d:dkey(S.date),scen:S.scen},S:S});api.toast('💾 Zapisano w slocie '+(i+1))}
+async function loadSlot(i){const r=await api.state('slot'+i);if(r&&r.S){S=r.S;enterGame();api.toast('Wczytano slot '+(i+1))}else api.toast('Pusty slot')}
+function exportReport(){const p=pc();let t='II WŚ: SZTAB GŁÓWNY — RAPORT\nPaństwo: '+C[S.player].n+'\nData: '+dstr(S.date)+'\n\n';
+ t+='Przemysł: '+p.civ+' cywilnych / '+p.mil+' wojskowych\nRezerwy: '+fmt(p.mp)+' tys. • Paliwo: '+fmt(p.fu)+'\nWyposażenie: '+fmt(p.eq)+' • Samoloty: '+fmt(p.pl)+' • Flota: '+Math.round(p.nv)+'\n';
+ t+='Straty zadane: '+fmt(S.stats.kills)+' tys. • Własne: '+fmt(S.stats.losses)+' tys.\n\nKRONIKA:\n';
+ S.news.slice(-25).forEach(n=>t+='['+n.d+'] '+n.h+'\n');
+ const path='C:\\użytkownik\\dokumenty\\IIWS_raport_'+dkey(S.date)+'.txt';
+ if(inOS){api.call('fs.write',{path:path,content:t}).then(r=>{api.toast(r?'📄 Raport zapisany: '+path:'Nie udało się zapisać raportu')})}
+ else{try{const b=new Blob([t],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='IIWS_raport.txt';a.click()}catch(e){}}
+}
+/* ===== UI ===== */
+function facTag(f){return '<span class="tag '+f+'">'+FAC[f].n+'</span>'}
+function bar(v,mx,cls){return '<div class="bar"><i class="'+(cls||'')+'" style="width:'+clamp(v/mx*100,0,100)+'%"></i></div>'}
+function frontBar(p){const pos=clamp((p+100)/2,0,100);return '<div class="fbar"><div class="zero"></div><div class="mk" style="left:calc('+pos+'% - 2px)"></div></div>'}
+function spark(arr,col){if(!arr.length)return '';const mx=Math.max.apply(null,arr.concat([1]));const w=220,h=40;const pts=arr.map((v,i)=>(i/(arr.length-1||1)*w)+','+(h-v/mx*h)).join(' ');return '<svg width="'+w+'" height="'+h+'" style="background:#0d110b;border:1px solid var(--ln)"><polyline points="'+pts+'" fill="none" stroke="'+col+'" stroke-width="1.5"/></svg>'}
+function setTab(t){TAB=t;snd('click');render()}
+function nextTurn(){endTurn()}
+function toggleSound(){CFG.sound=!CFG.sound;api.state('cfg',CFG);render()}
+function quickSave(){saveSlot(0)}
+function render(){if(!S)return;rTop();rNav();rTape();const m=$('main');
+ if(TAB==='map')m.innerHTML=rMap();else if(TAB==='army')m.innerHTML=rArmy();else if(TAB==='prod')m.innerHTML=rProd();else if(TAB==='res')m.innerHTML=rRes();else if(TAB==='dip')m.innerHTML=rDip();else if(TAB==='spy')m.innerHTML=rSpy();else if(TAB==='dec')m.innerHTML=rDec();else if(TAB==='news')m.innerHTML=rNews();else if(TAB==='stats')m.innerHTML=rStats();
+}
+function rTop(){const p=pc();const exile=S.exile?' <span class="tag war">RZĄD NA UCHODŹSTWIE</span>':'';
+ $('top').innerHTML='<span class="flag">'+C[S.player].f+'</span><b class="mil">'+C[S.player].n+'</b>'+exile+
+ '<span class="chip">📅 <b>'+dstr(S.date)+'</b></span>'+
+ '<span class="chip">⭐ PP <b>'+Math.floor(p.pp)+'</b></span>'+
+ '<span class="chip">🏭 <b>'+p.civ+'/'+p.mil+'</b></span>'+
+ '<span class="chip">👥 <b>'+fmt(p.mp)+'</b> tys.</span>'+
+ '<span class="chip">⛽ <b>'+fmt(p.fu)+'</b></span>'+
+ '<span class="chip">📦 <b>'+fmt(p.eq)+'</b></span>'+
+ '<span class="chip">✈️ <b>'+fmt(p.pl)+'</b></span>'+
+ '<span class="chip">🔥 <b>'+Math.round(p.ws)+'%</b></span>'+
+ '<span class="chip">🏛️ <b>'+Math.round(p.st)+'%</b></span>'+
+ '<span class="chip">🌡️ <b>'+Math.round(S.tension)+'</b></span>'+
+ '<span style="flex:1"></span>'+
+ '<button class="btn sm" onclick="toggleSound()">'+(CFG.sound?'🔊':'🔇')+'</button>'+
+ '<button class="btn sm" onclick="quickSave()">💾</button>'+
+ '<button class="btn sm" onclick="openMenuModal()">☰</button>'+
+ '<button class="btn gold" onclick="nextTurn()" '+(EQ.length?'disabled':'')+'>⏭ Następna tura</button>';
+}
+const TABS=[['map','🗺️ Mapa'],['army','🪖 Armia'],['prod','🏭 Produkcja'],['res','🔬 Badania'],['dip','🤝 Dyplomacja'],['spy','🕵️ Wywiad'],['dec','📜 Decyzje'],['news','📰 Prasa'],['stats','📊 Statystyki']];
+function rNav(){$('nav').innerHTML=TABS.map(t=>'<button class="nb'+(TAB===t[0]?' on':'')+'" onclick="setTab(\''+t[0]+'\')">'+t[1]+'</button>').join('')}
+function rTape(){const q=Q[ri(0,Q.length-1)];const last=S.news.slice(-3).map(n=>n.h).join(' • ');
+ $('tape').textContent='💬 „'+q[0]+'" — '+q[1]+'  ✦  '+last+'  ✦  Sztab Główny • '+dstr(S.date)+'  ✦  '}
+function rMap(){let svg='<svg viewBox="0 0 1000 620" style="width:100%;display:block">';
+ svg+='<defs><pattern id="sea" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M0 20h40M20 0v40" stroke="#16222c" stroke-width="1"/></pattern></defs>';
+ svg+='<rect width="1000" height="620" fill="#0f1720"/><rect width="1000" height="620" fill="url(#sea)"/>';
+ svg+='<text x="20" y="30" fill="#3a5a6a" font-size="13" font-family="Courier New">MORZE PÓŁNOCNE</text><text x="640" y="560" fill="#3a5a6a" font-size="13" font-family="Courier New">MORZE ŚRÓDZIEMNE</text><text x="60" y="400" fill="#3a5a6a" font-size="13" font-family="Courier New">ATLANTYK</text><text x="600" y="250" fill="#3a5a6a" font-size="12" font-family="Courier New">BAŁTYK</text>';
+ for(const id in MAP){const c=cc(id);if(!c)continue;const owner=cc(c.owner);const col=FAC[owner.fa]?FAC[owner.fa].c:'#7a8a5a';const me=id===S.player;
+  svg+='<polygon points="'+MAP[id]+'" fill="'+col+'" fill-opacity="'+(c.owner===id?0.85:0.5)+'" class="cty'+(me?' me':'')+'" onclick="openCountry(\''+id+'\')"><title>'+C[id].n+(c.owner!==id?' (okup. '+C[c.owner].n+')':'')+'</title></polygon>';
+  const ce=CENT[id];svg+='<text x="'+ce[0]+'" y="'+ce[1]+'" font-size="'+(C[id].pop>30?15:11)+'" text-anchor="middle" pointer-events="none">'+C[id].f+'</text>';
+  if(c.owner!==id)svg+='<text x="'+ce[0]+'" y="'+(ce[1]+13)+'" font-size="8" fill="#ffd27a" text-anchor="middle" pointer-events="none" font-family="Courier New">okup.</text>';
+ }
+ S.wars.forEach(w=>{if(C[w.x].map&&C[w.y].map&&CENT[w.x]&&CENT[w.y]){const a=CENT[w.x],b=CENT[w.y];const col=w.p>0?'#c9a227':'#b04a3a';
+  svg+='<line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+b[0]+'" y2="'+b[1]+'" stroke="'+col+'" stroke-width="3" class="front"/>';
+  const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;svg+='<text x="'+mx+'" y="'+(my-6)+'" font-size="11" fill="'+col+'" text-anchor="middle" font-family="Courier New" pointer-events="none">'+(w.p>0?'▶':'◀')+' '+Math.abs(w.p)+'</text>'}});
+ svg+='<text x="980" y="30" fill="#c9a227" font-size="12" text-anchor="end" font-family="Courier New">SZTAB GENERALNY • MAPA OPERACYJNA</text>';
+ svg+='<circle cx="900" cy="560" r="26" fill="none" stroke="#6a4a2a" stroke-width="3" opacity="0.35"/>';
+ svg+='</svg>';
+ let html='<h2 class="sec">🗺️ Mapa operacyjna — '+dstr(S.date)+'</h2><div id="mapwrap">'+svg+'</div>';
+ html+='<div class="row" style="margin:10px 0">'+Object.keys(FAC).map(f=>'<span class="tag '+f+'">'+FAC[f].n+'</span>').join('')+'<span class="chip">🌡️ Napięcie światowe: <b>'+Math.round(S.tension)+'</b>/100</span></div>';
+ const otherWars=S.wars.filter(w=>!(C[w.x].map&&C[w.y].map));
+ if(otherWars.length){html+='<h2 class="sec">Teatry zamorskie</h2><div class="grid g2">'+otherWars.map(w=>theaterCard(w)).join('')+'</div>'}
+ const myWars=S.wars.filter(w=>w.x===S.player||w.y===S.player);
+ if(myWars.length){html+='<h2 class="sec">Twoje fronty</h2><div class="grid g2">'+myWars.map(w=>theaterCard(w)).join('')+'</div>'}
+ html+='<div class="card small dim" style="margin-top:10px">Kliknij państwo na mapie, aby otworzyć panel dyplomatyczny. Złota obwódka = twoje państwo. Linie przerywane = aktywne fronty.</div>';
+ return html}
+function theaterCard(w){const mine=w.x===S.player||w.y===S.player;const me=w.x===S.player;const p=me?w.p:-w.p;
+ const icon=w.th==='Pacyfik'?'🌊':w.th==='Afryka'?'🏜️':w.th==='Azja'?'🏔️':'🌍';
+ return '<div class="card"><h3>'+icon+' '+w.th+': '+C[w.x].f+' '+C[w.x].n+' vs '+C[w.y].f+' '+C[w.y].n+'</h3>'+
+ frontBar(w.p)+'<div class="row sp small" style="margin-top:6px"><span>'+C[w.x].n+'</span><span class="gold">'+(w.p>0?'+':'')+w.p+'</span><span>'+C[w.y].n+'</span></div>'+
+ (mine?'<div class="small dim">Twój postęp: <b class="'+(p>=0?'grn':'red')+'">'+(p>0?'+':'')+p+'</b> '+(p>=0?'— nacierasz':'— wróg napiera')+'. Ostatnia zmiana: '+(w.ld>0?'+':'')+w.ld+'</div>':'')+
+ '</div>'}
+function rArmy(){const p=pc();const res=reserve(p);let tot=0;for(const t in p.army)tot+=p.army[t];
+ let h='<h2 class="sec">🪖 Armia — '+C[S.player].n+'</h2>';
+ if(S.exile)h+='<div class="card" style="border-color:var(--gold)"><h3>Rząd na uchodźstwie</h3><div class="small">Twoja armia walczy u boku sojusznika: <b>'+C[S.host].n+'</b>. Odzyskaj niepodległość, gdy okupant skapituluje.</div></div>';
+ h+='<div class="row" style="margin-bottom:10px"><span class="chip">Dywizje ogółem: <b>'+tot+'</b></span><span class="chip">Rezerwa: <b>'+Object.values(res).reduce((a,b)=>a+b,0)+'</b></span><span class="chip">W szkoleniu: <b>'+p.train.length+'</b></span></div>';
+ h+='<div class="grid g2"><div class="card"><h3>Stan dywizji</h3><table class="tbl"><tr><th>Typ</th><th>Razem</th><th>Rezerwa</th></tr>';
+ for(const t in DT){if(p.army[t])h+='<tr><td>'+DT[t].i+' '+DT[t].n+'</td><td>'+p.army[t]+'</td><td>'+(res[t]||0)+'</td></tr>'}
+ h+='</table></div><div class="card"><h3>Szkolenie</h3>';
+ if(p.train.length)h+=p.train.map((t,i)=>'<div class="row sp small">'+DT[t.type].i+' '+DT[t.type].n+' <span>'+t.left+' mies. <button class="btn sm red" onclick="cancelTrain('+i+')">✕</button></span></div>').join('');else h+='<div class="small dim">Brak</div>';
+ h+='<hr class="d"><div class="small dim">Nowa dywizja (koszt: wyposażenie / rezerwy):</div><div class="grid g3" style="margin-top:6px">';
+ for(const t in DT){const d=DT[t];let cost=Math.round(d.eq*(1+spMod(p,'cost')/100));if(t==='spa'&&p.tech.trans)cost=Math.round(cost*0.7);
+  h+='<button class="btn sm" onclick="train(\''+t+'\')" '+(p.eq<cost||p.mp<d.mp?'disabled':'')+'>'+d.i+' '+d.n.split(' ')[1]+'<br><span class="tiny dim">📦'+cost+' 👥'+d.mp+'</span></button>'}
+ h+='</div></div></div>';
+ const myWars=S.wars.filter(w=>w.x===S.player||w.y===S.player);
+ if(myWars.length){h+='<h2 class="sec" style="margin-top:14px">Przydział na fronty</h2>';
+  myWars.forEach(w=>{const wi=S.wars.indexOf(w);const en=other(w);const me=w.x===S.player;const p2=me?w.p:-w.p;
+   h+='<div class="card" style="margin-bottom:10px"><h3>'+C[en].f+' Front vs '+C[en].n+' ('+w.th+') — postęp '+(p2>0?'+':'')+p2+'</h3>'+frontBar(w.p);
+   h+='<div class="grid g3" style="margin-top:8px">';
+   for(const t in DT){if(!p.army[t])continue;h+='<div class="row sp small"><span>'+DT[t].i+' '+(w.pa.div[t]||0)+'/'+p.army[t]+'</span><span><button class="btn sm" onclick="allocDiv('+wi+',\''+t+'\',-1)">−</button> <button class="btn sm" onclick="allocDiv('+wi+',\''+t+'\',1)">+</button></span></div>'}
+   h+='</div><div class="row" style="margin-top:8px"><span class="small">Lotnictwo:</span><input type="range" min="0" max="100" value="'+w.pa.air+'" style="flex:1" onchange="setAir('+wi+',this.value)"><span class="small">'+w.pa.air+'%</span></div>';
+   h+='<div class="row" style="margin-top:6px"><span class="small">Dowódca:</span><select onchange="setGen('+wi+',this.value)"><option value="">—</option>'+p.gen.map(g=>'<option value="'+esc(g.n)+'"'+(w.pa.gen===g.n?' selected':'')+'>'+g.n+' (A+'+g.a+'/O+'+g.d+')</option>').join('')+'</select>';
+   h+='<button class="btn sm'+(w.pa.bomb?' gold':'')+'" onclick="toggleBomb('+wi+')">💣 Naloty</button><button class="btn sm'+(w.pa.raid?' gold':'')+'" onclick="toggleRaid('+wi+')">🚢 Wojna podwodna</button></div>';
+   h+='</div>'})}
+ else h+='<div class="card dim small" style="margin-top:12px">Brak aktywnych wojen. Armia w rezerwie broni stolicy.</div>';
+ return h}
+function rProd(){const p=pc();const al=p.alloc;const sum=al.eq+al.air+al.nav+al.fu;
+ let h='<h2 class="sec">🏭 Produkcja i gospodarka</h2>';
+ h+='<div class="row" style="margin-bottom:10px"><span class="chip">🏭 Cywilne: <b>'+p.civ+'</b></span><span class="chip">⚙️ Wojskowe: <b>'+p.mil+'</b></span><span class="chip">Przydzielone: <b>'+sum+'/'+p.mil+'</b></span><span class="chip">Mnożnik: <b>×'+prodMult(p).toFixed(2)+'</b></span></div>';
+ h+='<div class="grid g2"><div class="card"><h3>Linie produkcyjne (fabryki wojskowe)</h3>';
+ [['eq','📦 Wyposażenie',13],['air','✈️ Samoloty',4.5],['nav','🚢 Flota',0.7],['fu','⛽ Paliwo syntetyczne',8]].forEach(l=>{
+  h+='<div class="row sp" style="margin:6px 0"><span class="small">'+l[1]+' <span class="dim">(+'+Math.round(al[l[0]]*l[2]*prodMult(p))+'/mies.)</span></span><span class="row"><input type="range" min="0" max="'+p.mil+'" value="'+al[l[0]]+'" onchange="setAlloc(\''+l[0]+'\',this.value)"><b>'+al[l[0]]+'</b></span></div>'});
+ h+='<hr class="d"><div class="small">Zapasy: 📦 '+fmt(p.eq)+' • ✈️ '+fmt(p.pl)+' • 🚢 '+Math.round(p.nv)+' • ⛽ '+fmt(p.fu)+'</div>';
+ h+='<div class="small dim">'+(C[S.player].oil?'🛢️ Producent ropy (+wydobycie).':'🚢 Import paliwa: '+Math.round(Math.min(p.nv,20)*3)+'/mies.'+(blockaded(p)?' <span class="red">BLOKADA!</span>':''))+'</div></div>';
+ h+='<div class="card"><h3>Budowa (koszt 📦)</h3><div class="grid g3">';
+ [['civ','🏭 Cywilna',120],['mil','⚙️ Wojskowa',150],['fort','🧱 Fortyfikacje',80],['radar','📡 Radar',100]].forEach(b=>{h+='<button class="btn sm" onclick="build(\''+b[0]+'\')" '+(p.eq<b[2]?'disabled':'')+'>'+b[1]+'<br><span class="tiny dim">📦'+b[2]+'</span></button>'});
+ h+='</div>';if(p.build.length)h+='<hr class="d">'+p.build.map(b=>'<div class="small">'+b.k+' — '+b.left+' mies.</div>').join('');
+ h+='<div class="small dim" style="margin-top:6px">Fortyfikacje: '+p.forts+'/3 • Radar: '+(p.radar?'tak':'nie')+'</div></div></div>';
+ h+='<h2 class="sec" style="margin-top:14px">Prawa mobilizacyjne</h2><div class="grid g2"><div class="card"><h3>Mobilizacja gospodarki</h3><select onchange="setLaw(\'M\',this.value)">';
+ ['Gospodarka cywilna (×0.8)','Częściowa mobilizacja (×1.0)','Gospodarka wojenna (×1.2)','Totalna mobilizacja (×1.4)'].forEach((n,i)=>h+='<option value="'+i+'"'+(p.lawM===i?' selected':'')+'>'+n+'</option>');
+ h+='</select><div class="small dim">Wyższy poziom: +produkcja, ale przenosi fabryki cywilne→wojskowe.</div></div>';
+ h+='<div class="card"><h3>Prawo poboru</h3><select onchange="setLaw(\'C\',this.value)">';
+ ['Ochotnicy','Ograniczony pobór','Powszechny pobór','Totalny pobór'].forEach((n,i)=>h+='<option value="'+i+'"'+(p.lawC===i?' selected':'')+'>'+n+'</option>');
+ h+='</select><div class="small dim">Przyrost rezerw: +'+Math.round(C[S.player].pop*[0.8,1.5,2.5,4][p.lawC])+' tys./mies.</div></div></div>';
+ return h}
+function rRes(){const p=pc();let h='<h2 class="sec">🔬 Badania — poziom techniczny '+p.tl.toFixed(1)+'</h2>';
+ h+='<div class="grid g2">';
+ for(let i=0;i<p.sl;i++){const r=p.res[i];h+='<div class="card"><h3>Slot '+(i+1)+'</h3>';
+  if(r){const t=TECH[r.id];h+='<b>'+t.n+'</b><div class="small dim">'+t.d+'</div>'+bar(t.m-r.left,t.m,'g')+'<div class="small">'+r.left+' mies. do końca</div>'}
+  else h+='<div class="small dim">Wolny slot.</div><button class="btn sm gold" style="margin-top:6px" onclick="openResearch()">Wybierz badanie</button>';
+  h+='</div>'}
+ h+='</div><h2 class="sec" style="margin-top:14px">Ukończone technologie ('+Object.keys(p.tech).length+')</h2><div class="row">';
+ h+=Object.keys(p.tech).map(k=>'<span class="chip">'+TECH[k].n+'</span>').join('')||'<span class="dim small">Brak</span>';
+ h+='</div><div style="margin-top:10px"><button class="btn gold" onclick="openResearch()">🔬 Otwórz drzewko badań</button></div>';
+ return h}
+function rDip(){const p=pc();let h='<h2 class="sec">🤝 Dyplomacja</h2><div class="row" style="margin-bottom:10px">'+facTag(p.fa)+'<span class="chip">Przywódca: <b>'+(FAC[p.fa].lead?C[FAC[p.fa].lead].n:'—')+'</b></span><span class="chip">🌡️ Napięcie: <b>'+Math.round(S.tension)+'</b></span></div>';
+ const ids=Object.keys(S.countries).filter(k=>k!==S.player).sort((a,b)=>rel(S.player,b)-rel(S.player,a));
+ h+='<table class="tbl"><tr><th>Państwo</th><th>Frakcja</th><th>Relacje</th><th>Status</th><th>Akcje</th></tr>';
+ ids.forEach(k=>{const o=cc(k);const r=rel(S.player,k);const war=atWar(S.player,k);const pact=hasPact(S.player,k);
+  let status=war?'<span class="tag war">WOJNA</span>':pact?'<span class="tag neu">PAKT</span>':o.fa===p.fa&&p.fa!=='neu'?'<span class="tag ali">SOJUSZ</span>':o.exiled?'<span class="dim">okup.</span>':'';
+  h+='<tr><td>'+C[k].f+' '+C[k].n+(o.exiled?' <span class="tiny dim">('+C[o.owner].n+')</span>':'')+'</td><td>'+facTag(o.fa)+'</td><td style="min-width:90px">'+bar(r+100,200,r>=0?'b':'r')+'<span class="tiny">'+r+'</span></td><td>'+status+'</td><td><button class="btn sm" onclick="openCountry(\''+k+'\')">Panel</button></td></tr>'});
+ h+='</table>';return h}
+function rSpy(){const p=pc();let h='<h2 class="sec">🕵️ Wywiad i operacje specjalne</h2><div class="small dim" style="margin-bottom:10px">Operacje kosztują PP i mają cooldown. Sukces ~70%. Wywiad odsłania dokładne dane wroga (inaczej szacunki).</div>';
+ h+='<div class="grid g2">';
+ [['intel','🕵️ Siatka wywiadowcza',15,'Odsłania dane państwa na 6 tur.'],['sab','💥 Sabotaż przemysłu',25,'−250 wyposażenia, −100 paliwa wroga.'],['decode','🔐 Deszyfraż (Enigma/Ultra)',30,'Wymaga Kryptologii. +10% ataku/obrony na 6 mies.'],['part','🌲 Wspieraj partyzantkę',25,'−stabilność i −wyposażenie okupanta.']].forEach(o=>{
+  const cd=p.intel['cd_'+o[0]]>S.turn;h+='<div class="card"><h3>'+o[1]+' <span class="gold">'+o[2]+' PP</span></h3><div class="small dim">'+o[3]+'</div><select id="spyT_'+o[0]+'" style="margin:6px 0">'+Object.keys(S.countries).filter(k=>k!==S.player).map(k=>'<option value="'+k+'">'+C[k].f+' '+C[k].n+'</option>').join('')+'</select><br><button class="btn sm" onclick="spyOp(\''+o[0]+'\',$(\'spyT_'+o[0]+'\').value)" '+(cd?'disabled':'')+'>'+(cd?'Cooldown':'Wykonaj')+'</button></div>'});
+ h+='</div>';return h}
+function rDec(){const p=pc();let h='<h2 class="sec">📜 Decyzje polityczne — PP: '+Math.floor(p.pp)+'</h2><div class="grid g2">';
+ DEC.forEach(d=>{if(d.lock&&!d.lock.includes(S.player))return;const ok=d.c?d.c(S):true;
+  h+='<div class="card"><h3>'+d.n+' <span class="gold">'+d.p+' PP</span></h3><div class="small">'+d.d+'</div><button class="btn sm gold" style="margin-top:8px" onclick="decision(\''+d.id+'\')" '+(!ok||p.pp<d.p?'disabled':'')+'>Podpisz</button></div>'});
+ h+='</div><h2 class="sec" style="margin-top:14px">Duchy narodowe</h2><div class="grid g3">';
+ const sps=Object.keys(p.sp);if(sps.length)sps.forEach(s=>{h+='<div class="card"><h3>'+SPI[s].n+(p.sp[s]>0?' <span class="tiny dim">('+p.sp[s]+' mies.)</span>':'')+'</h3><div class="small dim">'+SPI[s].d+'</div></div>'});else h+='<span class="dim small">Brak</span>';
+ h+='</div>';return h}
+function rNews(){const issue=S.news.filter(n=>n.d===dkey(S.date));const use=issue.length?issue:S.news.slice(-5);const q=Q[ri(0,Q.length-1)];
+ let h='<h2 class="sec">📰 Kurier Wojenny</h2><div class="paper"><h1>KURIER WOJENNY</h1><div class="ph"><span>'+dstr(S.date)+'</span><span>Wydanie nadzwyczajne</span><span>Cena: 20 groszy</span></div>';
+ if(use.length){h+='<h4>'+esc(use[use.length-1].h)+'</h4><p>'+esc(use[use.length-1].s)+'</p><div class="cols">';
+  use.slice(0,-1).reverse().forEach(n=>h+='<p><b>'+esc(n.h)+'</b><br>'+esc(n.s)+'</p>');h+='</div>'}
+ else h+='<p>Spokój przed burzą. Sztab donosi o ćwiczeniach i manewrach.</p>';
+ h+='<div class="q">„'+esc(q[0])+'" — '+esc(q[1])+(q[2]?', '+q[2]:'')+'</div></div>';
+ h+='<div class="row" style="margin-top:10px"><button class="btn" onclick="exportReport()">📄 Eksportuj raport do Dokumentów</button></div>';
+ h+='<h2 class="sec" style="margin-top:14px">Archiwum kroniki</h2><div class="card" style="max-height:260px;overflow-y:auto">';
+ h+=S.news.slice().reverse().map(n=>'<div class="small" style="margin-bottom:6px"><span class="dim">['+n.d+']</span> <b>'+esc(n.h)+'</b> — '+esc(n.s)+'</div>').join('')||'<span class="dim small">Pusto</span>';
+ h+='</div>';return h}
+function rStats(){const p=pc();let tot=0;for(const t in p.army)tot+=p.army[t];
+ let h='<h2 class="sec">📊 Statystyki i osiągnięcia</h2><div class="grid g3">';
+ h+='<div class="card"><h3>Wynik</h3><div style="font-size:30px" class="gold">'+score()+'</div></div>';
+ h+='<div class="card"><h3>Straty zadane</h3><b>'+fmt(S.stats.kills)+'</b> tys.</div>';
+ h+='<div class="card"><h3>Straty własne</h3><b>'+fmt(S.stats.losses)+'</b> tys.</div>';
+ h+='<div class="card"><h3>Terytoria</h3><b>'+occOf(S.player).length+'</b></div>';
+ h+='<div class="card"><h3>Dywizje</h3><b>'+tot+'</b></div>';
+ h+='<div class="card"><h3>Technologie</h3><b>'+Object.keys(p.tech).length+'</b></div></div>';
+ h+='<h2 class="sec" style="margin-top:14px">Produkcja (ostatnie miesiące)</h2><div class="row"><div><div class="small dim">📦 Wyposażenie</div>'+spark(S.hist.eq,'#c9a227')+'</div><div><div class="small dim">✈️ Samoloty</div>'+spark(S.hist.pl,'#4a7fb5')+'</div><div><div class="small dim">⛽ Paliwo</div>'+spark(S.hist.fu,'#7a8a5a')+'</div></div>';
+ h+='<h2 class="sec" style="margin-top:14px">🏅 Osiągnięcia ('+Object.keys(ACH).length+'/'+Object.keys(ACHN).length+')</h2><div class="grid g3">';
+ Object.keys(ACHN).forEach(k=>{const got=ACH[k];h+='<div class="card" style="'+(got?'border-color:var(--gold)':'opacity:.5')+'"><h3>'+(got?'🏅':'🔒')+' '+ACHN[k]+'</h3><div class="tiny dim">'+(got?'Zdobyte: '+got:'Zablokowane')+'</div></div>'});
+ h+='</div><h2 class="sec" style="margin-top:14px">Dziennik sztabu</h2><div class="card" style="max-height:220px;overflow-y:auto">';
+ h+=S.log.slice().reverse().map(l=>'<div class="small"><span class="dim">['+l.d+']</span> '+esc(l.t)+'</div>').join('')||'<span class="dim small">Pusto</span>';
+ h+='</div>';return h}
+/* ===== MODALE ===== */
+function modal(title,body,noClose){$('modal').innerHTML='<div class="mh"><b>'+title+'</b>'+(noClose?'':'<button class="x" onclick="closeModal()">✕</button>')+'</div><div class="mb">'+body+'</div>';$('ov').classList.add('on')}
+function closeModal(){$('ov').classList.remove('on')}
+function showNext(){if(!EQ.length){closeModal();return}const e=EQ[0];
+ if(e.t==='ev'){const ev=e.e;let b='<div class="paper"><div class="row sp"><span class="stamp">ŚCIŚLE TAJNE</span><span class="small">'+dstr(S.date)+'</span></div><h4 style="margin-top:8px">'+esc(ev.t)+'</h4><p>'+esc(ev.x)+'</p></div><div style="margin-top:12px">';
+  ev.o.forEach((o,i)=>b+='<button class="btn gold" style="display:block;width:100%;margin-bottom:8px;text-align:left" onclick="chooseOpt('+i+')">'+esc(o.l)+'</button>');
+  b+='</div>';modal('📡 DEPIESZA SZTABU',b,true)}
+ else if(e.t==='exile'){modal('🏳️ KAPITULACJA',
+  '<div class="paper"><h4>Stolica upadła</h4><p>'+C[S.player].n+' skapitulował przed '+C[e.occ].n+'. Ale rząd może kontynuować walkę na uchodźstwie — u boku sojuszników, aż do wyzwolenia.</p><div class="q">„'+Q[18][0]+'" — '+Q[18][1]+'</div></div>'+
+  '<button class="btn gold" style="width:100%;margin-top:10px" onclick="goExile(\''+e.occ+'\')">🏛️ Rząd na uchodźstwie — walczymy dalej!</button>'+
+  '<button class="btn" style="width:100%;margin-top:8px" onclick="endFromExile()">🕯️ Zakończ kampanię</button>',true)}
+ else if(e.t==='cap'){const y=e.y;modal('🏆 ZWYCIĘSTWO — '+C[y].n,
+  '<div class="paper"><h4>'+C[y].cap+' zajęte!</h4><p>Wróg skapitulował. Zdecyduj o losie pokonanego:</p></div>'+
+  '<button class="btn gold" style="width:100%;margin-top:10px" onclick="capChoice(\''+y+'\',\'annex\')">🏴 Aneksja (+fabryki, ale ruch oporu)</button>'+
+  '<button class="btn" style="width:100%;margin-top:8px" onclick="capChoice(\''+y+'\',\'puppet\')">🎭 Państwo marionetkowe (trybut + sojusznik)</button>'+
+  '<button class="btn" style="width:100%;margin-top:8px" onclick="capChoice(\''+y+'\',\'liberate\')">🕊️ Wyzwolenie (+relacje świata)</button>',true)}
+ else if(e.t==='rest'){modal('🎉 WYZWOLENIE',
+  '<div class="paper"><h4>Flaga znów nad stolicą!</h4><p>'+C[S.player].n+' odzyskuje niepodległość. Rząd wraca do kraju. Odbudowa zaczyna się dziś.</p><div class="q">„'+Q[18][0]+'" — '+Q[18][1]+'</div></div>'+
+  '<button class="btn gold" style="width:100%;margin-top:10px" onclick="ackRest()">Do kraju!</button>',true)}
+ else if(e.t==='end'){showEnd(e.kind)}
+}
+function chooseOpt(i){const e=EQ[0];if(!e||e.t!=='ev')return;const o=e.e.o[i];fx(o.fx);if(o.q!=null)api.toast('💬 „'+Q[o.q][0]+'" — '+Q[o.q][1]);EQ.shift();snd('click');render();if(EQ.length)showNext();else closeModal()}
+function goExile(occ){S.exile=true;S.occ=occ;const p=pc();p.fa=cc(occ).fa==='neu'?'ali':(Object.keys(FAC).find(f=>f!=='neu'&&f!==cc(occ).fa)||'ali');
+ const allies=Object.keys(S.countries).filter(k=>k!==S.player&&cc(k).fa===p.fa&&alive(k));S.host=allies.sort((a,b)=>armyVal(cc(b))-armyVal(cc(a)))[0]||'gbr';
+ p.army={pie:2};p.civ=2;p.mil=1;p.train=[];p.build=[];S.wars=S.wars.filter(w=>w.x!==S.player&&w.y!==S.player);
+ EQ.shift();news('Rząd '+C[S.player].n+' na uchodźstwie','Walka trwa u boku sojuszników.');api.toast('🏛️ Rząd na uchodźstwie. Walczymy dalej!');render();closeModal()}
+function endFromExile(){EQ.shift();gameOver('defeat');showNext()}
+function capChoice(y,kind){const yc=cc(y),xc=pc();
+ if(kind==='annex'){yc.owner=S.player;news('Aneksja: '+C[y].n,'Wcielony do '+C[S.player].n+'.')}
+ else if(kind==='puppet'){yc.owner=y;yc.exiled=false;yc.fa=xc.fa;yc.civ=Math.max(2,Math.round(yc.base.civ*0.5));yc.mil=Math.max(1,Math.round(yc.base.mil*0.4));addRel(S.player,y,20);news('Państwo marionetkowe: '+C[y].n,'Trybut i sojusz z '+C[S.player].n+'.')}
+ else{yc.owner=y;yc.exiled=false;yc.fa='neu';yc.civ=Math.max(2,Math.round(yc.base.civ*0.5));yc.mil=Math.max(1,Math.round(yc.base.mil*0.3));addRel(S.player,y,30);S.tension=clamp(S.tension-5,0,100);news('Wyzwolenie: '+C[y].n,'Niepodległość przywrócona.')}
+ S.stats.wins++;EQ.shift();snd('fan');render();if(EQ.length)showNext();else closeModal()}
+function ackRest(){EQ.shift();render();if(EQ.length)showNext();else closeModal()}
+function showReport(reports){const mine=reports.filter(r=>r.w&&(r.w.x===S.player||r.w.y===S.player));const world=reports.filter(r=>Math.abs(r.d)>=8||r.txt.indexOf('skapitulował')>=0);
+ let b='<div class="small dim">'+dstr(S.date)+' • raport miesięczny sztabu</div><hr class="d">';
+ if(mine.length){b+='<b class="gold">Twoje fronty:</b>';mine.forEach(r=>{const me=r.w.x===S.player;const d=me?r.d:-r.d;b+='<div class="row sp small" style="margin:4px 0"><span>'+C[other(r.w)].f+' '+C[other(r.w)].n+' ('+r.w.th+')</span><b class="'+(d>0?'grn':d<0?'red':'dim')+'">'+(d>0?'+':'')+d+'</b></div>'})}
+ else b+='<div class="small dim">Brak twoich frontów w tym miesiącu.</div>';
+ if(world.length){b+='<hr class="d"><b class="gold">Świat:</b>';world.slice(0,6).forEach(r=>b+='<div class="small">'+esc(r.txt)+' — '+C[r.w.x].n+' vs '+C[r.w.y].n+'</div>')}
+ if(Math.random()<0.4){const q=Q[ri(0,Q.length-1)];b+='<div class="paper" style="margin-top:10px"><div class="q">„'+esc(q[0])+'" — '+esc(q[1])+'</div></div>'}
+ b+='<button class="btn gold" style="width:100%;margin-top:12px" onclick="closeModal()">Przyjąłem do wiadomości</button>';
+ modal('📋 RAPORT SZTABU — '+dstr(S.date),b)}
+function showEnd(kind){const titles={victory:'🏆 ZWYCIĘSTWO',total:'🌍 TRIUMF TOTALNY',peace:'🕊️ POKÓJ',time:'⏳ KONIEC EPOKI',defeat:'🕯️ KLĘSKA'};
+ const quotes={victory:3,total:21,peace:28,time:4,defeat:18};const q=Q[quotes[kind]||18];
+ let b='<div class="paper"><h1>'+titles[kind]+'</h1><p style="text-align:center">'+C[S.player].f+' '+C[S.player].n+' • '+dstr(S.date)+'</p><div class="q">„'+esc(q[0])+'" — '+esc(q[1])+(q[2]?', '+q[2]:'')+'</div></div>';
+ b+='<div class="grid g3" style="margin-top:12px"><div class="card"><h3>Wynik</h3><div style="font-size:28px" class="gold">'+score()+'</div></div><div class="card"><h3>Straty zadane</h3>'+fmt(S.stats.kills)+' tys.</div><div class="card"><h3>Straty własne</h3>'+fmt(S.stats.losses)+' tys.</div><div class="card"><h3>Terytoria</h3>'+occOf(S.player).length+'</div><div class="card"><h3>Technologie</h3>'+Object.keys(pc().tech).length+'</div><div class="card"><h3>Osiągnięcia</h3>'+Object.keys(ACH).length+'</div></div>';
+ b+='<button class="btn gold" style="width:100%;margin-top:12px" onclick="backToMenu()">🎖️ Nowa kampania</button><button class="btn" style="width:100%;margin-top:8px" onclick="exportReport()">📄 Eksportuj raport</button>';
+ modal(titles[kind],b,true)}
+function backToMenu(){closeModal();EQ=[];S=null;$('game').style.display='none';$('menu').style.display='flex';AUTO=null;api.state('auto',null);showMenu()}
+/* ===== PANEL PAŃSTWA ===== */
+function openCountry(id){if(id===S.player){modal(C[id].f+' '+C[id].n,'<div class="small">To twoje państwo. Zarządzaj nim przez zakładki Armia / Produkcja / Badania / Decyzje.</div>');return}
+ const o=cc(id),p=pc();const known=p.intel[id]>S.turn;const est=v=>known?fmt(v):'~'+fmt(Math.round(v*rnd(0.7,1.3)));
+ const war=atWar(S.player,id);const r=rel(S.player,id);
+ let b='<div class="row"><span style="font-size:34px">'+C[id].f+'</span><div><b style="font-size:16px">'+C[id].n+'</b><div class="small dim">'+C[id].lead+' • '+C[id].cap+' • '+facTag(o.fa)+(o.exiled?' <span class="tag war">okup. '+C[o.owner].n+'</span>':'')+'</div></div></div>';
+ b+='<div class="small dim" style="margin:8px 0">'+C[id].bl+'</div>';
+ b+='<table class="tbl"><tr><td>🏭 Fabryki</td><td>'+est(o.civ)+' / '+est(o.mil)+'</td></tr><tr><td>🪖 Dywizje</td><td>'+est(Object.values(o.army).reduce((a,b)=>a+b,0))+'</td></tr><tr><td>✈️ Samoloty</td><td>'+est(o.pl)+'</td></tr><tr><td>🚢 Flota</td><td>'+est(o.nv)+'</td></tr><tr><td>👥 Rezerwy</td><td>'+est(o.mp)+' tys.</td></tr><tr><td>🤝 Relacje</td><td>'+r+'</td></tr></table>';
+ if(!known)b+='<div class="tiny dim">* dane szacunkowe. Użyj wywiadu, by odsłonić dokładne.</div>';
+ b+='<hr class="d"><div class="grid g3">';
+ b+='<button class="btn sm" onclick="dipAction(\''+id+'\',\'rel\')">🤝 Popraw (+15, 10 PP)</button>';
+ b+='<button class="btn sm" onclick="dipAction(\''+id+'\',\'pact\')">📜 Pakt (25 PP)</button>';
+ b+='<button class="btn sm" onclick="dipAction(\''+id+'\',\'guar\')">🛡️ Gwarancja (20 PP)</button>';
+ b+='<button class="btn sm" onclick="dipAction(\''+id+'\',\'join\')">🏛️ Dołącz do frakcji</button>';
+ b+='<button class="btn sm" onclick="dipAction(\''+id+'\',\'ll\')">📦 Lend-Lease</button>';
+ if(war)b+='<button class="btn sm" onclick="dipAction(\''+id+'\',\'peace\')">🕊️ Pokój (30 PP)</button>';
+ else b+='<button class="btn sm red" onclick="dipAction(\''+id+'\',\'war\')">⚔️ Wojna (30 PP)</button>';
+ b+='</div>';modal(C[id].f+' '+C[id].n,b)}
+function openResearch(){const p=pc();let b='<div class="small dim">Wolne sloty: '+(p.sl-p.res.length)+'/'+p.sl+'. Kliknij, aby rozpocząć.</div>';
+ const cats={};Object.keys(TECH).forEach(k=>{const t=TECH[k];(cats[t.c]=cats[t.c]||[]).push(k)});
+ Object.keys(cats).forEach(cat=>{b+='<h3 class="gold mil" style="margin:10px 0 6px">'+cat+'</h3><div class="grid g2">';
+  cats[cat].forEach(k=>{const t=TECH[k];const done=p.tech[k],inprog=p.res.some(r=>r.id===k);const lock=t.lock&&!t.lock.includes(S.player);const need=t.r&&!p.tech[t.r];
+   b+='<div class="card" style="'+(done?'border-color:var(--gold)':lock?'opacity:.4':'')+'"><b>'+t.n+'</b><div class="small dim">'+t.d+' • '+t.m+' mies.</div>'+
+   (done?'<span class="tag ali">UKOŃCZONE</span>':inprog?'<span class="tag neu">W TOKU</span>':lock?'<span class="tiny dim">Niedostępne</span>':need?'<span class="tiny dim">Wymaga: '+TECH[t.r].n+'</span>':'<button class="btn sm gold" style="margin-top:6px" onclick="startResearch(\''+k+'\')">Badaj</button>')+'</div>'});
+  b+='</div>'});modal('🔬 DRZEWKO BADAŃ',b)}
+/* ===== MENU GŁÓWNE / SYSTEM ===== */
+function openMenuModal(){modal('☰ MENU SZTABU',
+ '<div class="grid g2">'+
+ '<button class="btn" onclick="openSave()">💾 Zapis / Odczyt</button>'+
+ '<button class="btn" onclick="openSettings()">⚙️ Ustawienia</button>'+
+ '<button class="btn" onclick="openHelp()">❓ Pomoc</button>'+
+ '<button class="btn" onclick="exportReport()">📄 Eksport raportu</button>'+
+ '<button class="btn" onclick="setupAppShell()">🎖️ Ikona i okno</button>'+
+ '<button class="btn red" onclick="backToMenu()">🏳️ Nowa kampania</button>'+
+ '</div>')}
+async function openSave(){let b='<div class="small dim">Zapisy synchronizowane z Dyskiem Google przez app.state.</div><div class="grid g3" style="margin-top:10px">';
+ for(let i=0;i<3;i++){const r=await api.state('slot'+i);b+='<div class="card"><h3>Slot '+(i+1)+'</h3>'+(r&&r.meta?'<div class="small">'+C[r.meta.p].f+' '+C[r.meta.p].n+'<br>'+r.meta.d+'</div>':'<div class="small dim">Pusty</div>')+'<div class="row" style="margin-top:6px"><button class="btn sm" onclick="saveSlot('+i+')">Zapisz</button><button class="btn sm" onclick="loadSlot('+i+')" '+(r&&r.S?'':'disabled')+'>Wczytaj</button></div></div>'}
+ b+='</div>';modal('💾 ZAPIS / ODCZYT',b)}
+function openSettings(){modal('⚙️ USTAWIENIA',
+ '<div class="card"><label class="row"><input type="checkbox" '+(CFG.sound?'checked':'')+' onchange="CFG.sound=this.checked;api.state(\'cfg\',CFG)"> 🔊 Dźwięk (WebAudio)</label></div>'+
+ '<div class="card" style="margin-top:8px"><label class="row"><input type="checkbox" '+(CFG.auto?'checked':'')+' onchange="CFG.auto=this.checked;api.state(\'cfg\',CFG)"> 💾 Autozapis co turę</label></div>'+
+ '<div class="card" style="margin-top:8px"><label class="row"><input type="checkbox" '+(CFG.anim?'checked':'')+' onchange="CFG.anim=this.checked;api.state(\'cfg\',CFG)"> 🎬 Ekran ładowania z cytatami</label></div>'+
+ '<div class="small dim" style="margin-top:10px">Integracja PulpitOS: '+(inOS?'✅ połączono (Dysk Google, powiadomienia, tytuł okna)':'⚠️ tryb autonomiczny (localStorage)')+'</div>')}
+function openHelp(){modal('❓ POMOC — JAK GRAĆ',
+ '<div class="small" style="line-height:1.7">'+
+ '<b class="gold">Cel:</b> przetrwaj i zwycięż w II wojnie światowej jako dowolne państwo (1936 lub 1939).<br>'+
+ '<b class="gold">Tura:</b> 1 miesiąc. Kliknij „Następna tura". Dochody, produkcja, bitwy i wydarzenia rozliczają się automatycznie.<br>'+
+ '<b class="gold">Zasoby:</b> ⭐PP (polityka), 🏭fabryki, 👥rezerwy, ⛽paliwo, 📦wyposażenie, ✈️samoloty, 🚢flota, 🔥poparcie wojny, 🏛️stabilność.<br>'+
+ '<b class="gold">Armia:</b> szkol dywizje (📦+👥), przydzielaj na fronty (+/−), ustaw lotnictwo i dowódcę. Rezerwa broni stolicy.<br>'+
+ '<b class="gold">Front:</b> pasek −100…+100. +100 = kapitulacja wroga, −100 = twoja. Głębokie kraje (ZSRR, USA, Chiny) wolniej padają.<br>'+
+ '<b class="gold">Produkcja:</b> suwaki dzielą fabryki wojskowe. Prawa mobilizacji zwiększają output.<br>'+
+ '<b class="gold">Badania:</b> sloty równoległe; technologie dają bonusy i odblokowują naloty, deszyfraż, Manhattan.<br>'+
+ '<b class="gold">Dyplomacja:</b> relacje, pakty, gwarancje, frakcje, Lend-Lease, wojna/pokój. Demokracje nie atakują pierwsze bez poparcia.<br>'+
+ '<b class="gold">Wywiad:</b> odsłania dane wroga, sabotaż, deszyfraż, partyzantka.<br>'+
+ '<b class="gold">Uchodźstwo:</b> po kapitulacji możesz walczyć dalej u boku sojusznika (Polska: Anders, 303, Monte Cassino, Wojtek!).<br>'+
+ '<b class="gold">Skróty:</b> Spacja = tura, Esc = zamknij okno, 1–9 = zakładki.<br>'+
+ '<b class="gold">PulpitOS:</b> zapis przez app.state (Dysk Google), raport do Dokumentów, powiadomienia ui.toast, tytuł okna, quickActions.</div>')}
+/* ===== EKRAN WYBORU ===== */
+function showMenu(){const m=$('menu');
+ const regs=[['all','🌍 Wszystkie'],['eur','Europa'],['ame','Ameryki'],['azj','Azja'],['afr','Afryka'],['oce','Oceania']];
+ let list=Object.keys(C).filter(k=>!(C[k].only36&&SCEN===2));
+ if(FILTER!=='all')list=list.filter(k=>C[k].reg===FILTER);
+ if(SEARCH)list=list.filter(k=>C[k].n.toLowerCase().includes(SEARCH.toLowerCase()));
+ let h='<div class="poster"><div class="t1">SYMULATOR STRATEGICZNY</div><div class="t2">II WŚ: SZTAB GŁÓWNY</div><div class="t3">1936 — 1945 • WIELKA WOJNA • WYBIERZ SWOJE PAŃSTWO</div></div>';
+ h+='<div class="row" style="margin-bottom:10px"><span class="small dim">Scenariusz:</span><button class="btn sm'+(SCEN===1?' gold':'')+'" onclick="setScen(1)">1936 • Droga do wojny</button><button class="btn sm'+(SCEN===2?' gold':'')+'" onclick="setScen(2)">1939 • Wrzesień</button>';
+ h+='<span class="small dim" style="margin-left:12px">Tryb:</span><button class="btn sm'+(MODE==='hist'?' gold':'')+'" onclick="setMode(\'hist\')">Historyczny</button><button class="btn sm'+(MODE==='free'?' gold':'')+'" onclick="setMode(\'free\')">Swobodny</button></div>';
+ h+='<div class="row" style="margin-bottom:10px"><input placeholder="🔍 Szukaj państwa…" value="'+esc(SEARCH)+'" oninput="SEARCH=this.value;showMenu()" style="width:220px">'+regs.map(r=>'<button class="btn sm'+(FILTER===r[0]?' gold':'')+'" onclick="FILTER=\''+r[0]+'\';showMenu()">'+r[1]+'</button>').join('')+'<button class="btn sm" onclick="randomCountry()">🎲 Losuj</button></div>';
+ h+='<div class="cgrid">';
+ list.forEach(k=>{const c=C[k];h+='<button class="cb'+(SEL===k?' on':'')+'" onclick="selectCountry(\''+k+'\')"><span class="fl">'+c.f+'</span> <b>'+c.n+'</b><div class="tiny dim">'+c.lead+'</div><div class="st">'+'★'.repeat(c.dif)+'☆'.repeat(5-c.dif)+'</div></button>'});
+ h+='</div>';
+ if(SEL&&C[SEL]){const c=C[SEL];h+='<div class="card" style="max-width:1150px;width:100%;margin-top:14px"><div class="row"><span style="font-size:40px">'+c.f+'</span><div><b style="font-size:18px">'+c.n+'</b> <span class="st gold">'+'★'.repeat(c.dif)+'☆'.repeat(5-c.dif)+'</span><div class="small dim">'+c.lead+' • '+c.cap+' • ludność '+c.pop+' mln • '+FAC[c.fa].n+'</div></div></div>';
+  h+='<div class="small" style="margin:8px 0">'+c.bl+'</div><div class="row small"><span class="chip">🏭 '+c.civ+'/'+c.mil+'</span><span class="chip">🪖 '+Object.values(ARMY0[SEL]||{}).reduce((a,b)=>a+b,0)+'</span><span class="chip">✈️ '+c.pl+'</span><span class="chip">🚢 '+c.nv+'</span><span class="chip">🔬 poziom '+c.tl+'</span></div>';
+  h+='<div class="row" style="margin-top:8px">'+c.sp.map(s=>'<span class="chip" title="'+SPI[s].d+'">'+SPI[s].n+'</span>').join('')+'</div>';
+  h+='<div class="small dim" style="margin-top:6px">Dowódcy: '+c.gen.map(g=>g.n).join(', ')+'</div>';
+  h+='<button class="btn gold big" style="margin-top:12px" onclick="startCampaign()">⚔️ Rozpocznij kampanię jako '+c.n+'</button></div>'}
+ h+='<div class="row" style="margin-top:14px">';
+ if(AUTO&&AUTO.countries)h+='<button class="btn" onclick="resumeAuto()">▶️ Kontynuuj ('+C[AUTO.player].n+', '+dstr(AUTO.date)+')</button>';
+ h+='<button class="btn" onclick="openSave()">💾 Wczytaj</button><span class="chip">🏅 Osiągnięcia: '+Object.keys(ACH).length+'/'+Object.keys(ACHN).length+'</span></div>';
+ h+='<div class="tiny dim" style="margin-top:16px;text-align:center">Działa w PulpitOS • zapis na Dysku Google • cytaty i wydarzenia historyczne • single-file HTML<br>„'+Q[34][0]+'" — '+Q[34][1]+'</div>';
+ m.innerHTML=h}
+function setScen(v){SCEN=v;SEL=null;showMenu()}
+function setMode(v){MODE=v;showMenu()}
+function selectCountry(k){SEL=k;snd('click');showMenu()}
+function randomCountry(){const list=Object.keys(C).filter(k=>!(C[k].only36&&SCEN===2));SEL=list[ri(0,list.length-1)];showMenu()}
+function startCampaign(){if(!SEL)return;showLoading(()=>{newGame(SEL,SCEN,MODE);enterGame()})}
+function resumeAuto(){if(!AUTO)return;S=AUTO;showLoading(()=>enterGame())}
+function showLoading(cb){const q=Q[ri(0,Q.length-1)];$('loadq').textContent='„'+q[0]+'"';$('loada').textContent='— '+q[1]+(q[2]?', '+q[2]:'');$('load').style.display='flex';setTimeout(()=>{$('load').style.display='none';cb()},CFG.anim?1400:100)}
+function enterGame(){$('menu').style.display='none';$('game').style.display='flex';TAB='map';EQ=[];render();api.title('II WŚ — '+dstr(S.date)+' ('+C[S.player].n+')');api.toast('⚔️ Kampania: '+C[S.player].n+' • '+dstr(S.date))}
+function newGame(pid,scen,mode){
+ FAC.ali.lead='gbr';FAC.osi.lead='ger';FAC.kom.lead='sov';
+ S={v:1,scen:scen,mode:mode,player:pid,date:scen===1?{y:1936,m:1}:{y:1939,m:9},turn:0,tension:scen===1?15:35,countries:{},wars:[],rel:{},guar:[],pacts:[],news:[],log:[],done:{},hist:{eq:[],pl:[],fu:[]},stats:{kills:0,losses:0,wins:0},exile:false,host:null,occ:null,rpLast:null,over:false};
+ Object.keys(C).forEach(k=>S.countries[k]=cloneC(k));
+ Object.keys(S.countries).forEach(a=>Object.keys(S.countries).forEach(b=>{if(a>=b)return;const A=C[a],B=C[b];let r=0;if(A.ideo===B.ideo)r=20;if(A.ideo==='dem'&&B.ideo==='dem')r=15;if((A.ideo==='fas'&&B.ideo==='dem')||(A.ideo==='dem'&&B.ideo==='fas'))r=-30;if((A.ideo==='kom'&&B.ideo==='dem')||(A.ideo==='dem'&&B.ideo==='kom'))r=-25;if(A.ideo==='fas'&&B.ideo==='kom')r=-20;S.rel[relKey(a,b)]=r}));
+ S.guar=[['gbr','pol'],['fra','pol'],['gbr','gre'],['gbr','rom']];
+ if(scen===2){S.pacts=[['ger','sov']];['aut','cze'].forEach(k=>{const c=cc(k);c.owner='ger';c.exiled=true;c.civ=1;c.mil=0;cc('ger').civ+=Math.round(c.base.civ*0.25);cc('ger').mil+=Math.round(c.base.mil*0.25)});
+  startWar('jap','chn','Azja',true,true);const w=atWar('jap','chn');if(w)w.p=40;
+  news('Wrzesień 1939','Europa na krawędzi. Pakt Ribbentrop–Mołotow podpisany. Gwarancje dla Polski udzielone.')}
+ else{startWar('ita','eth','Afryka',true,true);const w=atWar('ita','eth');if(w)w.p=25;
+  news('Styczeń 1936','Świat po Wielkim Kryzysie. Liga Narodów słabnie. Włoska armia w Etiopii.')}
+ log('🎖️ Kampania rozpoczęta: '+C[pid].n+' ('+(scen===1?'1936':'1939')+', tryb '+(mode==='hist'?'historyczny':'swobodny')+')');
+}
+/* ===== IKONA / OKNO / ODPORNY START ===== */
+const APP_ICON='🎖️';
+const APP_WIN={width:1280,height:800};
+const APP_PATH='C:\\aplikacje\\iiws.html';
+const APP_ICON_SVG='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="10" fill="#1b2318"/><circle cx="32" cy="32" r="24" fill="none" stroke="#c9a227" stroke-width="3"/><path d="M32 12l5.9 12.9 14.1 1.6-10.5 9.6 2.9 13.9L32 42.9 19.6 50l2.9-13.9L12 26.5l14.1-1.6z" fill="#c9a227"/></svg>');
+window.onerror=function(msg,src,line){try{var d=document.createElement('div');d.style.cssText='position:fixed;left:8px;bottom:8px;z-index:999;background:#3a1410;border:1px solid #b04a3a;color:#ffd7c9;font:12px Courier New;padding:8px 10px;max-width:90%;white-space:pre-wrap';d.textContent='⚠️ Błąd: '+msg+' (linia '+line+')';document.body.appendChild(d)}catch(e){}return false};
+function setupAppShell(){if(!inOS)return;
+ api.title('II WŚ: Sztab Główny');
+ api.call('windows.setSize',{width:APP_WIN.width,height:APP_WIN.height}).then(function(r){if(r==null)return api.call('windows.setSize',{w:APP_WIN.width,h:APP_WIN.height})}).then(function(r){if(r==null)return api.call('apps.window',{width:APP_WIN.width,height:APP_WIN.height})});
+ api.call('fs.setIcon',{path:APP_PATH,icon:APP_ICON}).then(function(r){if(r==null)return api.call('fs.setIcon',{path:APP_PATH,icon:APP_ICON_SVG})}).then(function(r){if(r==null)return api.call('fs.setIcon',{path:APP_PATH,emoji:APP_ICON})});
+}
+function onFileOpen(d){try{const path=d&&(d.path||d.file);if(!path||!path.toLowerCase().endsWith('.json'))return;api.call('fs.read',{path:path}).then(r=>{const txt=typeof r==='string'?r:(r&&(r.content||r.text));if(!txt)return;const o=JSON.parse(txt);if(o&&o.v&&o.countries){S=o;enterGame();api.toast('Wczytano kampanię z pliku')}})}catch(e){}}
+document.addEventListener('keydown',e=>{if(!S||$('menu').style.display!=='none')return;
+ if(e.key==='Escape')closeModal();
+ else if(e.key===' '&&!EQ.length&&$('ov').className.indexOf('on')<0){e.preventDefault();endTurn()}
+ else if(/^[1-9]$/.test(e.key)&&!EQ.length){const i=parseInt(e.key)-1;if(TABS[i])setTab(TABS[i][0])}});
+(async function(){
+ try{var l=document.createElement('link');l.rel='icon';l.href=APP_ICON_SVG;document.head.appendChild(l)}catch(e){}
+ try{showMenu()}catch(e){}
+ try{const info=await Promise.race([OS.call('system.info'),new Promise((_,rj)=>setTimeout(()=>rj(new Error('t')),1200))]);inOS=!!info}catch(e){inOS=false}
+ if(inOS){OS.on('theme.change',applyTheme);OS.on('quickAction',d=>{const id=d&&(d.id||d.action);if(id==='tura')endTurn();if(id==='zapis')quickSave()});OS.on('file.open',onFileOpen);
+  setupAppShell();
+  const th=await api.call('system.theme');applyTheme(th);
+  api.call('apps.quickActions',{actions:[{id:'tura',label:'⏭ Następna tura'},{id:'zapis',label:'💾 Zapisz grę'}]})}
+ try{CFG=(await api.state('cfg'))||CFG}catch(e){}
+ try{ACH=(await api.state('ach'))||{}}catch(e){}
+ try{AUTO=await api.state('auto')}catch(e){}
+ try{showMenu()}catch(e){}
+})();
+</script>
+</body>
+</html>

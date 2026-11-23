@@ -1098,5 +1098,95 @@ document.addEventListener('keydown',e=>{if(!S||$('menu').style.display!=='none')
  try{showMenu()}catch(e){}
 })();
 </script>
+<script>
+/* ===== 🎓 SAMOUCZEK + PRZEWODNIK SZTABOWCA ===== */
+(function(){
+if(window.__IIWS_TUT)return;window.__IIWS_TUT=1;
+var TUT={on:false,i:0,done:false,base:0,offer:false};
+try{api.state('tut').then(function(r){if(r&&r.done)TUT.done=true})}catch(e){}
+var css=document.createElement('style');css.textContent=
+'#tutPanel{position:fixed;left:10px;bottom:36px;z-index:45;width:350px;max-width:calc(100% - 20px);background:var(--p1);border:1px solid var(--gold);border-left:5px solid var(--gold);box-shadow:0 10px 40px #000;padding:12px;display:none;font-size:13px;border-radius:3px}'+
+'#tutPanel h4{font:700 12px "Courier New";letter-spacing:1px;color:var(--gold);text-transform:uppercase;margin-bottom:6px}'+
+'#tutPanel .tx{margin:6px 0 8px;line-height:1.55}'+
+'#tutFab{position:fixed;left:10px;bottom:36px;z-index:44;display:none}'+
+'.tut-hl{outline:2px solid var(--gold)!important;outline-offset:1px;animation:tutPulse 1s infinite}'+
+'@keyframes tutPulse{50%{outline-color:#fff}}';
+document.head.appendChild(css);
+var panel=document.createElement('div');panel.id='tutPanel';document.body.appendChild(panel);
+var fab=document.createElement('button');fab.id='tutFab';fab.className='btn sm gold';fab.textContent='🎓 Samouczek';fab.onclick=function(){tutMenu()};document.body.appendChild(fab);
+function sumAlloc(){var a=pc().alloc;return a.eq+a.air+a.nav+a.fu}
+function armyTot(){var t=0;for(var k in pc().army)t+=pc().army[k];return t}
+var steps=[
+{tab:null,h:'Witaj w Sztabie Głównym!',x:'Ten samouczek przeprowadzi Cię przez wszystkie mechaniki na spokojnej kampanii <b>Szwajcarii</b> (neutralnej).<br><br>★ przy państwach = <b>TRUDNOŚĆ</b> kampanii, nie siła! Niemcy ★ = najłatwiej (potęga), Polska ★★★★★ = najtrudniej.',ok:null},
+{tab:null,hlTop:1,h:'Pasek zasobów',x:'U góry: ⭐PP (polityka), 🏭fabryki cywilne/wojskowe, 👥rezerwy, ⛽paliwo, 📦wyposażenie, ✈️samoloty, 🔥poparcie wojny, 🏛️stabilność, 🌡️napięcie światowe.',ok:null},
+{tab:'prod',h:'Zakładka Produkcja',x:'Kliknij po lewej <b>🏭 Produkcja</b> (podświetlona).',ok:function(){return TAB==='prod'}},
+{tab:'prod',h:'Suwaki fabryk',x:'Przesuń dowolny suwak — dzielisz fabryki wojskowe między 📦wyposażenie, ✈️samoloty, 🚢flotę i ⛽paliwo.',init:sumAlloc,ok:function(b){return sumAlloc()!==b}},
+{tab:'prod',h:'Budowa',x:'Kliknij <b>🏭 Cywilna</b> (lub inną budowę). Kosztuje 📦, trwa kilka miesięcy.',init:function(){return pc().build.length+pc().civ+pc().mil},ok:function(b){return pc().build.length+pc().civ+pc().mil>b}},
+{tab:'army',h:'Zakładka Armia',x:'Otwórz <b>🪖 Armia</b>.',ok:function(){return TAB==='army'}},
+{tab:'army',h:'Wyszkol dywizję',x:'Kliknij <b>🪖 piechoty</b> w sekcji „Nowa dywizja". Koszt: 📦100 + 👥12. Po miesiącach trafi do armii.',init:function(){return pc().train.length+armyTot()},ok:function(b){return pc().train.length+armyTot()>b}},
+{tab:'res',h:'Zakładka Badania',x:'Otwórz <b>🔬 Badania</b>.',ok:function(){return TAB==='res'}},
+{tab:'res',h:'Rozpocznij badanie',x:'Kliknij „Otwórz drzewko badań", wybierz technologię i <b>Badaj</b>. Sloty działają równolegle.',init:function(){return pc().res.length+Object.keys(pc().tech).length},ok:function(b){return pc().res.length+Object.keys(pc().tech).length>b}},
+{tab:'dip',h:'Zakładka Dyplomacja',x:'Otwórz <b>🤝 Dyplomacja</b> i kliknij <b>Panel</b> przy dowolnym państwie.',ok:function(){return TAB==='dip'}},
+{tab:'dip',h:'Popraw relacje',x:'W panelu państwa kliknij <b>🤝 Popraw (+15, 10 PP)</b>. Relacje otwierają pakty i sojusze.',init:function(){return pc().pp},ok:function(b){return pc().pp<b-5}},
+{tab:'dec',h:'Decyzje polityczne',x:'Otwórz <b>📜 Decyzje</b> i podpisz dowolną (np. Kampania propagandowa).',init:function(){return pc().pp},ok:function(b){return pc().pp<b-5}},
+{tab:null,h:'Pierwsza tura!',x:'Kliknij <b>⏭ Następna tura</b> (lub Spacja). Rozliczą się dochody, produkcja, badania i wydarzenia. Przeczytaj raport i zamknij go.',init:function(){return S.turn},ok:function(b){return S.turn>b}},
+{tab:'news',h:'Kurier Wojenny',x:'Otwórz <b>📰 Prasa</b> — gazetka z nagłówkami miesiąca i cytatem epoki.',ok:function(){return TAB==='news'}},
+{tab:'stats',h:'Statystyki i osiągnięcia',x:'Otwórz <b>📊 Statystyki</b> — wynik, wykresy produkcji i 🏅 osiągnięcia.',ok:function(){return TAB==='stats'}},
+{tab:null,h:'Gotowy do dowodzenia!',x:'Znasz już wszystkie mechaniki. Na froncie pamiętaj: przydzielaj dywizje (+/−), ustaw lotnictwo i dowódcę — rezerwa broni stolicy. Powodzenia, Generale!',ok:null,fin:1}
+];
+function clearHl(){Array.from(document.querySelectorAll('.tut-hl')).forEach(function(e){e.classList.remove('tut-hl')})}
+function renderPanel(){var s=steps[TUT.i];
+ panel.innerHTML='<h4>🎓 Samouczek — krok '+(TUT.i+1)+'/'+steps.length+'</h4><div class="bar"><i class="g" style="width:'+(TUT.i/steps.length*100)+'%"></i></div><b class="gold">'+s.h+'</b><div class="tx">'+s.x+'</div><div class="row">'+(s.ok?'<span class="tiny dim">⏳ Czekam na wykonanie zadania…</span>':'<button class="btn sm gold" onclick="window.__tutNext()">'+(s.fin?'Zakończ 🎓':'Dalej ➜')+'</button>')+'<button class="btn sm" onclick="window.__tutSkip()">Pomiń</button><button class="btn sm red" onclick="window.__tutEnd()">✕</button></div>';
+ panel.style.display='block'}
+function advance(){TUT.i++;if(TUT.i>=steps.length){finish();return}TUT.base=steps[TUT.i].init?steps[TUT.i].init():0;renderPanel();snd('click')}
+function finish(){TUT.on=false;TUT.done=true;try{api.state('tut',{done:1})}catch(e){}panel.style.display='none';clearHl();snd('fan');
+ modal('🎓 SAMOUCZEK UKOŃCZONY','<div class="paper"><h4>Gratulacje, Generale!</h4><p>Przeszedłeś wszystkie mechaniki: produkcję, armię, badania, dyplomację, decyzje, turę, prasę i statystyki.</p><p><b>Polecane pierwsze kampanie:</b> 🇩🇪 Niemcy (★ łatwa, Blitzkrieg), 🇷🇺 ZSRR (★★ łatwa, głębia), 🇬🇧 W. Brytania (★★ wyspa+flota). 🇵🇱 Polska (★★★★★) — dla ambitnych: Westerplatte, Anders, 303, Monte Cassino, Wojtek i Godzina W!</p><div class="q">„'+Q[12][0]+'" — '+Q[12][1]+'</div></div><button class="btn gold" style="width:100%;margin-top:10px" onclick="backToMenu()">🏳️ Wybierz prawdziwe państwo</button><button class="btn" style="width:100%;margin-top:8px" onclick="closeModal()">▶️ Graj dalej jako Szwajcaria</button>')}
+function startTut(){closeModal();if(!S){TUT.on=true;newGame('che',2,'hist');enterGame()}else{TUT.on=true}TUT.i=0;TUT.base=steps[0].init?steps[0].init():0;renderPanel();api.toast('🎓 Samouczek rozpoczęty!')}
+function tutMenu(){modal('🎓 SZKOLENIE SZTABOWE','<div class="grid g2"><button class="btn gold" onclick="window.__tutStart()">🎓 Samouczek interaktywny (16 kroków)</button><button class="btn" onclick="window.__tutGuide()">📖 Przewodnik sztabowca</button></div><div class="small dim" style="margin-top:10px">Samouczek prowadzi za rękę na kampanii Szwajcarii (neutralnej) — podświetla zakładki i czeka, aż wykonasz zadanie.</div>')}
+function guide(){modal('📖 PRZEWODNIK SZTABOWCA','<div class="small" style="line-height:1.75">'+
+'<b class="gold">★ GWIAZDKI = TRUDNOŚĆ, nie siła!</b><br>1★ = łatwo (Niemcy, USA — potęgi), 5★ = hardcore (Polska, Luksemburg). Im więcej gwiazdek, tym ciężiej przetrwać. Wskaźnik 💪 Potęga pokazuje siłę przemysłu.<br><hr class="d">'+
+'<b class="gold">CEL:</b> przetrwaj i zwycięż jako dowolne państwo. Tura = 1 miesiąc.<br>'+
+'<b class="gold">FRONT:</b> pasek −100…+100. +100 = kapitulacja wroga, −100 = twoja. Przydzielaj dywizje (+/−), lotnictwo (%) i dowódcę. Rezerwa broni stolicy. Głębokie kraje (ZSRR/USA/Chiny) padają wolniej.<br>'+
+'<b class="gold">PRODUKCJA:</b> suwaki dzielą fabryki wojskowe. Prawa mobilizacji (×0.8→×1.4) i poboru zwiększają output. Buduj fabryki/fortyfikacje/radar za 📦.<br>'+
+'<b class="gold">BADANIA:</b> sloty równoległe. Czołgi, doktryny, radar, kryptologia (deszyfraż), Manhattan (USA), V-2 (Niemcy).<br>'+
+'<b class="gold">DYPLOMACJA:</b> relacje→pakty→gwarancje→frakcje. Demokracje nie atakują pierwsze bez poparcia ≥50 lub napięcia ≥60. Lend-Lease dla sojuszników.<br>'+
+'<b class="gold">WYWIAD:</b> odsłania dokładne dane wroga (inaczej szacunki ~±30%), sabotaż, deszyfraż, partyzantka.<br>'+
+'<b class="gold">PALIWO:</b> czołgi i lotnictwo piją ⛽. Bez paliwa −40% siły. Producenci ropy (ZSRR/USA/Rumunia/Iran) mają wydobycie; inni importują flotą (blokada!).<br>'+
+'<b class="gold">UCHODŹSTWO:</b> po kapitulacji walcz dalej u boku sojusznika. Polska: Anders, Dywizjon 303, Monte Cassino, Wojtek 🐻, Godzina W — i wyzwolenie!<br>'+
+'<b class="gold">SKRÓTY:</b> Spacja = tura, Esc = zamknij, 1–9 = zakładki.<br><hr class="d">'+
+'<b class="gold">TAKTYKI:</b> Niemcy — Blitzkrieg pan+lotnictwo, pilnuj ropy i dwóch frontów. ZSRR — przetrwaj 1941, kontratakuj po Stalingradzie. USA — obudź się po Pearl Harbor, buduj flotę na Pacyfik. W. Brytania — radar+flota, przetrwaj Blitz. Polska — fortyfikacje+góry+rezerwa, potem uchodźstwo.</div>')}
+window.__tutStart=startTut;window.__tutGuide=guide;window.__tutNext=advance;window.__tutSkip=advance;
+window.__tutEnd=function(){TUT.on=false;panel.style.display='none';clearHl();api.toast('Samouczek przerwany — wrócisz przez 🎓')};
+setInterval(function(){
+ var inGame=(typeof S!=='undefined')&&S&&document.getElementById('menu').style.display==='none';
+ fab.style.display=(inGame&&!TUT.on)?'block':'none';
+ if(!TUT.on||!inGame){panel.style.display='none';clearHl();return}
+ var s=steps[TUT.i];clearHl();
+ if(s.tab){var idx=TABS.findIndex(function(t){return t[0]===s.tab});var nb=document.querySelectorAll('.nb')[idx];if(nb)nb.classList.add('tut-hl')}
+ if(s.hlTop){var t=document.getElementById('top');if(t)t.classList.add('tut-hl')}
+ if(s.ok&&s.ok(TUT.base))advance();
+},400);
+/* dopisz przyciski i legendę do menu głównego */
+var origShow=showMenu;
+showMenu=function(){origShow();try{injectMenu()}catch(e){}};
+function injectMenu(){var m=document.getElementById('menu');if(!m)return;
+ if(!document.getElementById('tutMenuRow')){var row=document.createElement('div');row.id='tutMenuRow';row.className='row';row.style.margin='0 0 10px';
+  row.innerHTML='<button class="btn gold" onclick="window.__tutStart()">🎓 Samouczek interaktywny</button><button class="btn" onclick="window.__tutGuide()">📖 Przewodnik sztabowca</button><span class="chip">★ = <b>trudność</b> kampanii, nie siła!</span>';
+  m.insertBefore(row,m.children[1]||null)}
+ Array.from(m.querySelectorAll('.cb .st')).forEach(function(el){el.title='Trudność kampanii: 1★ łatwa … 5★ bardzo trudna (nie siła państwa!)'});
+ if(SEL&&C[SEL]){var sb=Array.from(m.querySelectorAll('button')).find(function(b){return b.textContent.indexOf('Rozpocznij kampanię')>=0});
+  if(sb){var card=sb.closest('.card');if(card&&!card.querySelector('.tutPow')){var c=C[SEL];var pow=clamp(Math.round((c.civ+c.mil)/7),1,10);
+   var r=document.createElement('div');r.className='row tutPow';r.style.marginTop='6px';
+   r.innerHTML='<span class="chip">🎯 Trudność: <b>'+c.dif+'/5</b> (1=łatwo, 5=hardcore)</span><span class="chip">💪 Potęga: <b>'+pow+'/10</b></span>';
+   card.insertBefore(r,sb)}}}}
+try{injectMenu()}catch(e){}
+/* oferta samouczka przy pierwszej kampanii + przycisk w menu ☰ */
+var origEnter=enterGame;
+enterGame=function(){origEnter();setTimeout(function(){if(!TUT.done&&!TUT.on&&!TUT.offer){TUT.offer=true;
+ modal('🎓 Pierwsza kampania?','<div class="paper"><h4>Witaj, Generale!</h4><p>Chcesz, żebym przeprowadził Cię przez mechaniki krok po kroku? Samouczek uruchomi się na tej kampanii i będzie podświetlał, co kliknąć.</p></div><button class="btn gold" style="width:100%;margin-top:10px" onclick="window.__tutStart()">🎓 Tak, poprowadź mnie</button><button class="btn" style="width:100%;margin-top:8px" onclick="closeModal()">Nie, gram sam</button>')}},600)};
+var origMM=openMenuModal;
+openMenuModal=function(){origMM();var g=document.querySelector('#modal .grid');if(g&&!document.getElementById('tutMMbtn')){var b=document.createElement('button');b.id='tutMMbtn';b.className='btn';b.textContent='🎓 Samouczek / Przewodnik';b.onclick=function(){closeModal();tutMenu()};g.appendChild(b)}};
+})();
+</script>
 </body>
 </html>

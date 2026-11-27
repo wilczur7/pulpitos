@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PulpitOS 1.15.1 — Web Desktop</title>
+<title>PulpitOS 1.16 — Web Desktop</title>
 <style>
 /* ============================================================
    PulpitOS — design tokens
@@ -817,7 +817,7 @@ setTimeout(function () {
 /* ============================================================
    1. Stałe i narzędzia
    ============================================================ */
-const VER = '1.15.1';
+const VER = '1.16';
 const LSK = 'pulpitos.v1';
 const LAYOUT_KEY = 'pulpitos.layout.v1';
 const CLOUD_KEY = 'pulpitos.cloudmode';
@@ -1354,7 +1354,7 @@ function setCloudOnly(v) {
     state.settings.drive.autoLoginLock = true;
   } else {
     state.settings.drive.autoLoginLock = false;
-  }
+  }try{clearIdentity()}catch(e){}
   saveNow();
   updateCloudFrame();
   bus.emit('settings', { drive: true });
@@ -4025,7 +4025,7 @@ else if (rootOf(S.cwd) === 'Z' && cloudOk() && scopeLimited()) banner =
 else if (rootOf(S.cwd) === 'Z' && Drive.mode === 'google' && !cloudOk()) banner =
       '<div class="info-banner">' + gl('cloud', 16) + 'Dysk Google nie jest połączony. <button class="mini-btn" id="expConnect">Połącz konto…</button></div>';
 
-    main.innerHTML = banner;
+    main.innerHTML = banner;(function(){try{if(S.cwd==='pc'||isTrash())return;var aud=arr.filter(function(n){return n.type!=='folder'&&/^audio\//.test(n.mime||mimeOf(n.name))});if(!aud.length)return;var b=h('div','info-banner',gl('music',16)+'Znaleziono muzykę ('+aud.length+'). <button class="mini-btn" id="plGo">'+gl('play',12)+' Odtwórz playlistę</button>');main.insertBefore(b,main.firstChild);var g=$('#plGo',b);if(g)g.onclick=function(){playFolderPlaylist(S.cwd)};}catch(e){}})();
     const nb = $('#newBat', main), nu = $('#newUrl', main), ec = $('#expConnect', main);
 const om = $('#openMu', main), ov = $('#openVi', main), op = $('#openPh', main);
 if (om) om.onclick = () => openMusic();
@@ -5964,7 +5964,7 @@ async function deleteApp(appId, o) {
       nodes: nodes.map(n => n.id), appdata: ad ? ad.id : null
     };
   }
-  state.appTombstones[id] = Date.now();
+  state.appTombstones[id] = Date.now();try{markAppDeleted(a)}catch(e){}
   if (a.driveId) state.driveTombstones[a.driveId] = Date.now();
 
   const ids = nodes.map(n => n.id).concat(ad ? [ad.id] : []);
@@ -5992,7 +5992,7 @@ function restoreApp(id) {
   const a = rec.app;
   state.apps[id] = a;
   delete state.appTrash[id];
-  delete state.appTombstones[id];
+  delete state.appTombstones[id];try{delete state.appTombNames[appFileName(a.name).toLowerCase()]}catch(e){}
   if (a.driveId && state.driveTombstones) delete state.driveTombstones[a.driveId];
   restoreNodes((rec.nodes || []).concat(rec.appdata ? [rec.appdata] : []), true);
   if (a.htmlKey && !a.html) {
@@ -6464,7 +6464,7 @@ async function bridgeCall(m, p, ctx) {
       const code = await sh.batch(String(p.script || ''), { name: p.name || 'inline.bat' });
       return { exitCode: code, output: lines };
     }
-    case 'app.state': {
+    case 'app.state': {try{var __r=appStateGuard(p,ctx);if(__r)return __r}catch(e){}
       const dir = appDataDir(ctx.app.id);
       const key = String(p.key || 'state').replace(/[\\/:*?"<>|]/g, '_');
       const ex = children(dir).filter(n => n.type === 'text' && n.name === key + '.json')[0];
@@ -7027,7 +7027,7 @@ const q = "name='PulpitOS' and '" + root + "' in parents and mimeType='applicati
       const seen = new Set(files.map(f => f.id));
 
       for (const f of files) {
-        if (state.driveTombstones && state.driveTombstones[f.id]) continue;
+        if(appDeleted(f))continue;
         const rts = Date.parse(f.modifiedTime) || 0;
         const pid = f.appProperties && f.appProperties.pulpitosAppId;
         let a = Object.keys(state.apps).map(k => state.apps[k]).filter(x => x.driveId === f.id)[0];
@@ -7135,7 +7135,7 @@ const q = "name='PulpitOS' and '" + root + "' in parents and mimeType='applicati
     return JSON.stringify({
       v: 7, ts: Date.now(), settings: settings, nodes: nodes, appsMeta: appsMeta,
       appMeta: state.appMeta, appTrash: appTrash,
-      appTombstones: state.appTombstones, driveTombstones: state.driveTombstones,
+      appTombstones: state.appTombstones, driveTombstones: state.driveTombstones,appTombNames:state.appTombNames||{},
       tombstones: state.tombstones, recent: state.recent, browser: state.browser,
       sysIcons: SYSICONS.map(x => {
         const n = state.nodes[x.id];
@@ -7164,7 +7164,7 @@ clientId: s.drive.clientId, connected: s.drive.connected,
 
       state.tombstones = Object.assign({}, state.tombstones, d.tombstones || {});
       state.appTombstones = Object.assign({}, state.appTombstones, d.appTombstones || {});
-      state.driveTombstones = Object.assign({}, state.driveTombstones, d.driveTombstones || {});
+      state.driveTombstones = Object.assign({}, state.driveTombstones, d.driveTombstones || {});state.appTombNames=Object.assign({},state.appTombNames||{},d.appTombNames||{});
       state.appMeta = Object.assign({}, state.appMeta, d.appMeta || {});
       for (const k in (d.appTrash || {})) if (!state.appTrash[k]) state.appTrash[k] = d.appTrash[k];
 
@@ -7446,7 +7446,7 @@ if (Date.now() - Drive.lastSync < (state.settings.drive.fullInterval || 5) * 600
 /* ============================================================
    23. Tryb chmurowy i reset fabryczny
    ============================================================ */
-async function purgeLocal() {
+async function purgeLocal() {try{clearIdentity()}catch(e){}
   for (const k in state.nodes) if (state.nodes[k].blobKey) await Blobs.del(state.nodes[k].blobKey);
   for (const id in state.apps) if (state.apps[id].htmlKey) await Blobs.del(state.apps[id].htmlKey);
   for (const id in (state.appTrash || {})) {
@@ -7497,7 +7497,7 @@ async function factoryReset() {
   w.classList.add('on');
   $('#wipeMsg').textContent = 'Usuwanie danych lokalnych…';
   try { if (Drive.token && window.google) google.accounts.oauth2.revoke(Drive.token, () => {}); } catch (e) {}
-  try { LS.clearAll(); } catch (e) {}
+  try{if(Drive&&Drive.token&&window.google&&google.accounts.oauth2)google.accounts.oauth2.revoke(Drive.token,function(){});try{clearIdentity()}catch(e){}LS.clearAll(); } catch (e) {}
   try { sessionStorage.clear(); } catch (e) {}
   await Blobs.wipe();
   await delay(250);
@@ -8126,7 +8126,7 @@ render();
       '<button class="btn" id="bkExp">' + gl('download', 13) + ' Eksport konfiguracji (.json)</button></div>' +
       '<div class="set-card"><h3 style="color:var(--danger)">' + gl('alert', 15) + 'Strefa niebezpieczna</h3>' +
       '<div class="hint">Reset usuwa wszystkie lokalne pliki, aplikacje, konfigurację, tapetę, motyw, skróty oraz przypięcia paska zadań.</div>' +
-      '<div class="set-row"><button class="btn danger" id="sysReset">' + gl('trash', 13) + ' Przywróć stan fabryczny…</button></div></div>';
+      '<div class="set-row"><button class="btn danger" id="sysReset">' + gl('trash', 13) + ' Przywróć stan fabryczny…</button>'+'<button class="btn danger" id="sysWipeDrive" style="margin-left:8px">'+gl('trash',13)+' Usuń dane z Dysku Google…</button></div></div>';
 
     const est = $('#stEst', pane);
     if (navigator.storage && navigator.storage.estimate) {
@@ -8145,7 +8145,7 @@ render();
     $('#openSys', pane).onclick = () => openExplorer(DIRS.system);
     $('#bkExp', pane).onclick = () =>
       download(new Blob([JSON.stringify(state, null, 1)], { type: 'application/json' }), 'pulpitos-konfiguracja.json');
-    $('#sysReset', pane).onclick = () => factoryReset();
+    $('#sysReset', pane).onclick = () => factoryReset();;$('#sysWipeDrive',pane).onclick=function(){wipeDriveData()};
   }
 
   win.cleanup.push(
@@ -8207,7 +8207,7 @@ function renderStart() {
     '<input id="stSearch" placeholder="Szukaj aplikacji, plików, ustawień…"></div>' +
     '<div class="start-scroll" id="stScroll"></div>' +
     '<div class="start-foot">' + avatarHTML(32) +
-'<span class="who">' + esc(userName()) + (cloudOnly() ? '<small>Tryb chmurowy</small>' : '') + '</span>' +
+'<span class="who" id="stProfile" role="button" tabindex="0" style="cursor:pointer" data-tip="Szybkie akcje profilu">' + esc(userName()) + (cloudOnly() ? '<small>Tryb chmurowy</small>' : '') + '</span>' +
     '<button class="foot-btn" id="stSettings" data-tip="Ustawienia">' + gl('sliders', 18) + '</button>' +
     '<button class="foot-btn" id="stPower" data-tip="Zasilanie">' + gl('power', 18) + '</button></div>';
 
@@ -8286,12 +8286,13 @@ function renderStart() {
     if (e.key === 'Enter') { const f = $('.st-row,.st-tile', scroll); if (f) f.click(); }
   };
   $('#stSettings').onclick = () => { closeStart(); openSettings(); };
+(function(){var w=$('#stProfile');if(!w)return;w.onclick=function(e){e.stopPropagation();profileQuickPanel()};w.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();profileQuickPanel()}}})();
   $('#stPower').onclick = e => {
     e.stopPropagation();
     const r = e.currentTarget.getBoundingClientRect();
     openMenu([
       { label: 'Uruchom ponownie', icon: 'refresh', action: () => { closeStart(); shutdownScreen('restart'); } },
-      { label: 'Zamknij', icon: 'power', action: () => { closeStart(); shutdownScreen('off'); } }
+      {label:'Wyloguj',icon:'lock',action:function(){closeStart();logout()}},{ label: 'Zamknij', icon: 'power', action: () => { closeStart(); shutdownScreen('off'); } }
     ], r.left - 150, r.top - 92);
   };
 }
@@ -9390,7 +9391,7 @@ n.pos = { c: clamp(p.c, 0, G.cols - 1), r: clamp(p.r, 0, G.rows - 1) };
         state.settings.drive.autoLoginLock = true;
       } else {
         state.settings.drive.autoLoginLock = false;
-      }
+      }try{clearIdentity()}catch(e){}
 
       for (const id in state.apps) {
         const a = state.apps[id];
@@ -9701,6 +9702,250 @@ try{tbSync();if(ch){save();renderDesktop()}}catch(e){}});
 window.__pulpitosStore={v:3,open:open};
 })();
 /* === /PULPITOS STORE v3 === */
+/* === PULPITOS 1.16 === */
+(function(){
+'use strict';
+var CSS=`
+.plst{display:flex;flex-direction:column;height:100%;background:linear-gradient(165deg,#151f38,#0a1020);color:#eef5ff}
+.plst-h{flex:none;display:flex;gap:13px;align-items:center;padding:15px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
+.plst-art{width:64px;height:64px;border-radius:13px;flex:none;display:flex;align-items:center;justify-content:center;background:linear-gradient(140deg,#7c5cff,#ff4cb8)}
+.plst-t{flex:1;min-width:0}
+.plst-t b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.plst-t i{font-style:normal;font-size:11.5px;color:#9caac1;display:block;margin-top:2px}
+.plst-seek{flex:none;display:flex;align-items:center;gap:9px;padding:0 16px 8px;font-family:Consolas,monospace;font-size:11px;color:#9caac1}
+.plst-seek input{flex:1}
+.plst-c{flex:none;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 16px 12px;flex-wrap:wrap}
+.plst-b{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18);color:#eef5ff;cursor:pointer}
+.plst-b:hover{background:rgba(255,255,255,.18)}
+.plst-b.on{background:rgba(76,194,255,.26);border-color:rgba(76,194,255,.55);color:#4cc2ff}
+.plst-b.big{width:52px;height:52px;background:linear-gradient(135deg,#4cc2ff,#7c5cff);color:#06111e;border:0}
+.plst-l{flex:1;overflow-y:auto;padding:6px 10px 12px;border-top:1px solid rgba(255,255,255,.1)}
+.plst-r{display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border-radius:9px;text-align:left;font-size:12.5px;color:#9caac1;background:none;border:0;cursor:pointer;font-family:inherit}
+.plst-r:hover{background:rgba(255,255,255,.09)}
+.plst-r.on{background:rgba(76,194,255,.2);color:#eef5ff}
+.plst-r .n{width:22px;text-align:right;font-family:Consolas,monospace;font-size:11px;color:#6a798f}
+.plst-r .t{flex:1;min-width:0}
+.plst-r b{display:block;font-weight:600;color:#eef5ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.plst-r i{font-style:normal;font-size:10.5px}
+.plst-empty{padding:34px 18px;text-align:center;color:#6a798f}
+`;
+function S(){return state}
+function ready(fn){var t=0;(function w(){
+try{if(S()&&S().nodes&&S().settings)return fn()}catch(e){}
+if(t++>240)return;setTimeout(w,50)})()}
+
+/* ---- tożsamość lokalna ---- */
+clearIdentity=function(){
+var s=S();if(!s||!s.settings)return;
+s.settings.account={name:'',override:false,avatar:null,google:{name:'',email:'',picture:''}};
+if(s.settings.drive){s.settings.drive.lastEmail='';s.settings.drive.connected=false;s.settings.drive.autoLogin=false}
+var D=Drive;
+if(D){D.token=null;D.expiry=0;D.info=null;D.tc=null;D.rootId=null;D._silentTried=false;D.grantedScope='';
+if(D.setSt)try{D.setSt(s.settings.drive&&s.settings.drive.mode==='google'?'idle':'demo')}catch(e){}}
+try{tbSync()}catch(e){}
+try{bus.emit('settings',{account:true})}catch(e){}};
+
+/* ---- appdata: trwały katalog + pewny odczyt ---- */
+function ensureAppDataDir(appId){
+var s=S(),D=DIRS,a=s.apps[appId];if(!a)return null;
+var all=function(){return Object.keys(s.nodes).map(function(k){return s.nodes[k]})};
+var n=all().filter(function(x){return x.type==='folder'&&x.app===appId&&x.parent===D.appdata&&!x.trashed})[0]
+||all().filter(function(x){return x.id==='appdata-'+appId&&x.type==='folder'})[0];
+if(!n){n={id:'appdata-'+appId,type:'folder',app:appId,name:uniqueName(D.appdata,a.name),
+iconPreset:'folderCode',parent:D.appdata,origin:'local',created:Date.now(),modified:Date.now()};
+s.nodes[n.id]=n;commit('appdata',n.id);return n.id}
+if(n.parent!==D.appdata||n.trashed){n.parent=D.appdata;delete n.trashed;commit('appdata',n.id)}
+return n.id}
+ensureAppDataDir=ensureAppDataDir;
+appStateGuard=function(p,ctx){
+var s=S(),appId=ctx&&ctx.app&&ctx.app.id;if(!appId||!s.apps[appId])return null;
+var dir=ensureAppDataDir(appId);if(!dir)return null;
+if(p&&p.value!==undefined)return null;
+var key=String((p&&p.key)||'state').replace(/[\\/:*?"<>|]/g,'_'),fn=key+'.json';
+var all=Object.keys(s.nodes).map(function(k){return s.nodes[k]});
+var hit=all.filter(function(n){return n.type==='text'&&n.name===fn&&n.parent===dir&&!n.trashed})[0]
+||all.filter(function(n){return n.type==='text'&&n.name===fn&&n.app===appId&&!n.trashed})[0];
+if(!hit){var stray=all.filter(function(n){return n.type==='text'&&n.name===fn&&!n.trashed&&
+(n.parent===DESK||n.parent===DIRS.documents||n.parent===DIRS.downloads)})[0];
+if(stray){stray.parent=dir;stray.app=appId;delete stray.pos;hit=stray;commit('appdata-repair',stray.id)}}
+var raw=hit?hit.content:null,json=null;
+if(raw!=null){try{json=JSON.parse(raw)}catch(e){}}
+return{value:raw,json:json,exists:!!hit,key:key}};
+
+/* ---- blokada przywracania usuniętych aplikacji ---- */
+markAppDeleted=function(a){
+var s=S();if(!s||!a)return;s.appTombNames=s.appTombNames||{};
+try{s.appTombNames[appFileName(a.name).toLowerCase()]=Date.now()}catch(e){}
+if(a.driveId){s.driveTombstones=s.driveTombstones||{};s.driveTombstones[a.driveId]=Date.now()}};
+appDeleted=function(f){
+var s=S();if(!s||!f)return false;
+var pid=f.appProperties&&f.appProperties.pulpitosAppId;
+if(s.driveTombstones&&s.driveTombstones[f.id])return true;
+if(pid&&s.appTombstones&&s.appTombstones[pid])return true;
+if(s.appTombNames&&s.appTombNames[String(f.name||'').toLowerCase()])return true;
+return false};
+
+/* ---- szybkie akcje profilu ---- */
+profileQuickPanel=function(){
+try{closeStart()}catch(e){}
+try{closePopups()}catch(e){}
+var s=S(),a=(s.settings&&s.settings.account)||{google:{}},g=a.google||{};
+var anchor=$('#acctChip')||$('#startBtn');
+if(!anchor)return;
+var p=openPopover(
+'<div class="poph">'+avatarHTML(30)+' '+esc(userName())+'</div>'+
+'<div class="popr"><span>Konto Google</span><b>'+esc(g.email||'nie połączono')+'</b></div>'+
+'<div class="popr"><span>Nazwa</span><b>'+(a.override?'własna':'z konta Google')+'</b></div>'+
+'<div class="popr"><span>Tryb chmurowy</span><b>'+(cloudOnly()?'włączony':'wyłączony')+'</b></div>'+
+'<div class="popr"><span>Auto-logowanie</span><b>'+(s.settings.drive.autoLogin?'włączone':'wyłączone')+'</b></div>'+
+'<div style="display:grid;gap:7px;margin-top:12px">'+
+'<button class="btn pri" id="pqSet">'+gl('user',13)+' Pełne ustawienia profilu</button>'+
+'<div style="display:flex;gap:7px"><button class="btn" id="pqSync" style="flex:1">'+gl('refresh',13)+' Synchronizuj</button>'+
+'<button class="btn" id="pqConn" style="flex:1">'+gl('cloud',13)+(g.email?' Rozłącz':' Połącz')+'</button></div>'+
+'<button class="btn dgr" id="pqOut">'+gl('lock',13)+' Wyloguj i zamknij system</button></div>',anchor,320);
+$('#pqSet',p).onclick=function(){closePopups();openSettings('account')};
+$('#pqSync',p).onclick=function(){closePopups();Drive.fullSync(true)};
+$('#pqConn',p).onclick=function(){closePopups();
+if(g.email)Drive.disconnect();else connectDialog()};
+$('#pqOut',p).onclick=function(){closePopups();logout()}};
+
+/* ---- wylogowanie ---- */
+logout=function(){
+confirmDlg('Wylogować i zamknąć system?\n\n'+
+'• dane zostaną zsynchronizowane, jeśli konto jest połączone\n'+
+'• lokalny profil, adres e-mail i pamięć podręczna zostaną usunięte\n'+
+'• sesja Google zostanie odwołana\n\n'+
+'Pliki na Dysku Google pozostaną nienaruszone.',
+{title:'Wyloguj',danger:true,okLabel:'Wyloguj i zamknij',icon:'lock'}).then(function(ok){
+if(!ok)return;
+var D=Drive;
+var fin=function(){
+try{if(D&&D.token&&window.google&&google.accounts.oauth2)google.accounts.oauth2.revoke(D.token,function(){})}catch(e){}
+try{clearIdentity()}catch(e){}
+Promise.resolve(purgeLocal()).then(function(){
+try{saveNow()}catch(e){}
+shutdownScreen('off')},function(){shutdownScreen('off')})};
+if(cloudOk()){
+Promise.resolve(cloudOnly()?cloudShutdownSync():D.fullSync(false)).then(fin,fin)}
+else fin()})};
+
+/* ---- usuwanie danych z Dysku Google ---- */
+wipeDriveData=function(){
+var D=Drive;
+if(!cloudOk()){toast('Najpierw połącz Dysk Google.',{type:'warn'});return}
+if(typeof D.req!=='function'){toast('Moduł Dysku Google nie jest wczytany.',{type:'warn'});return}
+var body=h('div');
+body.innerHTML='<div class="hint" style="margin-bottom:10px">Usuwany jest <b>wyłącznie folder PulpitOS</b> na Twoim Dysku Google. Pozostałe pliki na Dysku nie zostaną naruszone.</div>'+
+'<div class="hint" style="margin-bottom:10px">Zawartość folderu: kopia zapasowa C:, pulpitos-config.json, folder Aplikacje, tapeta.</div>'+
+'<label class="rr"><input type="checkbox" id="wdPerm">Usuń trwale (z pominięciem kosza Google)</label>'+
+'<div class="hint wn" style="margin-top:10px">Tej operacji nie można cofnąć z poziomu PulpitOS. Dane lokalne pozostają, dopóki ich nie wyczyścisz.</div>';
+dlg({title:'Usuń dane z Dysku Google',icon:'trash',body:body,width:520,
+buttons:[{label:'Anuluj'},{label:'Usuń dane z Drive',danger:true,keep:true,onClick:function(d){
+var perm=$('#wdPerm',body).checked;d.close();
+toast('Usuwanie folderu PulpitOS z Dysku Google…',{timeout:4000});
+D.ensureMirrorRoot().then(function(root){
+return perm
+?D.req('https://www.googleapis.com/drive/v3/files/'+root,{method:'DELETE'})
+:D.req('https://www.googleapis.com/drive/v3/files/'+root,{method:'PATCH',
+headers:{'Content-Type':'application/json'},body:'{"trashed":true}'})})
+.then(function(){
+try{D.mirrorRootId=null;D.appsFolderId=null;D.configFileId=null}catch(e){}
+var s=S();s.cfgHash=null;s.cfgPushedAt=0;
+save();bus.emit('drive');
+toast(perm?'Folder PulpitOS usunięty trwale z Dysku Google.':'Folder PulpitOS przeniesiony do kosza Google.',{type:'success',timeout:7000})})
+.catch(function(e){toast('Nie usunięto danych z Drive: '+e.message,{type:'error',timeout:9000})})}}]})};
+
+/* ---- playlista folderu ---- */
+folderAudio=function(dir){
+return children(dir).filter(function(n){
+return n.type!=='folder'&&/^audio\//.test(n.mime||mimeOf(n.name))})
+.sort(function(a,b){return a.name.localeCompare(b.name,'pl')})};
+playFolderPlaylist=function(dir){
+var list=folderAudio(dir);
+if(!list.length){toast('W tym folderze nie ma plików audio.',{type:'warn'});return}
+var folder=N(dir),fname=(folder&&folder.name)||'Folder';
+var win=createWindow(Object.assign({key:'plst:'+dir,appId:'plst',kind:'playlist',icon:'music',
+title:'Playlista — '+fname,onReuse:function(w){if(w.api)w.api.refresh()},
+build:function(w){buildPlaylist(w,dir,list,fname)}},
+winOpts('music',{width:660,height:540,minW:360,minH:320})));
+return win};
+function buildPlaylist(win,dir,list,fname){
+var idx=-1,url=null,shuffle=false,repeat=0;
+var audio=document.createElement('audio');
+audio.muted=!S().settings.sound;audio.volume=(S().settings.volume!=null?S().settings.volume:70)/100;
+if(Media)Media.audio=audio;
+var root=h('div','plst',
+'<div class="plst-h"><div class="plst-art">'+gl('music',26)+'</div>'+
+'<div class="plst-t"><b class="tt">Nic nie jest odtwarzane</b><i class="sub">'+esc(fname)+' • '+list.length+' utworów</i></div></div>'+
+'<div class="plst-seek"><span class="cur">0:00</span><input type="range" min="0" max="1000" value="0"><span class="dur">0:00</span></div>'+
+'<div class="plst-c"><button class="plst-b sh" data-tip="Losowo">'+gl('shuffle',16)+'</button>'+
+'<button class="plst-b pv" data-tip="Poprzedni">'+gl('prev',17)+'</button>'+
+'<button class="plst-b big pl" data-tip="Odtwórz / pauza">'+gl('play',20)+'</button>'+
+'<button class="plst-b nx" data-tip="Następny">'+gl('next',17)+'</button>'+
+'<button class="plst-b rp" data-tip="Powtarzaj">'+gl('repeat',16)+'</button>'+
+'<span style="display:flex;align-items:center;gap:6px;color:#9caac1">'+gl('vol',14)+
+'<input type="range" class="vol" min="0" max="100" value="'+(S().settings.volume!=null?S().settings.volume:70)+'" style="width:84px"></span></div>'+
+'<div class="plst-l"></div>');
+win.body.append(root);
+var T=$('.tt',root),SUB=$('.sub',root),cur=$('.cur',root),dur=$('.dur',root),
+seek=$('.plst-seek input',root),pl=$('.pl',root),L=$('.plst-l',root);
+function mmss(v){if(!isFinite(v)||v<0)v=0;return Math.floor(v/60)+':'+String(Math.floor(v%60)).padStart(2,'0')}
+function paintBtns(){$('.sh',root).classList.toggle('on',shuffle);
+$('.rp',root).classList.toggle('on',repeat>0);
+pl.innerHTML=gl(audio.paused?'play':'pause',20)}
+function paintList(){
+L.innerHTML=list.length?list.map(function(n,i){
+return '<button class="plst-r'+(i===idx?' on':'')+'" data-i="'+i+'"><span class="n">'+(i+1)+'</span>'+
+'<span class="t"><b>'+esc(n.name)+'</b><i>'+fmtSize(n.size)+'</i></span></button>'}).join('')
+:'<div class="plst-empty">Folder nie zawiera już plików audio.</div>';
+$$('.plst-r',L).forEach(function(b){b.onclick=function(){load(+b.dataset.i,true)}})}
+function load(i,auto){
+if(i<0||i>=list.length)return;idx=i;var n=list[i];
+nodeBlob(n).then(function(b){
+if(!b){toast('Brak danych: '+n.name,{type:'warn'});return}
+if(url)rmURL(url);
+url=mkURL(b);audio.src=url;
+T.textContent=n.name;SUB.textContent=fname+' • '+(i+1)+' z '+list.length;
+win.setTitle(n.name+' — Playlista');
+if(auto)audio.play().catch(function(){});
+paintList();paintBtns()})}
+function step(d){if(!list.length)return;
+if(shuffle){load(Math.floor(Math.random()*list.length),true);return}
+var i=idx+d;if(i>=list.length)i=0;if(i<0)i=list.length-1;load(i,true)}
+audio.ontimeupdate=function(){cur.textContent=mmss(audio.currentTime);dur.textContent=mmss(audio.duration);
+if(audio.duration)seek.value=Math.round(audio.currentTime/audio.duration*1000)};
+audio.onended=function(){if(repeat===2){audio.currentTime=0;audio.play()}
+else if(repeat===1||idx<list.length-1||shuffle)step(1);else paintBtns()};
+audio.onplay=paintBtns;audio.onpause=paintBtns;
+seek.oninput=function(){if(audio.duration)audio.currentTime=seek.value/1000*audio.duration};
+pl.onclick=function(){if(idx<0){load(0,true);return}audio.paused?audio.play():audio.pause()};
+$('.pv',root).onclick=function(){step(-1)};
+$('.nx',root).onclick=function(){step(1)};
+$('.sh',root).onclick=function(){shuffle=!shuffle;paintBtns()};
+$('.rp',root).onclick=function(){repeat=(repeat+1)%3;paintBtns()};
+$('.vol',root).oninput=function(){audio.volume=this.value/100};
+win.api={refresh:function(){list=folderAudio(dir);if(idx>=list.length)idx=-1;paintList()}};
+win.cleanup.push(function(){audio.pause();if(url)rmURL(url);
+if(Media&&Media.audio===audio)Media.audio=null});
+win.cleanup.push(bus.on('fs',function(){win.api.refresh()}));
+paintList();paintBtns();load(0,false)}
+
+/* ---- skróty do dokumentów prawnych + CSS ---- */
+ready(function(){
+var s=S(),D=DIRS,ch=false;
+[['doc-privacy','Prywatność — PulpitOS','https://wilczur7.github.io/pulpitos/privacy.html','shield'],
+['doc-terms','Regulamin — PulpitOS','https://wilczur7.github.io/pulpitos/terms.html','docs']]
+.forEach(function(t){
+if(s.nodes[t[0]]){if(s.nodes[t[0]].trashed){delete s.nodes[t[0]].trashed;s.nodes[t[0]].parent=D.documents;ch=true}return}
+s.nodes[t[0]]={id:t[0],type:'shortcut',name:t[1],parent:D.documents,origin:'local',
+target:{url:t[2]},mime:'text/uri-list',iconPreset:ICO[t[3]]?t[3]:'globe',
+created:Date.now(),modified:Date.now()};ch=true});
+if(ch)try{commit('docs-links')}catch(e){}
+var id='pulpitos-116-css',o=document.getElementById(id);
+if(o){o.textContent=CSS}else{var st=document.createElement('style');st.id=id;st.textContent=CSS;document.head.appendChild(st)}});
+window.__pulpitos116=true;
+})();
+/* === /PULPITOS 1.16 === */
 })();
 </script>
 </body>
